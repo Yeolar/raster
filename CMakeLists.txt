@@ -24,11 +24,9 @@ find_package(CURL REQUIRED)
 find_package(GFlags REQUIRED)
 find_package(ICU REQUIRED)
 find_package(LevelDB REQUIRED)
-find_package(LibEvent REQUIRED)
 find_package(Libmemcached REQUIRED)
 find_package(MySQL REQUIRED)
 find_package(OpenSSL REQUIRED)
-find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 
 # Optional packages
