@@ -184,5 +184,38 @@ inline bool exitTask() {
   return false;
 }
 
+inline runTask(Task* task) {
+  if (task) {
+    ThreadTask::update(task);
+    task->setThreadContext(&thread_ctx);
+
+    RDDLOG(V2) << "run task("
+      << (void*)task << ", " << task->statusLabel() << ")";
+
+    uint64_t t0 = timestampNow();
+    task->execute();
+    uint64_t tp = timePassed(t0);
+
+    RDDMON_AVG("taskcost", tp / 1000);
+    RDDMON_MAX("taskcost.max", tp / 1000);
+
+    RDDLOG(V2) << "finish task("
+      << (void*)task << ", " << task->statusLabel() << ")";
+
+    switch (task->status()) {
+      case Task::RUNABLE:
+        pool_->addTask(task);
+        break;
+      case Task::BLOCK:
+        task->sweepBlockedCallback();
+        break;
+      case Task::EXIT:
+      default:
+        delete task;
+        break;
+    }
+  }
+}
+
 }
 

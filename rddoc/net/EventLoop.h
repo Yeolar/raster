@@ -19,13 +19,12 @@ class Channel;
 
 class EventLoop {
 public:
-  EventLoop(Actor* actor,
-            int poll_size = Poll::MAX_EVENTS,
+  EventLoop(int poll_size = Poll::MAX_EVENTS,
             int poll_timeout = 1000/* 1s */)
-    : actor_(actor)
-    , poll_(poll_size)
+    : poll_(poll_size)
     , timeout_(poll_timeout)
-    , running_(false) {
+    , running_(false)
+    , handler_(this) {
     poll_.add(waker_.fd(), EPOLLIN, new Event(&waker_));
   }
 
@@ -35,7 +34,7 @@ public:
   void stop();
 
   void addEvent(Event* event);
-  void addCallback(const PtrCallback& callback, void* ptr);
+  void addCallback(const VoidCallback& callback);
 
 private:
   void dispatchEvent(Event* event);
@@ -43,22 +42,12 @@ private:
   void addReadEvent(Event* event);
   void addWriteEvent(Event* event);
   void removeEvent(Event* event);
-
-  void handleEvent(int i);
-
-  void handleListen(Event* event);
-  void handleConnect(Event* event);
-  void handleRead(Event* event);
-  void handleWrite(Event* event);
-  void handleComplete(Event* event);
-  void handleTimeout(Event* event);
-  void handleError(Event* event);
+  void restartEvent(Event* event);
 
   void checkTimeoutEvent();
 
   void closePeer(Event* event);
 
-  Actor* actor_;
   Poll poll_;
   int timeout_;
   std::atomic<bool> running_;
@@ -66,9 +55,11 @@ private:
   std::vector<int> listen_fds_;
   Waker waker_;
 
+  EventHandler handler_;
+
   std::vector<Event*> events_;
   Lock event_lock_;
-  std::vector<std::pair<PtrCallback, void*>> callbacks_;
+  std::vector<VoidCallback> callbacks_;
   Lock callback_lock_;
 
   TimedHeap<Event> deadline_heap_;

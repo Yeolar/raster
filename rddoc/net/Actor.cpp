@@ -168,6 +168,8 @@ void Actor::forwardEvent(Event* event, const Peer& peer) {
 }
 
 void Actor::monitoring() const {
+  RDDMON_AVG("totaltask", Task::count());
+  RDDMON_AVG("connection", Socket::count());
   for (auto& kv : pools_) {
     RDDMON_AVG(to<std::string>("freethread.pool-", kv.first),
                kv.second->freeThreadCount());
