@@ -9,6 +9,7 @@ set(RDD_UTIL_TEST_SRCS
     HashTest.cpp
     LoggingTest.cpp
     ProducerConsumerVectorTest.cpp
+    ReflectObjectTest.cpp
     ShaTest.cpp
     SingletonTest.cpp
     StringTest.cpp

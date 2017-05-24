@@ -4,89 +4,90 @@
 
 #include "rddoc/plugins/leveldb/LevelDB.h"
 #include "rddoc/util/Logging.h"
+#include "rddoc/util/ScopeGuard.h"
 
 namespace rdd {
 
 // https://rawgit.com/google/leveldb/master/doc/index.html
 
-bool LevelDB::Destroy(const fs::path& dir) {
-  leveldb::Status s = leveldb::DestroyDB(dir.string(), leveldb::Options());
+LevelDB::Status LevelDB::Destroy(const fs::path& dir) {
+  LevelDB::Status s = leveldb::DestroyDB(dir.string(), leveldb::Options());
   if (!s.ok()) {
     RDDLOG(ERROR) << "leveldb: destroy " << dir << " error: " << s.ToString();
-    return false;
   }
-  return true;
+  return s;
 }
 
-bool LevelDB::open(const fs::path& dir) {
+LevelDB::Status LevelDB::open(const fs::path& dir) {
   leveldb::Options opt;
   opt.create_if_missing = true;
-  leveldb::Status s = leveldb::DB::Open(opt, dir.string(), &db_);
+  LevelDB::Status s = leveldb::DB::Open(opt, dir.string(), &db_);
   if (!s.ok()) {
     RDDLOG(ERROR) << "leveldb: open " << dir << " error: " << s.ToString();
-    return false;
   }
-  return true;
+  return s;
 }
 
-bool LevelDB::Get(const std::string& key, std::string& value) {
-  if (!db_) {
-    RDDLOG(ERROR) << "leveldb: db not opened";
-    return false;
+LevelDB::Status LevelDB::foreach(const IterFunc& func) {
+  RDDCHECK(db_) << "leveldb: db not opened";
+  auto it = iterator();
+  SCOPE_EXIT {
+    delete it;
+  };
+  for (it->SeekToFirst(); it->Valid(); it->Next()) {
+    func(it);
   }
-  leveldb::Status s = db_->Get(leveldb::ReadOptions(), key, &value);
+  LevelDB::Status s = it->status();
   if (!s.ok()) {
-    RDDLOG(V3) << "leveldb: get (" << key << ")" << " error: " << s.ToString();
-    return false;
+    RDDLOG(ERROR) << "leveldb: iterate error: " << s.ToString();
   }
-  return true;
+  return s;
 }
 
-bool LevelDB::Put(const std::string& key, const std::string& value, bool sync) {
-  if (!db_) {
-    RDDLOG(ERROR) << "leveldb: db not opened";
-    return false;
-  }
-  leveldb::WriteOptions opt;
-  opt.sync = sync;
-  leveldb::Status s = db_->Put(opt, key, value);
+LevelDB::Status LevelDB::Get(const std::string& key, std::string& value) {
+  RDDCHECK(db_) << "leveldb: db not opened";
+  LevelDB::Status s = db_->Get(leveldb::ReadOptions(), key, &value);
   if (!s.ok()) {
-    RDDLOG(V3) << "leveldb: put (" << key << "," << value << ")"
+    RDDLOG(ERROR) << "leveldb: get (" << key << ")"
       << " error: " << s.ToString();
-    return false;
   }
-  return true;
+  return s;
 }
 
-bool LevelDB::Delete(const std::string& key, bool sync) {
-  if (!db_) {
-    RDDLOG(ERROR) << "leveldb: db not opened";
-    return false;
-  }
+LevelDB::Status LevelDB::Put(const std::string& key, const std::string& value,
+                             bool sync) {
+  RDDCHECK(db_) << "leveldb: db not opened";
   leveldb::WriteOptions opt;
   opt.sync = sync;
-  leveldb::Status s = db_->Delete(opt, key);
+  LevelDB::Status s = db_->Put(opt, key, value);
   if (!s.ok()) {
-    RDDLOG(V3) << "leveldb: delete (" << key << ")"
+    RDDLOG(ERROR) << "leveldb: put (" << key << "," << value << ")"
       << " error: " << s.ToString();
-    return false;
   }
-  return true;
+  return s;
 }
 
-bool LevelDB::Write(Batch* batch, bool sync) {
-  if (!db_) {
-    RDDLOG(ERROR) << "leveldb: db not opened";
-    return false;
-  }
+LevelDB::Status LevelDB::Delete(const std::string& key, bool sync) {
+  RDDCHECK(db_) << "leveldb: db not opened";
   leveldb::WriteOptions opt;
   opt.sync = sync;
-  leveldb::Status s = db_->Write(opt, batch);
+  LevelDB::Status s = db_->Delete(opt, key);
   if (!s.ok()) {
-    RDDLOG(V3) << "leveldb: update batch" << " error: " << s.ToString();
-    return false;
+    RDDLOG(ERROR) << "leveldb: delete (" << key << ")"
+      << " error: " << s.ToString();
   }
-  return true;
+  return s;
+}
+
+LevelDB::Status LevelDB::Write(Batch* batch, bool sync) {
+  RDDCHECK(db_) << "leveldb: db not opened";
+  leveldb::WriteOptions opt;
+  opt.sync = sync;
+  LevelDB::Status s = db_->Write(opt, batch);
+  if (!s.ok()) {
+    RDDLOG(ERROR) << "leveldb: update batch error: " << s.ToString();
+  }
+  return s;
 }
 
 }

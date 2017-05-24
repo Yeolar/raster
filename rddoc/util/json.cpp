@@ -695,7 +695,7 @@ void escapeString(
       // string-escaping instead of two separate passes
 
       // as the encoding progresses, q will stay at or ahead of p
-      RDDCHECK(q >= p);
+      RDDCHECK_GE(q, p);
 
       // as p catches up with q, move q forward
       if (q == p) {

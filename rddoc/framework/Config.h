@@ -15,6 +15,7 @@ void configActor(const dynamic& j);
 void configTaskThreadPool(const dynamic& j);
 void configNetCopy(const dynamic& j);
 void configMonitor(const dynamic& j);
+void configJobGraph(const dynamic& j);
 
 void config(const char* name, std::initializer_list<ConfigTask> confs);
 

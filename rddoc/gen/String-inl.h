@@ -137,7 +137,7 @@ bool StreamSplitter<Callback>::operator()(StringPiece in) {
     if (found) {
       uint64_t num_to_add = prefix.size();
       if (maxLength_) {
-        RDDCHECK(buffer_.length() < maxLength_);
+        RDDCHECK_LT(buffer_.length(), maxLength_);
         // Consume as much of prefix as possible without exceeding maxLength_
         num_to_add = std::min(maxLength_ - buffer_.length(), num_to_add);
       }

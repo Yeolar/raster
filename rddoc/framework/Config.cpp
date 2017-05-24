@@ -9,7 +9,9 @@
 #include "rddoc/framework/Config.h"
 #include "rddoc/io/FileUtil.h"
 #include "rddoc/net/Actor.h"
+#include "rddoc/parallel/JobHandler.h"
 #include "rddoc/plugins/monitor/Monitor.h"
+#include "rddoc/util/DAG.h"
 #include "rddoc/util/Logging.h"
 
 namespace rdd {
@@ -100,6 +102,21 @@ void configMonitor(const dynamic& j) {
   if (json::get(j, "open", false)) {
     Singleton<Monitor>::get()->setPrefix(json::get(j, "prefix", "rdd"));
     Singleton<Monitor>::get()->start();
+  }
+}
+
+void configJobGraph(const dynamic& j) {
+  if (!j.isArray()) {
+    RDDLOG(FATAL) << "config job.graph error: " << j;
+    return;
+  }
+  RDDLOG(INFO) << "config job.graph";
+  for (auto& i : j) {
+    auto name = json::get(i, "name", "");
+    int id = json::get(i, "id", 0);
+    auto next = json::getArray<int>(i, "next");
+    Singleton<JobHandlerManager>::get()->addJobHandler(id, name);
+    Singleton<DAG<int>>::get()->addNode(id, next);
   }
 }
 

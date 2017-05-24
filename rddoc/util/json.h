@@ -156,6 +156,15 @@ namespace json {
     return get<std::string>(j, key, dflt);
   }
 
+  template <class T>
+  inline std::vector<T> getArray(const dynamic& j, const std::string& key) {
+    std::vector<T> v;
+    for (auto& i : j.at(key)) {
+      v.push_back(jto<T>(i));
+    }
+    return v;
+  }
+
   inline dynamic resolve(const dynamic& j, const std::string& path) {
     std::vector<StringPiece> keys;
     split('.', path, keys);

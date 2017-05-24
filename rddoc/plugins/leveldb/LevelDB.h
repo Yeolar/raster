@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <memory>
+#include <functional>
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
 #include "rddoc/io/FSUtil.h"
@@ -15,10 +15,12 @@ namespace rdd {
 
 class LevelDB {
 public:
-  typedef leveldb::Iterator Iterator;
+  typedef leveldb::Status Status;
   typedef leveldb::WriteBatch Batch;
+  typedef leveldb::Iterator Iterator;
+  typedef std::function<void(Iterator*)> IterFunc;
 
-  static bool Destroy(const fs::path& dir);
+  static Status Destroy(const fs::path& dir);
 
   LevelDB() : db_(nullptr) {}
 
@@ -26,7 +28,7 @@ public:
     close();
   }
 
-  bool open(const fs::path& dir);
+  Status open(const fs::path& dir);
 
   void close() {
     if (db_ != nullptr) {
@@ -43,10 +45,16 @@ public:
     return db_->NewIterator(leveldb::ReadOptions());
   }
 
-  bool Get(const std::string& key, std::string& value);
-  bool Put(const std::string& key, const std::string& value, bool sync = false);
-  bool Delete(const std::string& key, bool sync = false);
-  bool Write(Batch* batch, bool sync = true);
+  Status foreach(const IterFunc& func);
+
+  Status Get(const std::string& key, std::string& value);
+
+  Status Put(const std::string& key, const std::string& value,
+             bool sync = false);
+
+  Status Delete(const std::string& key, bool sync = false);
+
+  Status Write(Batch* batch, bool sync = true);
 
 private:
   leveldb::DB* db_;

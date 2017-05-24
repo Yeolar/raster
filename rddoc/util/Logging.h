@@ -70,23 +70,29 @@ public:
 
 #define RDDCHECK(condition) \
   (condition) ? (void)0 : RDDLOG(FATAL) << "Check " #condition " failed. "
+#define RDDCHECK_LT(a, b) RDDCHECK((a) <  (b))
+#define RDDCHECK_LE(a, b) RDDCHECK((a) <= (b))
+#define RDDCHECK_GT(a, b) RDDCHECK((a) >  (b))
+#define RDDCHECK_GE(a, b) RDDCHECK((a) >= (b))
+#define RDDCHECK_EQ(a, b) RDDCHECK((a) == (b))
+#define RDDCHECK_NE(a, b) RDDCHECK((a) != (b))
 
 #ifndef NDEBUG
 #define DCHECK(condition) RDDCHECK(condition)
-#define DCHECK_LT(a, b)   RDDCHECK((a) <  (b))
-#define DCHECK_LE(a, b)   RDDCHECK((a) <= (b))
-#define DCHECK_GT(a, b)   RDDCHECK((a) >  (b))
-#define DCHECK_GE(a, b)   RDDCHECK((a) >= (b))
-#define DCHECK_EQ(a, b)   RDDCHECK((a) == (b))
-#define DCHECK_NE(a, b)   RDDCHECK((a) != (b))
+#define DCHECK_LT(a, b)   RDDCHECK_LT(a, b)
+#define DCHECK_LE(a, b)   RDDCHECK_LE(a, b)
+#define DCHECK_GT(a, b)   RDDCHECK_GT(a, b)
+#define DCHECK_GE(a, b)   RDDCHECK_GE(a, b)
+#define DCHECK_EQ(a, b)   RDDCHECK_EQ(a, b)
+#define DCHECK_NE(a, b)   RDDCHECK_NE(a, b)
 #else
 #define DCHECK(condition) while (false) RDDCHECK(condition)
-#define DCHECK_LT(a, b)   while (false) RDDCHECK((a) <  (b))
-#define DCHECK_LE(a, b)   while (false) RDDCHECK((a) <= (b))
-#define DCHECK_GT(a, b)   while (false) RDDCHECK((a) >  (b))
-#define DCHECK_GE(a, b)   while (false) RDDCHECK((a) >= (b))
-#define DCHECK_EQ(a, b)   while (false) RDDCHECK((a) == (b))
-#define DCHECK_NE(a, b)   while (false) RDDCHECK((a) != (b))
+#define DCHECK_LT(a, b)   while (false) RDDCHECK_LT(a, b)
+#define DCHECK_LE(a, b)   while (false) RDDCHECK_LE(a, b)
+#define DCHECK_GT(a, b)   while (false) RDDCHECK_GT(a, b)
+#define DCHECK_GE(a, b)   while (false) RDDCHECK_GE(a, b)
+#define DCHECK_EQ(a, b)   while (false) RDDCHECK_EQ(a, b)
+#define DCHECK_NE(a, b)   while (false) RDDCHECK_NE(a, b)
 #endif
 
 namespace rdd {

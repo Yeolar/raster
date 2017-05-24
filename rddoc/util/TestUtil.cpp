@@ -57,7 +57,7 @@ TemporaryFile::TemporaryFile(StringPiece namePrefix,
 }
 
 const fs::path& TemporaryFile::path() const {
-  RDDCHECK(scope_ != Scope::UNLINK_IMMEDIATELY);
+  RDDCHECK_NE(scope_, Scope::UNLINK_IMMEDIATELY);
   DCHECK(!path_.empty());
   return path_;
 }

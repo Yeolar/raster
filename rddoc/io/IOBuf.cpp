@@ -140,7 +140,7 @@ void IOBuf::operator delete(void* ptr) {
 }
 
 void IOBuf::releaseStorage(HeapStorage* storage, uint16_t freeFlags) {
-  RDDCHECK(storage->prefix.magic == static_cast<uint16_t>(kHeapMagic));
+  RDDCHECK_EQ(storage->prefix.magic, static_cast<uint16_t>(kHeapMagic));
 
   // Use relaxed memory order here.  If we are unlucky and happen to get
   // out-of-date data the compare_exchange_weak() call below will catch

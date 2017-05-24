@@ -69,6 +69,6 @@ TEST(File, OwnsFd) {
 
 TEST(File, Release) {
   File in(STDOUT_FILENO, false);
-  RDDCHECK(STDOUT_FILENO == in.release());
-  RDDCHECK(-1 == in.release());
+  RDDCHECK_EQ(STDOUT_FILENO, in.release());
+  RDDCHECK_EQ(-1, in.release());
 }

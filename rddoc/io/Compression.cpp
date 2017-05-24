@@ -161,7 +161,7 @@ ZlibCodec::ZlibCodec(int level, CodecType type) : Codec(type) {
 
 std::unique_ptr<IOBuf> ZlibCodec::addOutputBuffer(z_stream* stream,
                                                   uint32_t length) {
-  RDDCHECK(stream->avail_out == 0);
+  RDDCHECK_EQ(stream->avail_out, 0);
 
   auto buf = IOBuf::create(length);
   buf->append(length);
@@ -256,7 +256,7 @@ std::unique_ptr<IOBuf> ZlibCodec::doCompress(const IOBuf* data) {
 
         rc = deflate(&stream, Z_NO_FLUSH);
 
-        RDDCHECK(rc == Z_OK) << stream.msg;
+        RDDCHECK_EQ(rc, Z_OK) << stream.msg;
       }
     }
   }
@@ -269,7 +269,7 @@ std::unique_ptr<IOBuf> ZlibCodec::doCompress(const IOBuf* data) {
     rc = deflate(&stream, Z_FINISH);
   } while (rc == Z_OK);
 
-  RDDCHECK(rc == Z_STREAM_END) << stream.msg;
+  RDDCHECK_EQ(rc, Z_STREAM_END) << stream.msg;
 
   out->prev()->trimEnd(stream.avail_out);
 
