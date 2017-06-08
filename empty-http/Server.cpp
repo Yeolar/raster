@@ -65,8 +65,7 @@ int main(int argc, char* argv[]) {
          {configActor, "actor"},
          {configTaskThreadPool, "thread"},
          {configNetCopy, "net.copy"},
-         {configMonitor, "monitor"},
-         {configJobGraph, "job.graph"}
+         {configMonitor, "monitor"}
          });
 
   RDDLOG(INFO) << "rdd start ... ^_^";

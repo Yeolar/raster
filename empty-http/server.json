@@ -38,10 +38,5 @@
   "monitor": {
     "open": false,
     "prefix": "empty"
-  },
-  "job": {
-    "graph": [
-      //{"name": "JobHandler", "id", 0, "next": []}
-    ]
   }
 }

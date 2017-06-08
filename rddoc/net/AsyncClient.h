@@ -15,36 +15,46 @@
  * AsyncClient and its inherit classes have 3 ways of usage:
  *  1. single async client
  *  2. multiple async client
- *  3. single async client by onFinish mode
+ *  3. single async client by callback mode
  */
 namespace rdd {
 
 class AsyncClient {
 public:
-  // if use onFinish, you should new the client
-  AsyncClient(const ClientOption& option, bool on_finish = false);
+  AsyncClient(const ClientOption& option);
 
   virtual ~AsyncClient() {
     close();
   }
 
+  void setKeepAlive() { keepalive_ = true; }
+  bool keepAlive() const { return keepalive_; }
+
+  // if use callback mode, you should new the client
+  void setCallbackMode() { callback_mode_ = true; }
+  bool callbackMode() const { return callback_mode_; }
+
   virtual bool connect();
-  virtual void onFinish();
+  virtual void callback();
   virtual void close();
 
   virtual bool connected() const {
     return event_ != nullptr;
   }
 
-  Event* event() const { return event_; }
+  Event* event() const { return event_.get(); }
 
 protected:
   virtual std::shared_ptr<Channel> makeChannel() = 0;
 
+  bool initConnection();
+  void freeConnection();
+
   Peer peer_;
   TimeoutOption timeout_opt_;
-  bool on_finish_;
-  Event* event_{nullptr};
+  bool keepalive_{false};
+  bool callback_mode_{false};
+  std::shared_ptr<Event> event_;
   std::shared_ptr<Channel> channel_;
 };
 

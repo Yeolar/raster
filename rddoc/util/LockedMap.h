@@ -46,6 +46,11 @@ public:
     return v;
   }
 
+  V operator[](const K& k) {
+    LockGuard guard(lock_);
+    return map_[k];
+  }
+
   size_t size() const {
     LockGuard guard(lock_);
     return map_.size();

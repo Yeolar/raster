@@ -25,7 +25,10 @@ void runEventTask(Event* event) {
 
 void runClientTask(AsyncClient* client) {
   yieldTask();
-  client->onFinish();
+  if (client->callbackMode()) {
+    client->callback();
+    delete client;
+  }
   exitTask();
 }
 

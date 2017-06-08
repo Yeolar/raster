@@ -5,11 +5,12 @@
 #pragma once
 
 #include <string>
+#include <boost/operators.hpp>
 #include "rddoc/util/String.h"
 
 namespace rdd {
 
-struct Peer {
+struct Peer : public boost::totally_ordered<Peer> {
   std::string host;
   int port{0};
 
@@ -25,6 +26,14 @@ struct Peer {
     return to<std::string>(host, ':', port);
   }
 };
+
+inline bool operator==(const Peer& lhs, const Peer& rhs) {
+  return lhs.host == rhs.host && lhs.port == rhs.port;
+}
+
+inline bool operator<(const Peer& lhs, const Peer& rhs) {
+  return lhs.port < rhs.port || (lhs.port == rhs.port && lhs.host < rhs.host);
+}
 
 struct TimeoutOption {
   uint64_t ctimeout{0};   // connect timeout

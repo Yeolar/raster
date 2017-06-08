@@ -43,6 +43,8 @@ public:
     return connect(peer.host, peer.port);
   }
 
+  bool connected();
+
   void close();
 
   int recv(void* buf, size_t n);
@@ -55,6 +57,7 @@ public:
   }
 
   bool setCloseExec();
+  bool setKeepAlive();
   bool setLinger(int timeout);
   bool setNonBlocking();
   bool setReuseAddr();

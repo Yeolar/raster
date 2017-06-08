@@ -11,34 +11,6 @@
 #include "rddoc/protocol/thrift/Encoding.h"
 #include "rddoc/protocol/thrift/Protocol.h"
 
-/*
- * onFinish mode:
- * (if you have a thrift TClient, and want to do some custom work)
- *
- *  class MyAsyncClient : public TAsyncClient<TClient> {
- *  public:
- *    MyAsyncClient(const ClientOption& option)
- *      : TAsyncClient<TClient>(option, true) {}  // use onFinish mode
- *
- *    virtual void onFinish() {
- *      Res res;
- *      recv(&TClient::recv_Func, res);
- *      doSomeWorkOnResult(res);  // do some custom work
- *      delete this;
- *    }
- *  };
- *
- *  MyAsyncClient* client = new MyAsyncClient(option);
- *  if (!client->connect()) {
- *    delete client;
- *  }
- *  if (!client->fetch(send_func, req)) {
- *    delete client;
- *  }
- *
- *  // when client fetch finished, the onFinish method
- *  // will be called atomatically.
- */
 namespace rdd {
 
 template <class C>
@@ -50,9 +22,8 @@ protected:
   boost::shared_ptr< ::apache::thrift::protocol::TBinaryProtocol> poprot_;
 
 public:
-  TAsyncClient(const ClientOption& option,
-               bool on_finish = false)
-    : AsyncClient(option, on_finish) {
+  TAsyncClient(const ClientOption& option)
+    : AsyncClient(option) {
     pibuf_.reset(new apache::thrift::transport::TMemoryBuffer());
     pobuf_.reset(new apache::thrift::transport::TMemoryBuffer());
     piprot_.reset(new apache::thrift::protocol::TBinaryProtocol(pibuf_));
@@ -65,9 +36,8 @@ public:
                int port,
                uint64_t ctimeout = 100000,
                uint64_t rtimeout = 1000000,
-               uint64_t wtimeout = 300000,
-               bool on_finish = false)
-    : TAsyncClient({{host, port}, {ctimeout, rtimeout, wtimeout}}, on_finish) {
+               uint64_t wtimeout = 300000)
+    : TAsyncClient({{host, port}, {ctimeout, rtimeout, wtimeout}}) {
   }
   virtual ~TAsyncClient() {}
 

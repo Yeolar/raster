@@ -6,6 +6,7 @@ set(RDD_NET_SRCS
     Event.cpp
     EventGroup.cpp
     EventLoop.cpp
+    EventPool.cpp
     EventTask.cpp
     NetUtil.cpp
     Poll.cpp

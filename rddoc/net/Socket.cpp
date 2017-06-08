@@ -104,6 +104,17 @@ bool Socket::connect(const std::string& host, int port) {
   return true;
 }
 
+bool Socket::connected() {
+  struct tcp_info info;
+  socklen_t len = sizeof(info);
+  int r = getsockopt(fd_, IPPROTO_TCP, TCP_INFO, &info, &len);
+  if (r == -1) {
+    RDDPLOG(ERROR) << "fd(" << fd_ << "): get TCP_INFO failed";
+    return false;
+  }
+  return info.tcpi_state == TCP_ESTABLISHED;
+}
+
 void Socket::close() {
   if (closeNoInt(fd_) != 0) {
     RDDPLOG(ERROR) << "fd(" << fd_ << "): close failed";
@@ -160,6 +171,23 @@ bool Socket::setCloseExec() {
     return false;
   }
   return true;
+}
+
+bool Socket::setKeepAlive() {
+  int keepalive = 1;
+  int keepidle = 600;
+  int keepinterval = 5;
+  int keepcount = 2;
+  socklen_t len = sizeof(int);
+  int r = setsockopt(fd_, SOL_SOCKET, SO_KEEPALIVE, &keepalive, len);
+  if (r == -1) {
+    RDDPLOG(ERROR) << "fd(" << fd_ << "): set SO_KEEPALIVE failed";
+    return false;
+  }
+  setsockopt(fd_, SOL_TCP, TCP_KEEPIDLE, &keepidle, len);
+  setsockopt(fd_, SOL_TCP, TCP_KEEPINTVL, &keepinterval, len);
+  setsockopt(fd_, SOL_TCP, TCP_KEEPCNT, &keepcount, len);
+  return r != -1;
 }
 
 bool Socket::setLinger(int timeout) {
