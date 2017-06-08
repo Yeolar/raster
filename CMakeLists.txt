@@ -5,7 +5,7 @@ set(CMAKE_C_COMPILER gcc)
 set(CMAKE_CXX_COMPILER g++)
 
 # Define project
-project(rddoc)
+project(rddoc-framework)
 
 cmake_minimum_required(VERSION 2.8.8)
 
@@ -126,9 +126,23 @@ add_library(rdd_shared SHARED
 )
 set_target_properties(rdd_shared PROPERTIES OUTPUT_NAME rdd)
 
+install(TARGETS rdd_static
+    DESTINATION lib
+    PERMISSIONS OWNER_READ OWNER_WRITE
+                GROUP_READ
+                WORLD_READ
+)
+install(TARGETS rdd_shared
+    DESTINATION lib
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                GROUP_READ GROUP_EXECUTE
+                WORLD_READ WORLD_EXECUTE
+)
+
 # Binary
 add_subdirectory(empty-thrift)
 
+# Test
 if(GTEST_FOUND AND GMOCK_FOUND)
     enable_testing()
     add_subdirectory(rddoc/enc/test)
@@ -137,4 +151,15 @@ if(GTEST_FOUND AND GMOCK_FOUND)
     add_subdirectory(rddoc/plugins/mysql/test)
     add_subdirectory(rddoc/util/test)
 endif()
+
+# Pack
+include(InstallRequiredSystemLibraries)
+set(CPACK_PACKAGE_VERSION_MAJOR "${VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${VERSION_PATCH}")
+set(CPACK_GENERATOR "DEB")
+set(CPACK_SOURCE_GENERATOR "TGZ")
+SET(CPACK_PACKAGE_DESCRIPTION "rddoc framework")
+SET(CPACK_PACKAGE_CONTACT "rdd@rddoc.com")
+include(CPack)
 
