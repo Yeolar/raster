@@ -124,10 +124,13 @@ void config(const char* name, std::initializer_list<ConfigTask> confs) {
   RDDLOG(INFO) << "config rdd by conf: " << name;
 
   std::string s;
-  readFile(name, s);
+  if (!readFile(name, s)) {
+    RDDLOG(FATAL) << "config error: file read error: " << name;
+    return;
+  }
   dynamic j = parseJson(json::stripComments(s));
   if (!j.isObject()) {
-    RDDLOG(FATAL) << "config error";
+    RDDLOG(FATAL) << "config error: JSON parse error";
     return;
   }
   RDDLOG(DEBUG) << j;
