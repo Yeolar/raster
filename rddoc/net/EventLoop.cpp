@@ -123,7 +123,7 @@ void EventLoop::handleEvent(int i) {
   if (!event) {
     return;
   }
-  RDD_EVLOG(V2, event) << "handle event";
+  RDD_EVLOG(V2, event) << "handle event, type=" << etype;
   switch (event->type()) {
     case Event::LISTEN:
       handleListen(event); break;

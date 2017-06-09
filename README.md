@@ -1,11 +1,18 @@
 rddoc-framework
 ===============
 
-rddoc-framewok是一个完整的高性能C++协程网络框架，支持thrift协议，未来将支持更多协议。
+rddoc-framewok是一个完整的高性能C++协程服务框架，支持thrift协议，未来将支持更多协议。
 
 该框架借鉴了Facebook的folly基础库的一些思想和内容，但更加注重于轻量、易用、扩展性，同时，已经支持了监控统计、存储、数据库等实用需求。
 
-框架的开发初衷是可以快速完成C++服务的开发，目前用于 [rddoc.com](https://www.rddoc.com/) 的搜索、持久化KV存储、代理服务等。另外它的早期版本也曾在国内一线互联网公司用于线上超过2000个服务节点。
+在开发本框架之前，我曾经开发过另两套服务框架：
+
+- [ctornado](https://github.com/Yeolar/ctornado) - 非常流行的一款Python HTTP异步网络框架Tornado的C++版本，出于练习目的，并未实际使用到生产环境。
+- sf（未开源） - 一套C++的异步RPC服务框架，目前在中国国内一家一线互联网公司用于线上超过2000个服务节点。
+
+rddoc-framework是我针对目前的微服务的概念，参考之前的项目以及folly等开源库，重新开发的一套服务框架。
+
+框架的开发初衷是可以快速完成C++服务的开发，目前用于 [rddoc.com](https://www.rddoc.com/) 的搜索、持久化KV存储、代理服务等。
 
 依赖包括 Boost CURL GFlags ICU LevelDB Libmemcached MySQL OpenSSL ZLIB，其中部分是扩展插件的依赖。
 
@@ -19,3 +26,4 @@ rddoc-framewok是一个完整的高性能C++协程网络框架，支持thrift协
     $ ./empty-thrift/empty-thrift -conf ../empty-thrift/server.json
 
 TODO: 未来会在性能、协议等方面进一步扩展。
+
