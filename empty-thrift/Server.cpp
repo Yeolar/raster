@@ -5,6 +5,7 @@
 #include <gflags/gflags.h>
 #include "rddoc/framework/Config.h"
 #include "rddoc/net/Actor.h"
+#include "rddoc/protocol/thrift/AsyncClient.h"
 #include "rddoc/protocol/thrift/AsyncServer.h"
 #include "rddoc/util/Logging.h"
 #include "rddoc/util/ScopeGuard.h"
@@ -34,6 +35,23 @@ public:
 
     _return.__set_traceid(generateUuid(query.traceid, "rdde"));
     _return.__set_code(ResultCode::OK);
+
+    if (!query.forward.empty()) {
+      Peer peer(query.forward);
+      Query q;
+      q.__set_traceid(query.traceid);
+      q.__set_query(query.query);
+      TAsyncClient<EmptyClient> client(peer.host, peer.port);
+      client.setKeepAlive();
+      if (!client.connect() ||
+          !client.fetch(&EmptyClient::recv_run, _return,
+                        &EmptyClient::send_run, q)) {
+        _return.__set_code(ResultCode::E_BACKEND_FAILURE);
+      }
+    }
+    RDDTLOG(INFO, query.traceid) << "query: \"" << query.query << "\""
+      << " code=" << _return.code;
+    if (!checkOK(_return)) return;
   }
 
 private:

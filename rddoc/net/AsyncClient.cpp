@@ -21,13 +21,13 @@ bool AsyncClient::connect() {
   if (!initConnection()) {
     return false;
   }
+  RDD_EVLOG(V2, event()) << "connect";
   if (!callback_mode_) {
     Task* task = ThreadTask::getCurrentThreadTask();
     event_->setTask(task);
     task->addBlockedCallback(
         std::bind(&Actor::addEvent, Singleton<Actor>::get(), event()));
   }
-  RDDLOG(DEBUG) << "connect peer[" << peer_.str() << "]";
   return true;
 }
 
@@ -41,8 +41,9 @@ bool AsyncClient::initConnection() {
     auto event = pool->get(peer_);
     if (event && event->socket()->connected()) {
       event->reset();
-      event->setType(Event::CONNECT);
+      event->setType(Event::TOWRITE);
       event_ = event;
+      RDDLOG(DEBUG) << "connect peer[" << peer_.str() << "] (keep-alive)";
       return true;
     }
   }
@@ -57,6 +58,7 @@ bool AsyncClient::initConnection() {
     auto event = std::make_shared<Event>(channel_, socket);
     event->setType(Event::CONNECT);
     event_ = event;
+    RDDLOG(DEBUG) << "connect peer[" << peer_.str() << "]";
     return true;
   }
   return false;

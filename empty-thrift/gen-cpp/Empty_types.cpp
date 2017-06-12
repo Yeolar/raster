@@ -12,16 +12,18 @@ namespace rdd { namespace empty {
 
 int _kResultCodeValues[] = {
   ResultCode::OK,
-  ResultCode::E_SOURCE__UNTRUSTED
+  ResultCode::E_SOURCE__UNTRUSTED,
+  ResultCode::E_BACKEND_FAILURE
 };
 const char* _kResultCodeNames[] = {
   "OK",
-  "E_SOURCE__UNTRUSTED"
+  "E_SOURCE__UNTRUSTED",
+  "E_BACKEND_FAILURE"
 };
-const std::map<int, const char*> _ResultCode_VALUES_TO_NAMES(::apache::thrift::TEnumIterator(2, _kResultCodeValues, _kResultCodeNames), ::apache::thrift::TEnumIterator(-1, NULL, NULL));
+const std::map<int, const char*> _ResultCode_VALUES_TO_NAMES(::apache::thrift::TEnumIterator(3, _kResultCodeValues, _kResultCodeNames), ::apache::thrift::TEnumIterator(-1, NULL, NULL));
 
-const char* Query::ascii_fingerprint = "5B708A954C550ECA9C1A49D3C5CAFAB9";
-const uint8_t Query::binary_fingerprint[16] = {0x5B,0x70,0x8A,0x95,0x4C,0x55,0x0E,0xCA,0x9C,0x1A,0x49,0xD3,0xC5,0xCA,0xFA,0xB9};
+const char* Query::ascii_fingerprint = "4BF81DD46A7371532E49811022D58D36";
+const uint8_t Query::binary_fingerprint[16] = {0x4B,0xF8,0x1D,0xD4,0x6A,0x73,0x71,0x53,0x2E,0x49,0x81,0x10,0x22,0xD5,0x8D,0x36};
 
 uint32_t Query::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -60,6 +62,14 @@ uint32_t Query::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
+      case 3:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->forward);
+          this->__isset.forward = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -87,6 +97,11 @@ uint32_t Query::write(::apache::thrift::protocol::TProtocol* oprot) const {
     xfer += oprot->writeString(this->query);
     xfer += oprot->writeFieldEnd();
   }
+  if (this->__isset.forward) {
+    xfer += oprot->writeFieldBegin("forward", ::apache::thrift::protocol::T_STRING, 3);
+    xfer += oprot->writeString(this->forward);
+    xfer += oprot->writeFieldEnd();
+  }
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -96,6 +111,7 @@ void swap(Query &a, Query &b) {
   using ::std::swap;
   swap(a.traceid, b.traceid);
   swap(a.query, b.query);
+  swap(a.forward, b.forward);
   swap(a.__isset, b.__isset);
 }
 

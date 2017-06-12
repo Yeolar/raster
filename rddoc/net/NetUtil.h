@@ -36,9 +36,9 @@ inline bool operator<(const Peer& lhs, const Peer& rhs) {
 }
 
 struct TimeoutOption {
-  uint64_t ctimeout{0};   // connect timeout
-  uint64_t rtimeout{0};   // read timeout
-  uint64_t wtimeout{0};   // write timeout
+  uint64_t ctimeout;    // connect timeout
+  uint64_t rtimeout;    // read timeout
+  uint64_t wtimeout;    // write timeout
 };
 
 inline std::ostream& operator<<(std::ostream& os,

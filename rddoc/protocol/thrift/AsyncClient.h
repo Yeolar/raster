@@ -64,7 +64,7 @@ public:
                uint64_t ctimeout = 100000,
                uint64_t rtimeout = 1000000,
                uint64_t wtimeout = 300000)
-    : TAsyncClient({{host, port}, {ctimeout, rtimeout, wtimeout}}) {
+    : TAsyncClient({Peer(host, port), {ctimeout, rtimeout, wtimeout}}) {
   }
   virtual ~TAsyncClient() {}
 

@@ -10,7 +10,6 @@
 #include "rddoc/net/Event.h"
 #include "rddoc/net/NetUtil.h"
 #include "rddoc/util/Lock.h"
-#include "rddoc/util/LockedMap.h"
 
 namespace rdd {
 
@@ -34,11 +33,16 @@ public:
   EventPoolManager() {}
 
   EventPool* getPool(int id) {
+    LockGuard guard(lock_);
+    if (pool_.find(id) == pool_.end()) {
+      pool_.emplace(id, std::make_shared<EventPool>());
+    }
     return pool_[id].get();
   }
 
 private:
-  LockedMap<int, std::shared_ptr<EventPool>> pool_;
+  std::map<int, std::shared_ptr<EventPool>> pool_;
+  Lock lock_;
 };
 
 }

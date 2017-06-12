@@ -57,6 +57,7 @@ link_libraries(
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/rddoc/3rd
+    ${PROJECT_SOURCE_DIR}/rddoc/3rd/thrift
     ${PROJECT_SOURCE_DIR}
 )
 

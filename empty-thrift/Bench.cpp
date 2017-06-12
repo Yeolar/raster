@@ -15,6 +15,7 @@
 static const char* VERSION = "1.0.0";
 
 DEFINE_string(addr, "127.0.0.1:8000", "HOST:PORT");
+DEFINE_string(forward, "", "HOST:PORT");
 DEFINE_int32(threads, 8, "concurrent threads");
 DEFINE_int32(count, 100, "request count");
 
@@ -36,6 +37,7 @@ public:
     Query req;
     req.__set_traceid("rddt");
     req.__set_query("query");
+    req.__set_forward(FLAGS_forward);
     Result res;
 
     TSyncClient<EmptyClient> client(opt_);
