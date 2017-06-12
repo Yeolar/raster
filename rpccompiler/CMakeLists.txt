@@ -17,12 +17,7 @@
 # under the License.
 #
 
-# Windows has a different header
-if(MSVC)
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/windows/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/version.h)
-else()
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/version.h)
-endif()
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/version.h)
 
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
@@ -79,8 +74,6 @@ set( thrift_SOURCES
     src/parse/parse.cc
     src/generate/t_generator.h
     src/generate/t_oop_generator.h
-    src/generate/t_html_generator.h
-    src/windows/config.h
     version.h
 )
 
@@ -108,4 +101,4 @@ set_target_properties(thrift-compiler PROPERTIES OUTPUT_NAME thrift)
 
 target_link_libraries(thrift-compiler libparse)
 
-install(TARGETS thrift-compiler DESTINATION "${BIN_INSTALL_DIR}")
+#install(TARGETS thrift-compiler DESTINATION "${BIN_INSTALL_DIR}")

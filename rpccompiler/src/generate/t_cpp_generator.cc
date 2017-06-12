@@ -31,7 +31,6 @@
 
 #include <sys/stat.h>
 
-#include "platform.h"
 #include "t_oop_generator.h"
 
 using std::map;
@@ -336,7 +335,7 @@ private:
  */
 void t_cpp_generator::init_generator() {
   // Make output directory
-  MKDIR(get_out_dir().c_str());
+  mkdir(get_out_dir().c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
   // Make output file
   string f_types_name = get_out_dir() + program_name_ + "_types.h";
@@ -1620,12 +1619,6 @@ void t_cpp_generator::generate_service(t_service* tservice) {
 
   f_header_ << endl << ns_open_ << endl << endl;
 
-  f_header_ <<
-    "#ifdef _WIN32\n"
-    "  #pragma warning( push )\n"
-    "  #pragma warning (disable : 4250 ) //inheriting methods via dominance \n"
-    "#endif\n\n";
-
   // Service implementation file includes
   string f_service_name = get_out_dir() + svcname + ".cpp";
   f_service_.open(f_service_name.c_str());
@@ -1676,11 +1669,6 @@ void t_cpp_generator::generate_service(t_service* tservice) {
     generate_service_processor(tservice, "Cob");
     generate_service_async_skeleton(tservice);
   }
-
-  f_header_ <<
-    "#ifdef _WIN32\n"
-    "  #pragma warning( pop )\n"
-    "#endif\n\n";
 
   // Close the namespace
   f_service_ << ns_close_ << endl << endl;

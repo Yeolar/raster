@@ -39,14 +39,9 @@
 #include <errno.h>
 #include <limits.h>
 
-#ifdef _WIN32
-#include <windows.h> /* for GetFullPathName */
-#endif
-
 // Careful: must include globals first for extern definitions
 #include "globals.h"
 
-#include "platform.h"
 #include "main.h"
 #include "parse/t_program.h"
 #include "parse/t_scope.h"
@@ -185,46 +180,10 @@ bool g_audit_fatal = true;
  * otherwise this just calls through to realpath
  */
 char* saferealpath(const char* path, char* resolved_path) {
-#ifdef _WIN32
-  char buf[MAX_PATH];
-  char* basename;
-  DWORD len = GetFullPathName(path, MAX_PATH, buf, &basename);
-  if (len == 0 || len > MAX_PATH - 1) {
-    strcpy(resolved_path, path);
-  } else {
-    strcpy(resolved_path, buf);
-  }
-
-  // Replace backslashes with forward slashes so the
-  // rest of the code behaves correctly.
-  size_t resolved_len = strlen(resolved_path);
-  for (size_t i = 0; i < resolved_len; i++) {
-    if (resolved_path[i] == '\\') {
-      resolved_path[i] = '/';
-    }
-  }
-  return resolved_path;
-#else
   return realpath(path, resolved_path);
-#endif
 }
 
 bool check_is_directory(const char* dir_name) {
-#ifdef _WIN32
-  DWORD attributes = ::GetFileAttributesA(dir_name);
-  if (attributes == INVALID_FILE_ATTRIBUTES) {
-    fprintf(stderr,
-            "Output directory %s is unusable: GetLastError() = %ld\n",
-            dir_name,
-            GetLastError());
-    return false;
-  }
-  if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != FILE_ATTRIBUTE_DIRECTORY) {
-    fprintf(stderr, "Output directory %s exists but is not a directory\n", dir_name);
-    return false;
-  }
-  return true;
-#else
   struct stat sb;
   if (stat(dir_name, &sb) < 0) {
     fprintf(stderr, "Output directory %s is unusable: %s\n", dir_name, strerror(errno));
@@ -235,7 +194,6 @@ bool check_is_directory(const char* dir_name) {
     return false;
   }
   return true;
-#endif
 }
 
 /**
@@ -355,7 +313,7 @@ string include_file(string filename) {
   // Absolute path? Just try that
   if (filename[0] == '/') {
     // Realpath!
-    char rp[THRIFT_PATH_MAX];
+    char rp[PATH_MAX];
     if (saferealpath(filename.c_str(), rp) == NULL) {
       pwarning(0, "Cannot open include file %s\n", filename.c_str());
       return std::string();
@@ -377,7 +335,7 @@ string include_file(string filename) {
       string sfilename = *(it) + "/" + filename;
 
       // Realpath!
-      char rp[THRIFT_PATH_MAX];
+      char rp[PATH_MAX];
       if (saferealpath(sfilename.c_str(), rp) == NULL) {
         continue;
       }
@@ -1118,13 +1076,6 @@ int main(int argc, char** argv) {
         }
         out_path = arg;
 
-#ifdef _WIN32
-        // strip out trailing \ on Windows
-        std::string::size_type last = out_path.length() - 1;
-        if (out_path[last] == '\\') {
-          out_path.erase(last);
-        }
-#endif
         if (!check_is_directory(out_path.c_str()))
           return -1;
       } else if (strcmp(arg, "-audit") == 0) {
@@ -1134,7 +1085,7 @@ int main(int argc, char** argv) {
           fprintf(stderr, "Missing old thrift file name for audit operation\n");
           usage();
         }
-        char old_thrift_file_rp[THRIFT_PATH_MAX];
+        char old_thrift_file_rp[PATH_MAX];
 
         if (saferealpath(arg, old_thrift_file_rp) == NULL) {
           failure("Could not open input file with realpath: %s", arg);
@@ -1200,7 +1151,7 @@ int main(int argc, char** argv) {
       usage();
     }
 
-    char new_thrift_file_rp[THRIFT_PATH_MAX];
+    char new_thrift_file_rp[PATH_MAX];
     if (argv[i] == NULL) {
       fprintf(stderr, "Missing file name of new thrift file for audit\n");
       usage();
@@ -1225,7 +1176,7 @@ int main(int argc, char** argv) {
     }
 
     // Real-pathify it
-    char rp[THRIFT_PATH_MAX];
+    char rp[PATH_MAX];
     if (argv[i] == NULL) {
       fprintf(stderr, "Missing file name\n");
       usage();

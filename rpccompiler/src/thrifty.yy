@@ -28,24 +28,12 @@
 #define __STDC_LIMIT_MACROS
 #define __STDC_FORMAT_MACROS
 #include <stdio.h>
-#ifndef _MSC_VER
 #include <inttypes.h>
-#else
-#include <stdint.h>
-#endif
 #include <limits.h>
-#ifdef _MSC_VER
-#include "windows/config.h"
-#endif
 #include "main.h"
 #include "globals.h"
 #include "parse/t_program.h"
 #include "parse/t_scope.h"
-
-#ifdef _MSC_VER
-//warning C4065: switch statement contains 'default' but no 'case' labels
-#pragma warning(disable:4065)
-#endif
 
 /**
  * This global variable is used for automatic numbering of field indices etc.

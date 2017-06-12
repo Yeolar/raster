@@ -38,23 +38,11 @@
 #pragma GCC diagnostic ignored "-Wunused-label"
 #endif
 
-#ifdef _MSC_VER
-//warning C4102: 'find_rule' : unreferenced label
-#pragma warning(disable:4102)
-//avoid isatty redefinition
-#define YY_NEVER_INTERACTIVE 1
-
-#define YY_NO_UNISTD_H 1
-#endif
-
 #include <cassert>
 #include <string>
 #include <errno.h>
 #include <stdlib.h>
 
-#ifdef _MSC_VER
-#include "windows/config.h"
-#endif
 #include "main.h"
 #include "globals.h"
 #include "parse/t_program.h"

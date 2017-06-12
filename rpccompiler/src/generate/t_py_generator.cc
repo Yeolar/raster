@@ -28,7 +28,6 @@
 #include <sstream>
 #include <algorithm>
 #include "t_generator.h"
-#include "platform.h"
 #include "version.h"
 
 using std::map;
@@ -311,7 +310,7 @@ void t_py_generator::init_generator() {
   module_ = module;
   while (true) {
     // TODO: Do better error checking here.
-    MKDIR(package_dir_.c_str());
+    mkdir(package_dir_.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
     std::ofstream init_py((package_dir_ + "/__init__.py").c_str(), std::ios_base::app);
     init_py.close();
     if (module.empty()) {
@@ -1513,17 +1512,10 @@ void t_py_generator::generate_service_remote(t_service* tservice) {
   // Close service file
   f_remote.close();
 
-#ifndef _MSC_VER
-
   // Make file executable, love that bitwise OR action
   chmod(f_remote_name.c_str(),
-        S_IRUSR | S_IWUSR | S_IXUSR
-#ifndef _WIN32
-        | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH
-#endif
+        S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH
         );
-
-#endif // _MSC_VER
 }
 
 /**
