@@ -1,7 +1,5 @@
 // Copyright (C) 2017, Yeolar
 
-option cc_generic_services = true;
-
 package rdd_pb;
 
 message Query {
@@ -23,6 +21,3 @@ message Result {
   optional ResultCode code = 2;
 }
 
-service Empty {
-  rpc run(Query) returns(Result);
-}

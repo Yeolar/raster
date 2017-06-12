@@ -4,4 +4,4 @@ ROOT=`pwd`
 cd $ROOT/empty-thrift && thrift --gen cpp -out gen-cpp Empty.thrift
 
 # empty-proto
-cd $ROOT/empty-proto && protoc --cpp_out=. Empty.proto
+cd $ROOT/empty-rpc.proto && protoc --cpp_out=. Empty.proto

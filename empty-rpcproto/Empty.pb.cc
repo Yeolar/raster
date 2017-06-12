@@ -27,7 +27,6 @@ const ::google::protobuf::Descriptor* Result_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   Result_reflection_ = NULL;
 const ::google::protobuf::EnumDescriptor* ResultCode_descriptor_ = NULL;
-const ::google::protobuf::ServiceDescriptor* Empty_descriptor_ = NULL;
 
 }  // namespace
 
@@ -71,7 +70,6 @@ void protobuf_AssignDesc_Empty_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(Result));
   ResultCode_descriptor_ = file->enum_type(0);
-  Empty_descriptor_ = file->service(0);
 }
 
 namespace {
@@ -110,8 +108,7 @@ void protobuf_AddDesc_Empty_2eproto() {
     "d\030\001 \002(\t\022\r\n\005query\030\002 \001(\t\";\n\006Result\022\017\n\007trac"
     "eid\030\001 \002(\t\022 \n\004code\030\002 \001(\0162\022.rdd_pb.ResultC"
     "ode*.\n\nResultCode\022\006\n\002OK\020\000\022\030\n\023E_SOURCE__U"
-    "NTRUSTED\020\351\0072-\n\005Empty\022$\n\003run\022\r.rdd_pb.Que"
-    "ry\032\016.rdd_pb.ResultB\003\200\001\001", 223);
+    "NTRUSTED\020\351\007", 171);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "Empty.proto", &protobuf_RegisterTypes);
   Query::default_instance_ = new Query();
@@ -737,90 +734,6 @@ void Result::Swap(Result* other) {
   return metadata;
 }
 
-
-// ===================================================================
-
-Empty::~Empty() {}
-
-const ::google::protobuf::ServiceDescriptor* Empty::descriptor() {
-  protobuf_AssignDescriptorsOnce();
-  return Empty_descriptor_;
-}
-
-const ::google::protobuf::ServiceDescriptor* Empty::GetDescriptor() {
-  protobuf_AssignDescriptorsOnce();
-  return Empty_descriptor_;
-}
-
-void Empty::run(::google::protobuf::RpcController* controller,
-                         const ::rdd_pb::Query*,
-                         ::rdd_pb::Result*,
-                         ::google::protobuf::Closure* done) {
-  controller->SetFailed("Method run() not implemented.");
-  done->Run();
-}
-
-void Empty::CallMethod(const ::google::protobuf::MethodDescriptor* method,
-                             ::google::protobuf::RpcController* controller,
-                             const ::google::protobuf::Message* request,
-                             ::google::protobuf::Message* response,
-                             ::google::protobuf::Closure* done) {
-  GOOGLE_DCHECK_EQ(method->service(), Empty_descriptor_);
-  switch(method->index()) {
-    case 0:
-      run(controller,
-             ::google::protobuf::down_cast<const ::rdd_pb::Query*>(request),
-             ::google::protobuf::down_cast< ::rdd_pb::Result*>(response),
-             done);
-      break;
-    default:
-      GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
-      break;
-  }
-}
-
-const ::google::protobuf::Message& Empty::GetRequestPrototype(
-    const ::google::protobuf::MethodDescriptor* method) const {
-  GOOGLE_DCHECK_EQ(method->service(), descriptor());
-  switch(method->index()) {
-    case 0:
-      return ::rdd_pb::Query::default_instance();
-    default:
-      GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
-      return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
-  }
-}
-
-const ::google::protobuf::Message& Empty::GetResponsePrototype(
-    const ::google::protobuf::MethodDescriptor* method) const {
-  GOOGLE_DCHECK_EQ(method->service(), descriptor());
-  switch(method->index()) {
-    case 0:
-      return ::rdd_pb::Result::default_instance();
-    default:
-      GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
-      return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
-  }
-}
-
-Empty_Stub::Empty_Stub(::google::protobuf::RpcChannel* channel)
-  : channel_(channel), owns_channel_(false) {}
-Empty_Stub::Empty_Stub(
-    ::google::protobuf::RpcChannel* channel,
-    ::google::protobuf::Service::ChannelOwnership ownership)
-  : channel_(channel),
-    owns_channel_(ownership == ::google::protobuf::Service::STUB_OWNS_CHANNEL) {}
-Empty_Stub::~Empty_Stub() {
-  if (owns_channel_) delete channel_;
-}
-
-void Empty_Stub::run(::google::protobuf::RpcController* controller,
-                              const ::rdd_pb::Query* request,
-                              ::rdd_pb::Result* response,
-                              ::google::protobuf::Closure* done) {
-  channel_->CallMethod(descriptor()->method(0),
-                       controller, request, response, done);
-}
 
 // @@protoc_insertion_point(namespace_scope)
 

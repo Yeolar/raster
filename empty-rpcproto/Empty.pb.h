@@ -24,7 +24,6 @@
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/extension_set.h>
 #include <google/protobuf/generated_enum_reflection.h>
-#include <google/protobuf/service.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 
@@ -250,65 +249,6 @@ class Result : public ::google::protobuf::Message {
   void InitAsDefaultInstance();
   static Result* default_instance_;
 };
-// ===================================================================
-
-class Empty_Stub;
-
-class Empty : public ::google::protobuf::Service {
- protected:
-  // This class should be treated as an abstract interface.
-  inline Empty() {};
- public:
-  virtual ~Empty();
-
-  typedef Empty_Stub Stub;
-
-  static const ::google::protobuf::ServiceDescriptor* descriptor();
-
-  virtual void run(::google::protobuf::RpcController* controller,
-                       const ::rdd_pb::Query* request,
-                       ::rdd_pb::Result* response,
-                       ::google::protobuf::Closure* done);
-
-  // implements Service ----------------------------------------------
-
-  const ::google::protobuf::ServiceDescriptor* GetDescriptor();
-  void CallMethod(const ::google::protobuf::MethodDescriptor* method,
-                  ::google::protobuf::RpcController* controller,
-                  const ::google::protobuf::Message* request,
-                  ::google::protobuf::Message* response,
-                  ::google::protobuf::Closure* done);
-  const ::google::protobuf::Message& GetRequestPrototype(
-    const ::google::protobuf::MethodDescriptor* method) const;
-  const ::google::protobuf::Message& GetResponsePrototype(
-    const ::google::protobuf::MethodDescriptor* method) const;
-
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(Empty);
-};
-
-class Empty_Stub : public Empty {
- public:
-  Empty_Stub(::google::protobuf::RpcChannel* channel);
-  Empty_Stub(::google::protobuf::RpcChannel* channel,
-                   ::google::protobuf::Service::ChannelOwnership ownership);
-  ~Empty_Stub();
-
-  inline ::google::protobuf::RpcChannel* channel() { return channel_; }
-
-  // implements Empty ------------------------------------------
-
-  void run(::google::protobuf::RpcController* controller,
-                       const ::rdd_pb::Query* request,
-                       ::rdd_pb::Result* response,
-                       ::google::protobuf::Closure* done);
- private:
-  ::google::protobuf::RpcChannel* channel_;
-  bool owns_channel_;
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(Empty_Stub);
-};
-
-
 // ===================================================================
 
 
