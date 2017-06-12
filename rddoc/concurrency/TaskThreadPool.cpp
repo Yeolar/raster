@@ -2,7 +2,7 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "rddoc/coroutine/TaskThreadPool.h"
+#include "rddoc/concurrency/TaskThreadPool.h"
 
 namespace rdd {
 

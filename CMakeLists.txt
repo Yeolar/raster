@@ -76,6 +76,7 @@ check_cxx_source_compiles("
     RDD_HAVE_XSI_STRERROR_R)
 
 # Work on all sub directories
+add_subdirectory(rddoc/concurrency)
 add_subdirectory(rddoc/coroutine)
 add_subdirectory(rddoc/enc)
 add_subdirectory(rddoc/framework)
@@ -93,6 +94,7 @@ add_subdirectory(rddoc/3rd/srilm)
 add_subdirectory(rddoc/3rd/thrift)
 
 add_library(rdd_static STATIC
+    $<TARGET_OBJECTS:rdd_concurrency>
     $<TARGET_OBJECTS:rdd_coroutine>
     $<TARGET_OBJECTS:rdd_enc>
     $<TARGET_OBJECTS:rdd_framework>
@@ -110,6 +112,7 @@ add_library(rdd_static STATIC
 )
 set_target_properties(rdd_static PROPERTIES OUTPUT_NAME rdd)
 add_library(rdd_shared SHARED
+    $<TARGET_OBJECTS:rdd_concurrency>
     $<TARGET_OBJECTS:rdd_coroutine>
     $<TARGET_OBJECTS:rdd_enc>
     $<TARGET_OBJECTS:rdd_framework>

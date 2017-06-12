@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "rddoc/coroutine/TaskThreadPool.h"
+#include "rddoc/concurrency/TaskThreadPool.h"
 #include "rddoc/net/Channel.h"
 #include "rddoc/net/Event.h"
 #include "rddoc/net/EventGroup.h"

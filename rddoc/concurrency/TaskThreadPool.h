@@ -6,7 +6,7 @@
 
 #include <atomic>
 #include <vector>
-#include "rddoc/coroutine/TaskThread.h"
+#include "rddoc/concurrency/TaskThread.h"
 #include "rddoc/util/LockedDeq.h"
 #include "rddoc/util/LockedSet.h"
 

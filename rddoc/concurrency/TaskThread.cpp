@@ -3,8 +3,8 @@
  */
 
 #include <assert.h>
-#include "rddoc/coroutine/TaskThread.h"
-#include "rddoc/coroutine/TaskThreadPool.h"
+#include "rddoc/concurrency/TaskThread.h"
+#include "rddoc/concurrency/TaskThreadPool.h"
 #include "rddoc/plugins/monitor/Monitor.h"
 
 namespace rdd {
