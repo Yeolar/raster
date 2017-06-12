@@ -5,6 +5,7 @@ set(RDD_NET_SRCS
     AsyncClient.cpp
     Event.cpp
     EventGroup.cpp
+    EventHandler.cpp
     EventLoop.cpp
     EventPool.cpp
     EventTask.cpp

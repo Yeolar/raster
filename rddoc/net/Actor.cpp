@@ -34,7 +34,7 @@ void runClientTask(AsyncClient* client) {
 
 void Actor::start() {
   loop_ = std::unique_ptr<EventLoop>(
-      new EventLoop(this, options_.poll_size, options_.poll_timeout));
+      new EventLoop(options_.poll_size, options_.poll_timeout));
   for (auto& kv : services_) {
     loop_->listen(kv.second->channel());
   }
@@ -171,6 +171,9 @@ void Actor::forwardEvent(Event* event, const Peer& peer) {
 }
 
 void Actor::monitoring() const {
+  RDDMON_AVG("totaltask", Task::count());
+  RDDMON_AVG("connection", Socket::count());
+  RDDMON_AVG("backendgroup", group_.workingGroupCount());
   for (auto& kv : pools_) {
     RDDMON_AVG(to<std::string>("freethread.pool-", kv.first),
                kv.second->freeThreadCount());
@@ -179,7 +182,6 @@ void Actor::monitoring() const {
     RDDMON_MAX(to<std::string>("waitingtask.pool-", kv.first, ".max"),
                kv.second->waitingTaskCount());
   }
-  RDDMON_AVG("backendgroup", group_.workingGroupCount());
 }
 
 }

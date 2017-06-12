@@ -70,8 +70,8 @@ public:
   void addEvent(Event* event);
   void forwardEvent(Event* event, const Peer& peer);
 
-  void addCallback(const PtrCallback& callback, void* ptr) {
-    loop_->addCallback(callback, ptr);
+  void addCallback(const VoidCallback& callback) {
+    loop_->addCallback(callback);
   }
 
   bool waitGroup(const std::vector<Event*>& events) {
