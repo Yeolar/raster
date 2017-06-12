@@ -1,0 +1,28 @@
+// Copyright (C) 2017, Yeolar
+
+option cc_generic_services = true;
+
+package rdd_pb;
+
+message Query {
+  required string traceid = 1;
+  optional string query = 2;
+}
+
+enum ResultCode {
+  OK = 0;
+
+  // WARNING      <1000
+
+  // ERROR        >1000
+  E_SOURCE__UNTRUSTED = 1001;
+}
+
+message Result {
+  required string traceid = 1;
+  optional ResultCode code = 2;
+}
+
+service Empty {
+  rpc run(Query) returns(Result);
+}
