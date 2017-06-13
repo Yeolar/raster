@@ -47,6 +47,8 @@ flags = [
 '-isystem',
 '/home/yeolar/web/rddoc/framework/rddoc/3rd',
 '-isystem',
+'/home/yeolar/web/rddoc/framework/rddoc/3rd/thrift',
+'-isystem',
 '/usr/include',
 '-isystem',
 '/usr/local/include',
