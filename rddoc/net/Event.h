@@ -80,6 +80,8 @@ public:
   std::string label() const;
   const char* typeName() const;
 
+  int seqid() const { return seqid_; }
+
   int type() const { return type_; }
   void setType(int type) {
     type_ = type;
@@ -165,6 +167,7 @@ private:
     return std::max(timeout_opt_.rtimeout, timeout_opt_.wtimeout);
   }
 
+  int seqid_{0};
   int type_;
   int group_;
   int action_;

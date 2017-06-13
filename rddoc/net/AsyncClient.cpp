@@ -32,7 +32,7 @@ bool AsyncClient::connect() {
 }
 
 void AsyncClient::callback() {
-  RDDLOG(DEBUG) << "finish peer[" << peer_.str() << "]";
+  RDDLOG(DEBUG) << "peer[" << peer_.str() << "] finished";
 }
 
 bool AsyncClient::initConnection() {
@@ -43,7 +43,8 @@ bool AsyncClient::initConnection() {
       event->reset();
       event->setType(Event::TOWRITE);
       event_ = event;
-      RDDLOG(DEBUG) << "connect peer[" << peer_.str() << "] (keep-alive)";
+      RDDLOG(DEBUG) << "peer[" << peer_.str() << "]"
+        << " connect (keep-alive,seqid=" << event_->seqid() << ")";
       return true;
     }
   }
@@ -58,7 +59,7 @@ bool AsyncClient::initConnection() {
     auto event = std::make_shared<Event>(channel_, socket);
     event->setType(Event::CONNECT);
     event_ = event;
-    RDDLOG(DEBUG) << "connect peer[" << peer_.str() << "]";
+    RDDLOG(DEBUG) << "peer[" << peer_.str() << "] connect";
     return true;
   }
   return false;

@@ -37,6 +37,7 @@ Event::~Event() {
 
 void Event::reset() {
   restart();
+  seqid_ = std::max(++seqid_, 1);
   type_ = INIT;
   group_ = 0;
   action_ = NONE;

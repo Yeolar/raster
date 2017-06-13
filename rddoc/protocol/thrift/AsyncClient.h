@@ -10,6 +10,8 @@
 #include "rddoc/net/AsyncClient.h"
 #include "rddoc/protocol/thrift/Encoding.h"
 #include "rddoc/protocol/thrift/Protocol.h"
+#include "rddoc/util/Logging.h"
+#include "rddoc/util/ScopeGuard.h"
 
 /*
  * callback mode:
@@ -130,10 +132,23 @@ protected:
   }
 
   bool decodeData() {
+    SCOPE_EXIT {
+      if (keepalive_) {
+        int32_t seqid = thrift::getSeqId(pibuf_.get());
+        if (seqid != event_->seqid()) {
+          RDDLOG(ERROR) << "peer[" << peer_.str() << "]"
+            << " recv unmatched seqid: " << seqid << "!=" << event_->seqid();
+          event_->setType(Event::FAIL);
+        }
+      }
+    };
     return rdd::thrift::decodeData(event_->rbuf(), pibuf_.get());
   }
 
   bool encodeData() {
+    if (keepalive_) {
+      thrift::setSeqId(pobuf_.get(), event_->seqid());
+    }
     return rdd::thrift::encodeData(event_->wbuf(), pobuf_.get());
   }
 
