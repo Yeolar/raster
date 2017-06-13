@@ -29,4 +29,22 @@ public:
   virtual ~TZlibProtocol() {}
 };
 
+namespace thrift {
+
+inline void setSeqId(char* buf, int32_t seqid) {
+  char* p = buf;
+  int32_t n = *((int32_t*)p)++;
+  n = n < 0 ? *((int32_t*)p)++ : n + 1;
+  *(int32_t*)(p + n) = seqid;
+}
+
+inline int32_t getSeqId(char* buf) {
+  char* p = buf;
+  int32_t n = *((int32_t*)p)++;
+  n = n < 0 ? *((int32_t*)p)++ : n + 1;
+  return *(int32_t*)(p + n);
+}
+
+}
+
 }
