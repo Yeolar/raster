@@ -65,7 +65,7 @@ bool AsyncClient::initConnection() {
 }
 
 void AsyncClient::freeConnection() {
-  if (keepalive_) {
+  if (keepalive_ && event_->type() != Event::FAIL) {
     auto pool = Singleton<EventPoolManager>::get()->getPool(peer_.port);
     pool->giveBack(event_);
   }
