@@ -5,9 +5,9 @@
 #pragma once
 
 #include <memory>
-#include "rddoc/net/Event.h"
 #include "rddoc/io/IOBuf.h"
 #include "rddoc/io/TypedIOBuf.h"
+#include "rddoc/io/event/Event.h"
 #include "rddoc/util/Logging.h"
 
 namespace rdd {

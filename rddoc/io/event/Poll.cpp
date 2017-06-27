@@ -2,7 +2,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "rddoc/net/Poll.h"
+#include "rddoc/io/event/Poll.h"
+#include "rddoc/io/event/EventHandler.h"
 #include "rddoc/util/Logging.h"
 
 namespace rdd {
@@ -42,11 +43,7 @@ int Poll::poll(int timeout) {
 void Poll::control(int op, int fd, uint32_t events, void* ptr) {
   epoll_event ev;
   ev.events = events;
-  if (ptr) {
-    ev.data.ptr = ptr;
-  } else {
-    ev.data.fd = fd;
-  }
+  ev.data.ptr = ptr;
   int r = epoll_ctl(fd_, op, fd, &ev);
   if (r == -1) {
     if (op == EPOLL_CTL_DEL && errno == ENOENT) {

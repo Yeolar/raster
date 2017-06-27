@@ -8,7 +8,7 @@
 #include <string.h>
 #include <memory>
 #include <arpa/inet.h>
-#include "rddoc/coroutine/Task.h"
+#include "rddoc/coroutine/Fiber.h"
 #include "rddoc/io/IOBuf.h"
 #include "rddoc/io/Waker.h"
 #include "rddoc/net/Socket.h"
@@ -97,8 +97,8 @@ public:
   std::shared_ptr<Channel> channel() const;
   std::shared_ptr<Processor> processor(bool create = false);
 
-  Task* task() const { return task_; }
-  void setTask(Task* task) { task_ = task; }
+  Fiber* fiber() const { return fiber_; }
+  void setFiber(Fiber* fiber) { fiber_ = fiber; }
 
   int readData();
   int writeData();
@@ -123,48 +123,51 @@ public:
   }
 
   const TimeoutOption& timeoutOption() const {
-    return timeout_opt_;
+    return timeoutOpt_;
   }
   Timeout<Event> edeadline() {
     return Timeout<Event>(this, starttime() + Socket::LTIMEOUT, true);
   }
   Timeout<Event> cdeadline() {
-    return Timeout<Event>(this, starttime() + timeout_opt_.ctimeout);
+    return Timeout<Event>(this, starttime() + timeoutOpt_.ctimeout);
   }
   Timeout<Event> rdeadline() {
-    return Timeout<Event>(this, starttime() + timeout_opt_.rtimeout);
+    return Timeout<Event>(this, starttime() + timeoutOpt_.rtimeout);
   }
   Timeout<Event> wdeadline() {
-    return Timeout<Event>(this, starttime() + timeout_opt_.wtimeout);
+    return Timeout<Event>(this, starttime() + timeoutOpt_.wtimeout);
   }
 
   bool isConnectTimeout() const {
-    return cost() > timeout_opt_.ctimeout;
+    return cost() > timeoutOpt_.ctimeout;
   }
   bool isReadTimeout() const {
-    return cost() > timeout_opt_.rtimeout;
+    return cost() > timeoutOpt_.rtimeout;
   }
   bool isWriteTimeout() const {
-    return cost() > timeout_opt_.wtimeout;
+    return cost() > timeoutOpt_.wtimeout;
   }
 
   template <class T, class... Args>
   void createUserContext(Args&&... args) {
-    user_ctx_.set(new T(std::forward<Args>(args)...));
+    userCtx_.set(new T(std::forward<Args>(args)...));
+  }
+  void destroyUserContext() {
+    userCtx_.dispose();
   }
 
   template <class T>
-  T& userContext() { return *((T*)user_ctx_.ptr); }
+  T& userContext() { return *((T*)userCtx_.ptr); }
   template <class T>
-  const T& userContext() const { return *((T*)user_ctx_.ptr); }
+  const T& userContext() const { return *((T*)userCtx_.ptr); }
 
 private:
   uint64_t timeout() const {
     switch (socket_->role()) {
-      case Socket::SERVER: return timeout_opt_.wtimeout;
-      case Socket::CLIENT: return timeout_opt_.rtimeout;
+      case Socket::SERVER: return timeoutOpt_.wtimeout;
+      case Socket::CLIENT: return timeoutOpt_.rtimeout;
     }
-    return std::max(timeout_opt_.rtimeout, timeout_opt_.wtimeout);
+    return std::max(timeoutOpt_.rtimeout, timeoutOpt_.wtimeout);
   }
 
   int seqid_{0};
@@ -177,8 +180,7 @@ private:
   std::shared_ptr<Processor> processor_;
 
   Waker* waker_;
-
-  Task* task_;
+  Fiber* fiber_;
 
   std::unique_ptr<IOBuf> rbuf_;
   std::unique_ptr<IOBuf> wbuf_;
@@ -186,9 +188,9 @@ private:
   size_t wlen_; // already write
 
   std::vector<Timestamp> timestamps_;
-  TimeoutOption timeout_opt_;
+  TimeoutOption timeoutOpt_;
 
-  ContextWrapper user_ctx_;
+  ContextWrapper userCtx_;
 };
 
 }

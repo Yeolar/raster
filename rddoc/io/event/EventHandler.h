@@ -4,11 +4,7 @@
 
 #pragma once
 
-#include <map>
-#include <vector>
-#include "rddoc/io/Waker.h"
-#include "rddoc/net/Event.h"
-#include "rddoc/util/LockedDeq.h"
+#include "rddoc/io/event/Event.h"
 
 namespace rdd {
 

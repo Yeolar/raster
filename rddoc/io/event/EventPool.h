@@ -7,7 +7,7 @@
 #include <deque>
 #include <map>
 #include <memory>
-#include "rddoc/net/Event.h"
+#include "rddoc/io/event/Event.h"
 #include "rddoc/net/NetUtil.h"
 #include "rddoc/util/Lock.h"
 
@@ -19,13 +19,13 @@ public:
 
   std::shared_ptr<Event> get(const Peer& peer);
 
-  void giveBack(const std::shared_ptr<Event>& event);
+  bool giveBack(const std::shared_ptr<Event>& event);
 
-private:
   size_t count() const;
 
+private:
   std::map<Peer, std::deque<std::shared_ptr<Event>>> pool_;
-  Lock lock_;
+  mutable Lock lock_;
 };
 
 class EventPoolManager {
@@ -42,7 +42,7 @@ public:
 
 private:
   std::map<int, std::shared_ptr<EventPool>> pool_;
-  Lock lock_;
+  mutable Lock lock_;
 };
 
 }

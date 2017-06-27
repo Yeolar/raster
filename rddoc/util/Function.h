@@ -8,8 +8,8 @@
 
 namespace rdd {
 
-typedef std::function<void(void)> VoidCallback;
-typedef std::function<void(void*)> PtrCallback;
+typedef std::function<void(void)> VoidFunc;
+typedef std::function<void(void*)> PtrFunc;
 
 }
 

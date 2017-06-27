@@ -6,6 +6,7 @@ set(RDD_UTIL_SRCS
     Conv.cpp
     Demangle.cpp
     dynamic.cpp
+    Futex.cpp
     json.cpp
     #MemTrace.cpp
     Range.cpp

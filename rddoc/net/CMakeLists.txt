@@ -3,14 +3,7 @@
 set(RDD_NET_SRCS
     Actor.cpp
     AsyncClient.cpp
-    Event.cpp
-    EventGroup.cpp
-    EventHandler.cpp
-    EventLoop.cpp
-    EventPool.cpp
-    EventTask.cpp
     NetUtil.cpp
-    Poll.cpp
     Protocol.cpp
     Socket.cpp
 )

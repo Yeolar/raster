@@ -29,6 +29,15 @@ inline bool setNonBlocking(int fd) {
 
 namespace detail {
 
+template<class F, class... Args>
+ssize_t wrapNoInt(F f, Args... args) {
+  ssize_t r;
+  do {
+    r = f(args...);
+  } while (r == -1 && errno == EINTR);
+  return r;
+}
+
 inline void incr(ssize_t n) {}
 inline void incr(ssize_t n, off_t& offset) { offset += n; }
 
@@ -58,11 +67,7 @@ ssize_t wrapFull(F f, int fd, void* buf, size_t count, Offset... offset) {
 }
 
 inline int openNoInt(const char* name, int flags, mode_t mode = 0666) {
-  ssize_t r;
-  do {
-    r = open(name, flags, mode);
-  } while (r == -1 && errno == EINTR);
-  return r;
+  return int(detail::wrapNoInt(open, name, flags, mode));
 }
 
 inline int closeNoInt(int fd) {
@@ -71,6 +76,14 @@ inline int closeNoInt(int fd) {
     r = 0;
   }
   return r;
+}
+
+inline ssize_t readNoInt(int fd, void* buf, size_t count) {
+  return detail::wrapNoInt(read, fd, buf, count);
+}
+
+inline ssize_t writeNoInt(int fd, const void* buf, size_t count) {
+  return detail::wrapNoInt(write, fd, buf, count);
 }
 
 inline ssize_t readFull(int fd, void* buf, size_t n) {

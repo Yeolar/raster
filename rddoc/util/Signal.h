@@ -18,7 +18,7 @@ class Shutdown {
 public:
   Shutdown() {}
 
-  void addTask(const VoidCallback& callback) {
+  void addTask(const VoidFunc& callback) {
     callbacks_.push_back(callback);
   }
 
@@ -30,7 +30,7 @@ public:
   }
 
 private:
-  std::vector<VoidCallback> callbacks_;
+  std::vector<VoidFunc> callbacks_;
 };
 
 }

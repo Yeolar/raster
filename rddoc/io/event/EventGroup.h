@@ -6,7 +6,7 @@
 
 #include <stack>
 #include <vector>
-#include "rddoc/net/Event.h"
+#include "rddoc/io/event/Event.h"
 #include "rddoc/util/Lock.h"
 
 namespace rdd {
@@ -21,17 +21,17 @@ public:
   bool finishGroup(Event* event);
 
   size_t workingGroupCount() const {
-    LockGuard guard(lock_);
-    return capacity_ - group_ids_.size();
+    RLockGuard guard(lock_);
+    return capacity_ - groupIds_.size();
   }
 
 private:
   bool doubleSize();
 
   size_t capacity_;
-  std::stack<int> group_ids_;     // available group ids
-  std::vector<size_t> group_counts_;
-  mutable Lock lock_;
+  std::stack<int> groupIds_;     // available group ids
+  std::vector<size_t> groupCounts_;
+  mutable RWLock lock_;
 };
 
 }

@@ -104,7 +104,7 @@ bool Socket::connect(const std::string& host, int port) {
   return true;
 }
 
-bool Socket::connected() {
+bool Socket::isConnected() {
   struct tcp_info info;
   socklen_t len = sizeof(info);
   int r = getsockopt(fd_, IPPROTO_TCP, TCP_INFO, &info, &len);
@@ -121,6 +121,11 @@ void Socket::close() {
   }
   fd_ = -1;
   --count_;
+}
+
+bool Socket::isClosed() {
+  char p[8];
+  return recv(p, sizeof(p)) == 0;
 }
 
 int Socket::recv(void* buf, size_t n) {

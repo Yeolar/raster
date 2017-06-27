@@ -2,11 +2,20 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "rddoc/net/EventLoop.h"
+#include "rddoc/io/event/EventLoop.h"
 #include "rddoc/net/Channel.h"
 #include "rddoc/plugins/monitor/Monitor.h"
 
 namespace rdd {
+
+EventLoop::EventLoop(int pollSize, int pollTimeout)
+  : poll_(pollSize),
+    timeout_(pollTimeout),
+    stop_(false),
+    loopThread_(),
+    handler_(this) {
+  poll_.add(waker_.fd(), EPOLLIN, new Event(&waker_));
+}
 
 void EventLoop::listen(const std::shared_ptr<Channel>& channel, int backlog) {
   int port = channel->peer().port;
@@ -24,28 +33,29 @@ void EventLoop::listen(const std::shared_ptr<Channel>& channel, int backlog) {
   if (!event) {
     throw std::runtime_error("create listening event failed");
   }
-  listen_fds_.push_back(socket->fd());
+  listenFDs_.emplace_back(socket->fd());
   event->setType(Event::LISTEN);
   dispatchEvent(event);
   RDD_EVLOG(INFO, event) << "listen on port=" << port;
 }
 
-void EventLoop::start() {
-  running_ = true;
-  while (running_) {
+void EventLoop::loop() {
+  loopThread_ = pthread_self();
+
+  while (!stop_) {
     uint64_t t0 = timestampNow();
 
-    std::vector<Event*> events;
+    std::list<Event*> events;
+    std::list<VoidFunc> callbacks;
     {
-      LockGuard guard(event_lock_);
+      SpinLockGuard guard(eventsLock_);
       events.swap(events_);
     }
     for (auto& e : events) {
       dispatchEvent(e);
     }
-    std::vector<VoidCallback> callbacks;
     {
-      LockGuard guard(callback_lock_);
+      SpinLockGuard guard(callbacksLock_);
       callbacks.swap(callbacks_);
     }
     for (auto& callback : callbacks) {
@@ -69,6 +79,7 @@ void EventLoop::start() {
         }
       }
     }
+
     uint64_t cost = timePassed(t0) / 1000;
 
     RDDMON_AVG("loopevent", n);
@@ -78,35 +89,37 @@ void EventLoop::start() {
 
     // Singleton<Actor>::get()->monitoring();
   }
+  stop_ = false;
+  loopThread_ = 0;
 }
 
 void EventLoop::stop() {
   poll_.remove(waker_.fd());
-  for (auto& fd : listen_fds_) {
+  for (auto& fd : listenFDs_) {
     poll_.remove(fd);
   }
-  running_ = false;
+  stop_ = true;
 }
 
 void EventLoop::addEvent(Event* event) {
   {
-    LockGuard guard(event_lock_);
-    events_.push_back(event);
+    SpinLockGuard guard(eventsLock_);
+    events_.emplace_back(event);
   }
   waker_.wake();
 }
 
-void EventLoop::addCallback(const VoidCallback& callback) {
+void EventLoop::addCallback(const VoidFunc& callback) {
   {
-    LockGuard guard(callback_lock_);
-    callbacks_.push_back(callback);
+    SpinLockGuard guard(callbacksLock_);
+    callbacks_.emplace_back(callback);
   }
   waker_.wake();
 }
 
 void EventLoop::dispatchEvent(Event *event) {
   RDD_EVLOG(V2, event)
-    << "add event on task(" << (void*)event->task() << ")";
+    << "add event on fiber(" << (void*)event->fiber() << ")";
   switch (event->type()) {
     case Event::LISTEN:
       addListenEvent(event); break;
@@ -131,8 +144,8 @@ void EventLoop::addReadEvent(Event *event) {
   assert(event->type() == Event::NEXT ||
          event->type() == Event::TOREAD);
   RDD_EVLOG(V2, event) << "add e/rdeadline";
-  deadline_heap_.push(event->type() == Event::NEXT ?
-                      event->edeadline() : event->rdeadline());
+  deadlineHeap_.push(event->type() == Event::NEXT ?
+                     event->edeadline() : event->rdeadline());
   poll_.add(event->fd(), EPOLLIN, event);
 }
 
@@ -141,38 +154,39 @@ void EventLoop::addWriteEvent(Event *event) {
          event->type() == Event::TOWRITE);
   RDD_EVLOG(V2, event) << "add wdeadline";
   // TODO epoll_wait interval
-  //deadline_heap_.push(event->type() == Event::CONNECT ?
+  //deadlineHeap_.push(event->type() == Event::CONNECT ?
   //                    event->cdeadline() : event->wdeadline());
-  deadline_heap_.push(event->wdeadline());
+  deadlineHeap_.push(event->wdeadline());
   poll_.add(event->fd(), EPOLLOUT, event);
 }
 
 void EventLoop::removeEvent(Event *event) {
   RDD_EVLOG(V2, event) << "remove deadline";
-  deadline_heap_.erase(event);
+  deadlineHeap_.erase(event);
   RDD_EVLOG(V2, event) << "remove event";
   poll_.remove(event->fd());
 }
 
 void EventLoop::restartEvent(Event* event) {
   RDD_EVLOG(V2, event) << "remove deadline";
-  deadline_heap_.erase(event);
+  deadlineHeap_.erase(event);
   event->restart();  // the next request
   RDD_EVLOG(V2, event) << "add rdeadline";
-  deadline_heap_.push(event->rdeadline());
+  deadlineHeap_.push(event->rdeadline());
 }
 
 void EventLoop::checkTimeoutEvent() {
   uint64_t now = timestampNow();
+
   while (true) {
-    auto timeout = deadline_heap_.pop(now);
+    auto timeout = deadlineHeap_.pop(now);
     Event* event = timeout.data;
     if (!event) {
       break;
     }
     if (timeout.repeat && Socket::count() < Socket::LCOUNT) {
       timeout.deadline += Socket::LTIMEOUT;
-      deadline_heap_.push(timeout);
+      deadlineHeap_.push(timeout);
     }
     else {
       RDD_EVLOG(V2, event) << "pop deadline";

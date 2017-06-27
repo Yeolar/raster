@@ -10,6 +10,10 @@
 
 namespace rdd {
 
+inline void asm_volatile_pause() {
+  asm volatile ("pause");
+}
+
 inline int getCpuNum() {
   return sysconf(_SC_NPROCESSORS_CONF);
 }

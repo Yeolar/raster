@@ -5,11 +5,10 @@
 #include "rddoc/net/Actor.h"
 #include "rddoc/net/AsyncClient.h"
 #include "rddoc/plugins/monitor/Monitor.h"
-#include "rddoc/util/Signal.h"
 
 namespace rdd {
 
-void runEventTask(Event* event) {
+void eventRunner(Event* event) {
   {
     auto processor = event->processor(true);
     processor->decodeData(event);
@@ -20,125 +19,99 @@ void runEventTask(Event* event) {
     event->setType(Event::TOWRITE);
     Singleton<Actor>::get()->addEvent(event);
   }
-  exitTask();
+  FiberManager::exit();
 }
 
-void runClientTask(AsyncClient* client) {
-  yieldTask();
+void clientRunner(AsyncClient* client) {
+  FiberManager::yield();
   if (client->callbackMode()) {
     client->callback();
     delete client;
   }
-  exitTask();
+  FiberManager::exit();
 }
 
 void Actor::start() {
-  loop_ = std::unique_ptr<EventLoop>(
-      new EventLoop(options_.poll_size, options_.poll_timeout));
   for (auto& kv : services_) {
-    loop_->listen(kv.second->channel());
+    acceptor_.accept(*kv.second);
   }
-  loop_->start();
-  Singleton<Shutdown>::get()->addTask([&]() { loop_->stop(); });
+  acceptor_.start();
 }
 
-void Actor::addPool(int pid, const TaskThreadPool::Options& thread_opts) {
-  auto pool = std::make_shared<TaskThreadPool>(pid);
-  pool->setOptions(thread_opts);
-  pool->start();
-  pools_.emplace(pid, pool);
+void Actor::addService(const std::string& name,
+                       const std::shared_ptr<Service>& service) {
+  services_.emplace(name, service);
 }
 
-TaskThreadPool* Actor::getPool(int pid) const {
-  auto it = pools_.find(pid);
-  return it != pools_.end() ? it->second.get() : nullptr;
-}
-
-void Actor::configService(const std::string& name,
-                          int port,
-                          const TimeoutOption& timeout_opt,
-                          const TaskThreadPool::Options& thread_opts) {
+void Actor::createThreadPool(const std::string& name,
+                             int port,
+                             const TimeoutOption& timeoutOpt,
+                             size_t threadCount) {
+  if (port == 0) {
+    cpuPoolMap_.add(0, threadCount);
+    return;
+  }
   auto service = get_default(services_, name);
-  if (service) {
-    service->makeChannel(port, timeout_opt);
-    addPool(service->channel()->id(), thread_opts);
-  } else {
+  if (!service) {
     RDDLOG(FATAL) << "service: [" << name << "] not added";
+    return;
   }
+  service->makeChannel(port, timeoutOpt);
+  cpuPoolMap_.add(service->channel()->id(), threadCount);
 }
 
-void Actor::addEventTask(Event* event) {
-  if (!event->task()) {
-    int pid = event->channel()->id();
-    TaskThreadPool* pool = getPool(pid);
-    if (!pool) {
-      RDDLOG(FATAL) << "pool[" << pid << "] not found";
-      //delete event;
-      return;
-    }
-    if (exceedTaskLimit() || pool->exceedWaitingTaskLimit()) {
-      RDDLOG(WARN) << "pool[" << pid << "] exceed task capacity, drop task";
+void Actor::addTask(Event* event) {
+  int id = event->channel()->id();
+  ThreadPool* pool = getPool(id);
+  if (!event->fiber()) {
+    if (exceedFiberLimit()) {
+      RDDLOG(WARN) << "pool[" << id << "] exceed fiber capacity, drop fiber";
       delete event;
       return;
     }
-    Task* task = new EventTask(event, options_.stack_size, pid);
-    task->set(runEventTask, event);
-    event->setTask(task);
-    RDDLOG(V2) << "pool[" << pid << "] "
-      << "add net task(" << (void*)task << ") with ev(" << (void*)event << ")";
-    pool->addTask(task);
+    Fiber* fiber = new Fiber(options_.stackSize);
+    fiber->set(eventRunner, event);
+    fiber->setData(event);
+    event->setFiber(fiber);
+    RDDLOG(V2) << "pool[" << id << "] "
+      << "add fiber(" << (void*)fiber << ") with ev(" << (void*)event << ")";
+    pool->add(std::bind(FiberManager::run, fiber));
   }
   else {
-    int pid = event->task()->pid();
-    TaskThreadPool* pool = getPool(pid);
-    if (!pool) {
-      RDDLOG(FATAL) << "pool[" << pid << "] not found";
-      //delete event;
-      return;
-    }
     if (group_.finishGroup(event)) {
-      RDDLOG(V2) << "pool[" << pid << "] "
-        << "re-add net task(" << (void*)event->task() << ") "
+      RDDLOG(V2) << "pool[" << id << "] "
+        << "re-add fiber(" << (void*)event->fiber() << ") "
         << "with ev(" << (void*)event << ")";
-      pool->addTask(event->task());
+      pool->add(std::bind(FiberManager::run, event->fiber()));
     }
   }
 }
 
-void Actor::addClientTask(AsyncClient* client) {
-  int pid = 0;
-  TaskThreadPool* pool = getPool(pid);
-  if (!pool) {
-    RDDLOG(FATAL) << "pool[" << pid << "] not found";
-    return;
+void Actor::addTask(AsyncClient* client) {
+  ThreadPool* pool = getPool(0);
+  if (exceedFiberLimit()) {
+    RDDLOG(WARN) << "pool[0] exceed fiber capacity";
+    // still add fiber
   }
-  if (exceedTaskLimit() || pool->exceedWaitingTaskLimit()) {
-    RDDLOG(WARN) << "pool[0] exceed task capacity";
-    // still add task
-  }
-  Task* task = new EventTask(client->event(), options_.stack_size, pid);
-  task->set(runClientTask, client);
-  client->event()->setTask(task);
-  task->addBlockedCallback(std::bind(&Actor::addEvent, this, client->event()));
-  RDDLOG(V2) << "pool[0] add asyncclient task(" << (void*)task << ")";
-  pool->addTask(task);
+  Fiber* fiber = new Fiber(options_.stackSize);
+  fiber->set(clientRunner, client);
+  fiber->setData(client->event());
+  client->event()->setFiber(fiber);
+  fiber->addBlockedCallback(std::bind(&Actor::addEvent, this, client->event()));
+  RDDLOG(V2) << "pool[0] add asyncclient fiber(" << (void*)fiber << ")";
+  pool->add(std::bind(FiberManager::run, fiber));
 }
 
-void Actor::addCallbackTask(const PtrCallback& callback, void* ptr) {
-  int pid = 0;
-  TaskThreadPool* pool = getPool(pid);
-  if (!pool) {
-    RDDLOG(FATAL) << "pool[" << pid << "] not found";
-    return;
+void Actor::addTask(const PtrFunc& callback, void* ptr) {
+  ThreadPool* pool = getPool(0);
+  if (exceedFiberLimit()) {
+    RDDLOG(WARN) << "pool[0] exceed fiber capacity";
+    // cannot delete void*, so still add fiber
   }
-  if (exceedTaskLimit() || pool->exceedWaitingTaskLimit()) {
-    RDDLOG(WARN) << "pool[0] exceed task capacity";
-    // cannot delete void*, so still add task
-  }
-  Task* task = new Task(options_.stack_size, pid);
-  task->set(callback.target<void(*)(void*)>(), ptr);
-  RDDLOG(V2) << "pool[0] add callback task(" << (void*)task << ")";
-  pool->addTask(task);
+  Fiber* fiber = new Fiber(options_.stackSize);
+  fiber->set(callback.target<void(*)(void*)>(), ptr);
+  RDDLOG(V2) << "pool[0] add callback fiber(" << (void*)fiber << ")";
+  pool->add(std::bind(FiberManager::run, fiber));
 }
 
 void Actor::addEvent(Event* event) {
@@ -149,7 +122,7 @@ void Actor::addEvent(Event* event) {
       }
     }
   }
-  loop_->addEvent(event);
+  acceptor_.add(event);
 }
 
 void Actor::forwardEvent(Event* event, const Peer& peer) {
@@ -167,21 +140,23 @@ void Actor::forwardEvent(Event* event, const Peer& peer) {
   event->wbuf()->unshare();
   evcopy->setForward();
   evcopy->setType(Event::WRITED);
-  loop_->addEvent(evcopy);
+  acceptor_.add(evcopy);
 }
 
 void Actor::monitoring() const {
-  RDDMON_AVG("totaltask", Task::count());
+  RDDMON_AVG("totalfiber", Fiber::count());
   RDDMON_AVG("connection", Socket::count());
   RDDMON_AVG("backendgroup", group_.workingGroupCount());
-  for (auto& kv : pools_) {
+    /*
+  for (auto& kv : cpuPools_) {
     RDDMON_AVG(to<std::string>("freethread.pool-", kv.first),
                kv.second->freeThreadCount());
-    RDDMON_AVG(to<std::string>("waitingtask.pool-", kv.first),
-               kv.second->waitingTaskCount());
-    RDDMON_MAX(to<std::string>("waitingtask.pool-", kv.first, ".max"),
-               kv.second->waitingTaskCount());
+    RDDMON_AVG(to<std::string>("waitingfiber.pool-", kv.first),
+               kv.second->waitingFiberCount());
+    RDDMON_MAX(to<std::string>("waitingfiber.pool-", kv.first, ".max"),
+               kv.second->waitingFiberCount());
   }
+               */
 }
 
 }

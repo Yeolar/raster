@@ -19,14 +19,14 @@ public:
       ->handler();
   }
 
-  virtual void makeChannel(int port, const TimeoutOption& timeout_opt) {
+  virtual void makeChannel(int port, const TimeoutOption& timeoutOpt) {
     std::shared_ptr<Protocol> protocol(
       new TFramedProtocol());
-    std::shared_ptr<ProcessorFactory> processor_factory(
+    std::shared_ptr<ProcessorFactory> processorFactory(
       new ThriftProcessorFactory<P, If, ThriftProcessor>());
     Peer peer = {"", port};
     channel_ = std::make_shared<Channel>(
-      peer, timeout_opt, protocol, processor_factory);
+      peer, timeoutOpt, protocol, processorFactory);
   }
 };
 
@@ -39,14 +39,14 @@ public:
       ->handler();
   }
 
-  virtual void makeChannel(int port, const TimeoutOption& timeout_opt) {
+  virtual void makeChannel(int port, const TimeoutOption& timeoutOpt) {
     std::shared_ptr<Protocol> protocol(
       new TZlibProtocol());
-    std::shared_ptr<ProcessorFactory> processor_factory(
+    std::shared_ptr<ProcessorFactory> processorFactory(
       new ThriftProcessorFactory<P, If, ThriftZlibProcessor>());
     Peer peer = {"", port};
     channel_ = std::make_shared<Channel>(
-      peer, timeout_opt, protocol, processor_factory);
+      peer, timeoutOpt, protocol, processorFactory);
   }
 };
 

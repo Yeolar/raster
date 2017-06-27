@@ -36,12 +36,12 @@ void configActor(const dynamic& j) {
   }
   RDDLOG(INFO) << "config actor";
   Actor::Options opts;
-  opts.stack_size   = json::get(j, "stack_size", 64*1024);
-  opts.conn_limit   = json::get(j, "conn_limit", 100000);
-  opts.task_limit   = json::get(j, "task_limit", 4000);
-  opts.poll_size    = json::get(j, "poll_size", 1024);
-  opts.poll_timeout = json::get(j, "poll_timeout", 1000);
-  opts.forwarding   = json::get(j, "forwarding", false);
+  opts.stackSize       = json::get(j, "stack_size", 64*1024);
+  opts.connectionLimit = json::get(j, "conn_limit", 100000);
+  opts.fiberLimit      = json::get(j, "task_limit", 4000);
+  opts.pollSize        = json::get(j, "poll_size", 1024);
+  opts.pollTimeout     = json::get(j, "poll_timeout", 1000);
+  opts.forwarding      = json::get(j, "forwarding", false);
   Singleton<Actor>::get()->setOptions(opts);
 }
 
@@ -54,27 +54,19 @@ void configTaskThreadPool(const dynamic& j) {
     const dynamic& k = kv.first;
     const dynamic& v = kv.second;
     RDDLOG(INFO) << "config thread." << k;
-    TaskThreadPool::Options thread_opt;
-    thread_opt.thread_count       = json::get(v, "thread_count", 4);
-    thread_opt.thread_count_limit = json::get(v, "thread_count_limit", 0);
-    thread_opt.bindcpu            = json::get(v, "bindcpu", false);
-    thread_opt.waiting_task_limit = json::get(v, "waiting_task_limit", 100);
-    if (k == "0") {
-      Singleton<Actor>::get()->addPool(0, thread_opt);
-    } else {
-      auto service = json::get(v, "service", "");
-      int port = k.asInt();
-      if (service == "") {
-        RDDLOG(FATAL) << "config thread." << k << " error: " << v;
-        return;
-      }
-      TimeoutOption timeout_opt;
-      timeout_opt.ctimeout = json::get(v, "conn_timeout", 100000);
-      timeout_opt.rtimeout = json::get(v, "recv_timeout", 300000);
-      timeout_opt.wtimeout = json::get(v, "send_timeout", 1000000);
-      Singleton<Actor>::get()->configService(
-          service, port, timeout_opt, thread_opt);
+    auto service = json::get(v, "service", "");
+    int port = k.asInt();
+    if (port != 0 && service == "") {
+      RDDLOG(FATAL) << "config thread." << k << " error: " << v;
+      return;
     }
+    int thread_count = json::get(v, "thread_count", 4);
+    TimeoutOption timeout_opt;
+    timeout_opt.ctimeout = json::get(v, "conn_timeout", 100000);
+    timeout_opt.rtimeout = json::get(v, "recv_timeout", 300000);
+    timeout_opt.wtimeout = json::get(v, "send_timeout", 1000000);
+    Singleton<Actor>::get()->createThreadPool(
+        service, port, timeout_opt, thread_count);
   }
 }
 

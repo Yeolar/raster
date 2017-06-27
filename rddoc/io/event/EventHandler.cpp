@@ -2,8 +2,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "rddoc/io/event/EventHandler.h"
 #include "rddoc/net/Actor.h"
-#include "rddoc/net/EventLoop.h"
 #include "rddoc/net/Protocol.h"
 #include "rddoc/plugins/monitor/Monitor.h"
 
@@ -190,7 +190,7 @@ void EventHandler::onComplete(Event* event) {
           delete event;
         }
       }
-      Singleton<Actor>::get()->addEventTask(event);
+      Singleton<Actor>::get()->addTask(event);
       break;
     }
     // server: wait next; client: wait response
@@ -227,7 +227,7 @@ void EventHandler::closePeer(Event* event) {
   loop_->removeEvent(event);
   if (event->role() == Socket::CLIENT) {
     event->setType(Event::FAIL);
-    Singleton<Actor>::get()->addEventTask(event);
+    Singleton<Actor>::get()->addTask(event);
   } else {
     delete event;
   }

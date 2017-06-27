@@ -97,5 +97,20 @@ private:
   Alloc* alloc_;
 };
 
+struct CacheLocality {
+  enum {
+    /// Memory locations on the same cache line are subject to false
+    /// sharing, which is very bad for performance.  Microbenchmarks
+    /// indicate that pairs of cache lines also see interference under
+    /// heavy use of atomic operations (observed for atomic increment on
+    /// Sandy Bridge).
+    kFalseSharingRange = 128
+  };
+};
+
+/// An attribute that will cause a variable or field to be aligned so that
+/// it doesn't have false sharing with anything at a smaller memory address.
+#define RDD_ALIGN_TO_AVOID_FALSE_SHARING RDD_ALIGNED(128)
+
 }
 

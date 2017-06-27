@@ -2,22 +2,21 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "rddoc/net/Event.h"
-#include "rddoc/net/EventTask.h"
+#include "rddoc/io/event/Event.h"
 #include "rddoc/net/Channel.h"
 
 namespace rdd {
 
 Event* Event::getCurrentEvent() {
-  Task* task = ThreadTask::getCurrentThreadTask();
-  return task ? ((EventTask*)task)->event() : nullptr;
+  Fiber* fiber = FiberManager::get();
+  return fiber ? fiber->data<Event>() : nullptr;
 }
 
 Event::Event(const std::shared_ptr<Channel>& channel,
              const std::shared_ptr<Socket>& socket)
   : channel_(channel)
   , socket_(socket)
-  , timeout_opt_(channel->timeoutOption()) {
+  , timeoutOpt_(channel->timeoutOption()) {
   reset();
   RDD_EVLOG(V2, this) << "+";
 }
@@ -27,11 +26,11 @@ Event::Event(Waker* waker) {
   group_ = 0;
   action_ = NONE;
   waker_ = waker;
-  task_ = nullptr;
+  fiber_ = nullptr;
 }
 
 Event::~Event() {
-  user_ctx_.dispose();
+  userCtx_.dispose();
   RDD_EVTLOG(V2, this) << "-";
 }
 
@@ -42,7 +41,7 @@ void Event::reset() {
   group_ = 0;
   action_ = NONE;
   waker_ = nullptr;
-  task_ = nullptr;
+  fiber_ = nullptr;
   rbuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
   wbuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
   rlen_ = 0;

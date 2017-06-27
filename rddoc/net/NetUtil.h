@@ -42,10 +42,10 @@ struct TimeoutOption {
 };
 
 inline std::ostream& operator<<(std::ostream& os,
-                                const TimeoutOption& timeout_opt) {
-  os << "{" << timeout_opt.ctimeout
-     << "," << timeout_opt.rtimeout
-     << "," << timeout_opt.wtimeout << "}";
+                                const TimeoutOption& timeoutOpt) {
+  os << "{" << timeoutOpt.ctimeout
+     << "," << timeoutOpt.rtimeout
+     << "," << timeoutOpt.wtimeout << "}";
   return os;
 }
 
@@ -56,11 +56,11 @@ struct ClientOption {
 
 std::string getAddr(const std::string& ifname);
 
-std::string getNodeName(bool trim_suffix = false);
+std::string getNodeName(bool trimSuffix = false);
 
 std::string getNodeIp();
 
-std::string ipv4ToHost(const std::string& ip, bool trim_suffix = false);
+std::string ipv4ToHost(const std::string& ip, bool trimSuffix = false);
 
 }
 

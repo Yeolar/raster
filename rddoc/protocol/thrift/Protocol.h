@@ -5,6 +5,7 @@
 #pragma once
 
 #include "rddoc/net/Protocol.h"
+#include <thrift/transport/TBufferTransports.h>
 
 namespace rdd {
 

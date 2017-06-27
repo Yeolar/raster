@@ -5,9 +5,9 @@
 #pragma once
 
 #include <initializer_list>
-#include "rddoc/coroutine/Task.h"
+#include "rddoc/coroutine/Fiber.h"
+#include "rddoc/io/event/Event.h"
 #include "rddoc/net/Actor.h"
-#include "rddoc/net/Event.h"
 #include "rddoc/net/NetUtil.h"
 #include "rddoc/net/Socket.h"
 
@@ -31,8 +31,8 @@ public:
   bool keepAlive() const { return keepalive_; }
 
   // if use callback mode, you should new the client
-  void setCallbackMode() { callback_mode_ = true; }
-  bool callbackMode() const { return callback_mode_; }
+  void setCallbackMode() { callbackMode_ = true; }
+  bool callbackMode() const { return callbackMode_; }
 
   virtual bool connect();
   virtual void callback();
@@ -51,9 +51,9 @@ protected:
   void freeConnection();
 
   Peer peer_;
-  TimeoutOption timeout_opt_;
+  TimeoutOption timeoutOpt_;
   bool keepalive_{false};
-  bool callback_mode_{false};
+  bool callbackMode_{false};
   std::shared_ptr<Event> event_;
   std::shared_ptr<Channel> channel_;
 };
@@ -150,7 +150,7 @@ public:
       if (!Singleton<Actor>::get()->waitGroup(events)) {
         return false;
       }
-      return yieldTask();
+      return FiberManager::yield();
     }
     return false;
   }
@@ -174,7 +174,7 @@ inline bool yieldMultiTask(std::initializer_list<AsyncClient*> clients) {
     if (!Singleton<Actor>::get()->waitGroup(events)) {
       return false;
     }
-    return yieldTask();
+    return FiberManager::yield();
   }
   return false;
 }

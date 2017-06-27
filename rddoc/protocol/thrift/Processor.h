@@ -10,7 +10,7 @@
 #include <thrift/protocol/TBinaryProtocol.h>
 #include <thrift/transport/TBufferTransports.h>
 #include <thrift/transport/TTransportException.h>
-#include "rddoc/net/Event.h"
+#include "rddoc/io/event/Event.h"
 #include "rddoc/net/Processor.h"
 #include "rddoc/protocol/thrift/Encoding.h"
 
