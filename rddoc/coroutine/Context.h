@@ -22,8 +22,8 @@ public:
   }
 
   template <class F, class... Ts>
-  void make(int stack_size, F&& func, Ts&&... args) {
-    allocStack(stack_size);
+  void make(int stackSize, F&& func, Ts&&... args) {
+    allocStack(stackSize);
     getcontext(&ctx_);
     ctx_.uc_stack.ss_sp = ptr_;
     ctx_.uc_stack.ss_size = size_;
@@ -45,9 +45,9 @@ public:
   }
 
 private:
-  void allocStack(int stack_size) {
-    ptr_ = malloc(stack_size);
-    size_ = stack_size;
+  void allocStack(int stackSize) {
+    ptr_ = malloc(stackSize);
+    size_ = stackSize;
   }
   void freeStack() {
     free(ptr_);
@@ -59,8 +59,8 @@ private:
   int used_{0};
 };
 
-inline void swapContext(Context* old_ctx, Context* new_ctx) {
-  swapcontext(old_ctx->ctx(), new_ctx->ctx());
+inline void swapContext(Context* oldCtx, Context* newCtx) {
+  swapcontext(oldCtx->ctx(), newCtx->ctx());
 }
 
 }

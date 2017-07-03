@@ -4,141 +4,92 @@
 
 #include "rddoc/net/Actor.h"
 #include "rddoc/net/AsyncClient.h"
+#include "rddoc/net/AsyncClientExecutor.h"
+#include "rddoc/io/event/EventExecutor.h"
 #include "rddoc/plugins/monitor/Monitor.h"
-#include "rddoc/util/Signal.h"
 
 namespace rdd {
 
-void runEventTask(Event* event) {
-  {
-    auto processor = event->processor(true);
-    processor->decodeData(event);
-    RDDLOG(V2) << "run process...";
-    processor->run();
-    RDDLOG(V2) << "run process done";
-    processor->encodeData(event);
-    event->setType(Event::TOWRITE);
-    Singleton<Actor>::get()->addEvent(event);
-  }
-  exitTask();
-}
-
-void runClientTask(AsyncClient* client) {
-  yieldTask();
-  if (client->callbackMode()) {
-    client->callback();
-    delete client;
-  }
-  exitTask();
-}
-
 void Actor::start() {
-  loop_ = std::unique_ptr<EventLoop>(
-      new EventLoop(options_.poll_size, options_.poll_timeout));
   for (auto& kv : services_) {
-    loop_->listen(kv.second->channel());
+    acceptor_.accept(*kv.second);
   }
-  loop_->start();
-  Singleton<Shutdown>::get()->addTask([&]() { loop_->stop(); });
+  acceptor_.start();
 }
 
-void Actor::addPool(int pid, const TaskThreadPool::Options& thread_opts) {
-  auto pool = std::make_shared<TaskThreadPool>(pid);
-  pool->setOptions(thread_opts);
-  pool->start();
-  pools_.emplace(pid, pool);
-}
-
-TaskThreadPool* Actor::getPool(int pid) const {
-  auto it = pools_.find(pid);
-  return it != pools_.end() ? it->second.get() : nullptr;
+void Actor::addService(const std::string& name,
+                       const std::shared_ptr<Service>& service) {
+  services_.emplace(name, service);
 }
 
 void Actor::configService(const std::string& name,
                           int port,
-                          const TimeoutOption& timeout_opt,
-                          const TaskThreadPool::Options& thread_opts) {
+                          const TimeoutOption& timeoutOpt) {
   auto service = get_default(services_, name);
-  if (service) {
-    service->makeChannel(port, timeout_opt);
-    addPool(service->channel()->id(), thread_opts);
-  } else {
+  if (!service) {
     RDDLOG(FATAL) << "service: [" << name << "] not added";
-  }
-}
-
-void Actor::addEventTask(Event* event) {
-  if (!event->task()) {
-    int pid = event->channel()->id();
-    TaskThreadPool* pool = getPool(pid);
-    if (!pool) {
-      RDDLOG(FATAL) << "pool[" << pid << "] not found";
-      //delete event;
-      return;
-    }
-    if (exceedTaskLimit() || pool->exceedWaitingTaskLimit()) {
-      RDDLOG(WARN) << "pool[" << pid << "] exceed task capacity, drop task";
-      delete event;
-      return;
-    }
-    Task* task = new EventTask(event, options_.stack_size, pid);
-    task->set(runEventTask, event);
-    event->setTask(task);
-    RDDLOG(V2) << "pool[" << pid << "] "
-      << "add net task(" << (void*)task << ") with ev(" << (void*)event << ")";
-    pool->addTask(task);
-  }
-  else {
-    int pid = event->task()->pid();
-    TaskThreadPool* pool = getPool(pid);
-    if (!pool) {
-      RDDLOG(FATAL) << "pool[" << pid << "] not found";
-      //delete event;
-      return;
-    }
-    if (group_.finishGroup(event)) {
-      RDDLOG(V2) << "pool[" << pid << "] "
-        << "re-add net task(" << (void*)event->task() << ") "
-        << "with ev(" << (void*)event << ")";
-      pool->addTask(event->task());
-    }
-  }
-}
-
-void Actor::addClientTask(AsyncClient* client) {
-  int pid = 0;
-  TaskThreadPool* pool = getPool(pid);
-  if (!pool) {
-    RDDLOG(FATAL) << "pool[" << pid << "] not found";
     return;
   }
-  if (exceedTaskLimit() || pool->exceedWaitingTaskLimit()) {
-    RDDLOG(WARN) << "pool[0] exceed task capacity";
-    // still add task
-  }
-  Task* task = new EventTask(client->event(), options_.stack_size, pid);
-  task->set(runClientTask, client);
-  client->event()->setTask(task);
-  task->addBlockedCallback(std::bind(&Actor::addEvent, this, client->event()));
-  RDDLOG(V2) << "pool[0] add asyncclient task(" << (void*)task << ")";
-  pool->addTask(task);
+  service->makeChannel(port, timeoutOpt);
 }
 
-void Actor::addCallbackTask(const PtrCallback& callback, void* ptr) {
-  int pid = 0;
-  TaskThreadPool* pool = getPool(pid);
-  if (!pool) {
-    RDDLOG(FATAL) << "pool[" << pid << "] not found";
-    return;
+void Actor::configThreads(const std::string& name,
+                          size_t threadCount,
+                          bool bindCpu) {
+  auto factory = std::make_shared<ThreadFactory>(
+      (name == "io" ? "IOThreadPool" : "CPUThreadPool" + name) + ':');
+  if (name == "io") {
+    ioPool_.reset(new IOThreadPool(threadCount, factory, bindCpu));
+  } else {
+    cpuPoolMap_.emplace(
+        to<int>(name),
+        std::make_shared<CPUThreadPool>(threadCount, factory, bindCpu));
   }
-  if (exceedTaskLimit() || pool->exceedWaitingTaskLimit()) {
-    RDDLOG(WARN) << "pool[0] exceed task capacity";
-    // cannot delete void*, so still add task
+}
+
+void Actor::execute(VoidFunc&& func) {
+  ExecutorPtr executor = ExecutorPtr(new FunctionExecutor(std::move(func)));
+  execute(executor);
+}
+
+void Actor::execute(Event* event) {
+  if (!event->executor()) {
+    ExecutorPtr executor = ExecutorPtr(new EventExecutor(event));
+    executor->addSchedule(std::bind(&Actor::addEvent, this, event));
+    execute(executor, event->channel()->id());
+  } else {
+    size_t i = event->group();
+    event->setGroup(0);
+    if (i == 0 || group_.finish(i)) {
+      //execute(event->executor(), event->channel()->id());
+      ThreadPool* pool = getPool(event->channel()->id());
+      RDDLOG(V2) << pool->getThreadFactory()->namePrefix()
+        << " re-add fiber(" << (void*)event->executor()->fiber_ << ")";
+      pool->add(std::bind(FiberManager::run, event->executor()->fiber_));
+    }
   }
-  Task* task = new Task(options_.stack_size, pid);
-  task->set(callback.target<void(*)(void*)>(), ptr);
-  RDDLOG(V2) << "pool[0] add callback task(" << (void*)task << ")";
-  pool->addTask(task);
+}
+
+void Actor::execute(AsyncClient* client) {
+  ExecutorPtr executor = ExecutorPtr(new AsyncClientExecutor(client));
+  executor->addCallback(std::bind(&Actor::addEvent, this, client->event()));
+  execute(executor);
+}
+
+void Actor::execute(const ExecutorPtr& executor, int poolId) {
+  Fiber* fiber = executor->fiber_;
+  if (!fiber) {
+    if (exceedFiberLimit()) {
+      RDDLOG(WARN) << "pool[0] exceed fiber capacity";
+      // still add fiber
+    }
+    fiber = new Fiber(options_.stackSize);
+    fiber->setExecutor(executor);
+  }
+  ThreadPool* pool = getPool(poolId);
+  RDDLOG(V2) << pool->getThreadFactory()->namePrefix()
+    << " add fiber(" << (void*)fiber << ")";
+  pool->add(std::bind(FiberManager::run, fiber));
 }
 
 void Actor::addEvent(Event* event) {
@@ -149,7 +100,7 @@ void Actor::addEvent(Event* event) {
       }
     }
   }
-  loop_->addEvent(event);
+  ioPool_->getEventLoop()->addEvent(event);
 }
 
 void Actor::forwardEvent(Event* event, const Peer& peer) {
@@ -167,21 +118,23 @@ void Actor::forwardEvent(Event* event, const Peer& peer) {
   event->wbuf()->unshare();
   evcopy->setForward();
   evcopy->setType(Event::WRITED);
-  loop_->addEvent(evcopy);
+  ioPool_->getEventLoop()->addEvent(evcopy);
 }
 
 void Actor::monitoring() const {
-  RDDMON_AVG("totaltask", Task::count());
+  RDDMON_AVG("totalfiber", Fiber::count());
   RDDMON_AVG("connection", Socket::count());
-  RDDMON_AVG("backendgroup", group_.workingGroupCount());
-  for (auto& kv : pools_) {
+  RDDMON_AVG("backendgroup", group_.count());
+    /*
+  for (auto& kv : cpuPools_) {
     RDDMON_AVG(to<std::string>("freethread.pool-", kv.first),
                kv.second->freeThreadCount());
-    RDDMON_AVG(to<std::string>("waitingtask.pool-", kv.first),
-               kv.second->waitingTaskCount());
-    RDDMON_MAX(to<std::string>("waitingtask.pool-", kv.first, ".max"),
-               kv.second->waitingTaskCount());
+    RDDMON_AVG(to<std::string>("waitingfiber.pool-", kv.first),
+               kv.second->waitingFiberCount());
+    RDDMON_MAX(to<std::string>("waitingfiber.pool-", kv.first, ".max"),
+               kv.second->waitingFiberCount());
   }
+               */
 }
 
 }

@@ -16,6 +16,21 @@ template <class Container>
 typename std::enable_if<
   std::is_arithmetic<typename Container::value_type>::value,
   typename Container::value_type>::type
+min(const Container& container) {
+  typename Container::value_type max_value =
+    std::numeric_limits<typename Container::value_type>::max();
+  for (auto& i : container) {
+    if (max_value > i) {
+      max_value = i;
+    }
+  }
+  return max_value;
+}
+
+template <class Container>
+typename std::enable_if<
+  std::is_arithmetic<typename Container::value_type>::value,
+  typename Container::value_type>::type
 max(const Container& container) {
   typename Container::value_type max_value =
     std::numeric_limits<typename Container::value_type>::lowest();
@@ -64,10 +79,10 @@ template <class Container>
 typename std::enable_if<
   !detail::has_mapped_type<Container>::value>::type
 subrange(Container& container, size_t begin, size_t end) {
-  container.erase(container.begin() + std::min(end, container.size()),
-                  container.end());
-  container.erase(container.begin(),
-                  container.begin() + std::min(begin, container.size()));
+  size_t b = std::min(begin, container.size());
+  size_t e = std::min(end, container.size());
+  container.erase(container.begin() + e, container.end());
+  container.erase(container.begin(), container.begin() + b);
 }
 
 }

@@ -4,32 +4,33 @@
 
 #pragma once
 
-#include "rddoc/concurrency/TaskThreadPool.h"
+#include "rddoc/concurrency/CPUThreadPool.h"
+#include "rddoc/concurrency/IOThreadPool.h"
+#include "rddoc/coroutine/Executor.h"
+#include "rddoc/io/event/Event.h"
+#include "rddoc/io/event/EventLoop.h"
 #include "rddoc/net/Channel.h"
-#include "rddoc/net/Event.h"
-#include "rddoc/net/EventGroup.h"
-#include "rddoc/net/EventLoop.h"
-#include "rddoc/net/EventTask.h"
 #include "rddoc/net/Processor.h"
 #include "rddoc/net/Service.h"
+#include "rddoc/parallel/Group.h"
 #include "rddoc/util/Function.h"
 #include "rddoc/util/MapUtil.h"
+#include "rddoc/util/Signal.h"
 #include "rddoc/util/Singleton.h"
 #include "rddoc/util/SysUtil.h"
 
 namespace rdd {
 
-class TaskThreadPool;
 class AsyncClient;
 
 class Actor {
 public:
   struct Options {
-    size_t stack_size{256*1024};
-    size_t conn_limit{100000};
-    size_t task_limit{4000};
-    uint64_t poll_size{1024};
-    uint64_t poll_timeout{1000};
+    size_t stackSize{256*1024};
+    size_t connectionLimit{100000};
+    size_t fiberLimit{4000};
+    uint64_t pollSize{1024};
+    uint64_t pollTimeout{1000};
     bool forwarding{false};
   };
 
@@ -47,51 +48,89 @@ public:
 
   void start();
 
-  void addPool(int pid, const TaskThreadPool::Options& thread_opts);
-  TaskThreadPool* getPool(int pid) const;
-
   void addService(const std::string& name,
-                  const std::shared_ptr<Service>& service) {
-    services_.emplace(name, service);
-  }
+                  const std::shared_ptr<Service>& service);
+
   void configService(const std::string& name,
                      int port,
-                     const TimeoutOption& timeout_opt,
-                     const TaskThreadPool::Options& thread_opts);
+                     const TimeoutOption& timeoutOpt);
+  void configThreads(const std::string& name,
+                     size_t threadCount,
+                     bool bindCpu);
 
   void addForwardTarget(const ForwardTarget& t) {
-    forwards_.push_back(t);
+    forwards_.emplace_back(t);
   }
 
-  void addEventTask(Event* event);
-  void addClientTask(AsyncClient* client);
-  void addCallbackTask(const PtrCallback& callback, void* ptr);
+  void execute(const ExecutorPtr& executor, int poolId = 0);
+  void execute(VoidFunc&& func);
+  void execute(Event* event);
+  void execute(AsyncClient* client);
 
   void addEvent(Event* event);
   void forwardEvent(Event* event, const Peer& peer);
 
-  void addCallback(const VoidCallback& callback) {
-    loop_->addCallback(callback);
-  }
-
   bool waitGroup(const std::vector<Event*>& events) {
-    return group_.createGroup(events);
+    for (auto& event : events) {
+      if (event->group() != 0) {
+        RDDLOG(WARN) << "create group on grouping Event, giveup";
+        return false;
+      }
+    }
+    size_t i = group_.create(events.size());
+    for (auto& event : events) {
+      event->setGroup(i);
+    }
+    return true;
   }
 
   bool exceedConnectionLimit() const {
-    return Socket::count() >= options_.conn_limit;
+    return Socket::count() >= options_.connectionLimit;
   }
-  bool exceedTaskLimit() const {
-    return Task::count() >= options_.task_limit;
+  bool exceedFiberLimit() const {
+    return Fiber::count() >= options_.fiberLimit;
   }
 
   void monitoring() const;
 
 private:
+  class Acceptor {
+  public:
+    Acceptor() {
+      loop_.reset(new EventLoop());
+    }
+
+    void accept(const Service& service) {
+      loop_->listen(service.channel());
+    }
+
+    void start() {
+      loop_->loop();
+      Singleton<Shutdown>::get()->addTask([&]() { loop_->stop(); });
+    }
+
+  private:
+    std::unique_ptr<EventLoop> loop_;
+  };
+
+  ThreadPool* getPool(int id) {
+    auto pool = get_default(cpuPoolMap_, id);
+    if (!pool) {
+      pool = get_default(cpuPoolMap_, 0);
+      if (!pool) {
+        RDDLOG(FATAL) << "CPUThreadPool0 not found";
+      }
+    }
+    return pool.get();
+  }
+
   Options options_;
-  EventGroup group_;
-  std::unique_ptr<EventLoop> loop_;
-  std::map<int, std::shared_ptr<TaskThreadPool>> pools_;
+  Group group_;
+  Acceptor acceptor_;
+
+  std::shared_ptr<IOThreadPool> ioPool_;
+  std::map<int, std::shared_ptr<CPUThreadPool>> cpuPoolMap_;
+
   std::map<std::string, std::shared_ptr<Service>> services_;
   std::vector<ForwardTarget> forwards_;
 };

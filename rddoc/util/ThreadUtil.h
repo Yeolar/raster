@@ -4,20 +4,14 @@
 
 #pragma once
 
+#include <string>
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/syscall.h>
 #include "rddoc/util/Macro.h"
+#include "rddoc/util/noncopyable.h"
 
 namespace rdd {
-
-typedef void* (*ThreadFn)(void*);
-
-inline void createThread(ThreadFn fn, void* arg) {
-  pthread_t tid;
-  pthread_create(&tid, 0, fn, arg);
-  pthread_detach(tid);
-}
 
 inline pid_t localThreadId() {
   // __thread doesn't allow non-const initialization.
@@ -28,7 +22,11 @@ inline pid_t localThreadId() {
   return threadId;
 }
 
-template <typename T>
+inline bool setThreadName(pthread_t id, const std::string& name) {
+  return pthread_setname_np(id, name.substr(0, 15).c_str()) == 0;
+}
+
+template <class T>
 class ThreadLocalPtr {
 public:
   ThreadLocalPtr() {
@@ -43,12 +41,46 @@ public:
     delete get();
     pthread_setspecific(key_, t);
   }
+
+  T* operator->() const { return get(); }
+  T& operator*() const { return *get(); }
+
+private:
   static void OnThreadExit(void* obj) {
     delete static_cast<T*>(obj);
   }
 
-private:
   pthread_key_t key_{0};
+};
+
+template <class T>
+class ThreadLocal : noncopyable {
+public:
+  ThreadLocal() {}
+
+  T* get() const {
+    T* ptr = tlp_.get();
+    if (LIKELY(ptr != nullptr)) {
+      return ptr;
+    }
+    return makeTlp();
+  }
+
+  void reset(T* newPtr = nullptr) {
+    tlp_.reset(newPtr);
+  }
+
+  T* operator->() const { return get(); }
+  T& operator*() const { return *get(); }
+
+private:
+  T* makeTlp() const {
+    T* ptr = new T();
+    tlp_.reset(ptr);
+    return ptr;
+  }
+
+  mutable ThreadLocalPtr<T> tlp_;
 };
 
 }

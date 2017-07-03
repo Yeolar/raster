@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <map>
+#include <thread>
+#include <stdint.h>
 #include <unistd.h>
 #include "rddoc/util/Lock.h"
 #include "rddoc/util/ThreadUtil.h"
@@ -29,13 +30,8 @@ class AutoTaskManager {
 public:
   AutoTaskManager() {}
 
-  static void* routine(void* ptr) {
-    ((AutoTaskManager*)ptr)->run();
-    return nullptr;
-  }
-
   void start() {
-    createThread(AutoTaskManager::routine, this);
+    std::thread(&AutoTaskManager::run, this).detach();
   }
 
   void run() {

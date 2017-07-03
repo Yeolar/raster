@@ -9,9 +9,8 @@
 #include "rddoc/framework/Config.h"
 #include "rddoc/io/FileUtil.h"
 #include "rddoc/net/Actor.h"
-#include "rddoc/parallel/JobHandler.h"
+#include "rddoc/parallel/JobScheduler.h"
 #include "rddoc/plugins/monitor/Monitor.h"
-#include "rddoc/util/DAG.h"
 #include "rddoc/util/Logging.h"
 
 namespace rdd {
@@ -36,16 +35,35 @@ void configActor(const dynamic& j) {
   }
   RDDLOG(INFO) << "config actor";
   Actor::Options opts;
-  opts.stack_size   = json::get(j, "stack_size", 64*1024);
-  opts.conn_limit   = json::get(j, "conn_limit", 100000);
-  opts.task_limit   = json::get(j, "task_limit", 4000);
-  opts.poll_size    = json::get(j, "poll_size", 1024);
-  opts.poll_timeout = json::get(j, "poll_timeout", 1000);
-  opts.forwarding   = json::get(j, "forwarding", false);
+  opts.stackSize       = json::get(j, "stack_size", 64*1024);
+  opts.connectionLimit = json::get(j, "conn_limit", 100000);
+  opts.fiberLimit      = json::get(j, "task_limit", 4000);
+  opts.pollSize        = json::get(j, "poll_size", 1024);
+  opts.pollTimeout     = json::get(j, "poll_timeout", 1000);
+  opts.forwarding      = json::get(j, "forwarding", false);
   Singleton<Actor>::get()->setOptions(opts);
 }
 
-void configTaskThreadPool(const dynamic& j) {
+void configService(const dynamic& j) {
+  if (!j.isObject()) {
+    RDDLOG(FATAL) << "config service error: " << j;
+    return;
+  }
+  for (auto& kv : j.items()) {
+    const dynamic& k = kv.first;
+    const dynamic& v = kv.second;
+    RDDLOG(INFO) << "config service." << k;
+    auto service = json::get(v, "service", "");
+    int port = k.asInt();
+    TimeoutOption timeoutOpt;
+    timeoutOpt.ctimeout = json::get(v, "conn_timeout", 100000);
+    timeoutOpt.rtimeout = json::get(v, "recv_timeout", 300000);
+    timeoutOpt.wtimeout = json::get(v, "send_timeout", 1000000);
+    Singleton<Actor>::get()->configService(service, port, timeoutOpt);
+  }
+}
+
+void configThreadPool(const dynamic& j) {
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config thread error: " << j;
     return;
@@ -54,27 +72,10 @@ void configTaskThreadPool(const dynamic& j) {
     const dynamic& k = kv.first;
     const dynamic& v = kv.second;
     RDDLOG(INFO) << "config thread." << k;
-    TaskThreadPool::Options thread_opt;
-    thread_opt.thread_count       = json::get(v, "thread_count", 4);
-    thread_opt.thread_count_limit = json::get(v, "thread_count_limit", 0);
-    thread_opt.bindcpu            = json::get(v, "bindcpu", false);
-    thread_opt.waiting_task_limit = json::get(v, "waiting_task_limit", 100);
-    if (k == "0") {
-      Singleton<Actor>::get()->addPool(0, thread_opt);
-    } else {
-      auto service = json::get(v, "service", "");
-      int port = k.asInt();
-      if (service == "") {
-        RDDLOG(FATAL) << "config thread." << k << " error: " << v;
-        return;
-      }
-      TimeoutOption timeout_opt;
-      timeout_opt.ctimeout = json::get(v, "conn_timeout", 100000);
-      timeout_opt.rtimeout = json::get(v, "recv_timeout", 300000);
-      timeout_opt.wtimeout = json::get(v, "send_timeout", 1000000);
-      Singleton<Actor>::get()->configService(
-          service, port, timeout_opt, thread_opt);
-    }
+    auto name = k.asString();
+    int threadCount = json::get(v, "thread_count", 4);
+    bool bindCpu = json::get(v, "bind_cpu", false);
+    Singleton<Actor>::get()->configThreads(name, threadCount, bindCpu);
   }
 }
 
@@ -106,17 +107,21 @@ void configMonitor(const dynamic& j) {
 }
 
 void configJobGraph(const dynamic& j) {
-  if (!j.isArray()) {
+  if (!j.isObject()) {
     RDDLOG(FATAL) << "config job.graph error: " << j;
     return;
   }
   RDDLOG(INFO) << "config job.graph";
-  for (auto& i : j) {
-    auto name = json::get(i, "name", "");
-    int id = json::get(i, "id", 0);
-    auto next = json::getArray<int>(i, "next");
-    Singleton<JobHandlerManager>::get()->addJobHandler(id, name);
-    Singleton<DAG<int>>::get()->addNode(id, next);
+  for (auto& kv : j.items()) {
+    const dynamic& k = kv.first;
+    const dynamic& v = kv.second;
+    RDDLOG(INFO) << "config job.graph." << k;
+    Graph& g = Singleton<JobGraphManager>::get()->getGraph(k.asString());
+    for (auto& i : v) {
+      auto name = json::get(i, "name", "");
+      auto next = json::getArray<std::string>(i, "next");
+      g.add(name, next);
+    }
   }
 }
 

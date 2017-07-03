@@ -42,10 +42,10 @@ public:
   bool connect(const Peer& peer) {
     return connect(peer.host, peer.port);
   }
-
-  bool connected();
+  bool isConnected();
 
   void close();
+  bool isClosed();
 
   int recv(void* buf, size_t n);
   int send(void* buf, size_t n);

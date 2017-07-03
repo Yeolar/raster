@@ -12,15 +12,15 @@ namespace rdd {
 class Channel {
 public:
   Channel(const Peer& peer,
-          const TimeoutOption& timeout_opt,
+          const TimeoutOption& timeoutOpt,
           const std::shared_ptr<Protocol>& protocol,
-          const std::shared_ptr<ProcessorFactory>& processor_factory
+          const std::shared_ptr<ProcessorFactory>& processorFactory
             = std::shared_ptr<ProcessorFactory>())
     : id_(peer.port)
     , peer_(peer)
-    , timeout_opt_(timeout_opt)
+    , timeoutOpt_(timeoutOpt)
     , protocol_(protocol)
-    , processor_factory_(processor_factory) {
+    , processorFactory_(processorFactory) {
   }
 
   std::string str() const {
@@ -31,21 +31,21 @@ public:
 
   Peer peer() const { return peer_; }
 
-  TimeoutOption timeoutOption() const { return timeout_opt_; }
+  TimeoutOption timeoutOption() const { return timeoutOpt_; }
 
   std::shared_ptr<Protocol> protocol() const {
     return protocol_;
   }
   std::shared_ptr<ProcessorFactory> processorFactory() const {
-    return processor_factory_;
+    return processorFactory_;
   }
 
 private:
   int id_;
   Peer peer_;
-  TimeoutOption timeout_opt_;
+  TimeoutOption timeoutOpt_;
   std::shared_ptr<Protocol> protocol_;
-  std::shared_ptr<ProcessorFactory> processor_factory_;
+  std::shared_ptr<ProcessorFactory> processorFactory_;
 };
 
 }

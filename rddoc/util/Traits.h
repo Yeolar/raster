@@ -19,11 +19,12 @@ namespace traits_detail {
     : std::is_same<typename T::name, std::true_type> {};    \
   template <class T> struct has_true_ ## name               \
     : std::conditional<                                     \
-        has_ ## name <T>::value,                            \
+        has_ ## name<T>::value,                             \
         name ## _is_true<T>,                                \
         std::false_type                                     \
-      >:: type {};
+      >::type {};
 
+RDD_HAS_TRUE_XXX(IsRelocatable)
 RDD_HAS_TRUE_XXX(IsTriviallyCopyable)
 RDD_HAS_TRUE_XXX(IsZeroInitializable)
 
@@ -34,6 +35,13 @@ template <class T> struct IsTriviallyCopyable
   : std::integral_constant<bool,
       !std::is_class<T>::value ||
       traits_detail::has_true_IsTriviallyCopyable<T>::value
+    > {};
+
+template <class T> struct IsRelocatable
+  : std::integral_constant<bool,
+      !std::is_class<T>::value ||
+      IsTriviallyCopyable<T>::value ||
+      traits_detail::has_true_IsRelocatable<T>::value
     > {};
 
 template <class T> struct IsZeroInitializable

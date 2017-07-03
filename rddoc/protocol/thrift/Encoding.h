@@ -22,7 +22,7 @@ namespace thrift {
 inline bool decodeData(IOBuf* buf,
                        apache::thrift::transport::TMemoryBuffer* ibuf) {
   auto range = buf->coalesce();
-  RDDLOG_IF(V4) {
+  RDDLOG_ON(V4) {
     std::string hex;
     hexlify(range, hex);
     RDDLOG(V4) << "decode thrift data: " << hex;
@@ -36,7 +36,7 @@ inline bool decodeData(IOBuf* buf,
 
 inline bool decodeZlibData(IOBuf* buf,
                            apache::thrift::transport::TMemoryBuffer* ibuf) {
-  RDDLOG_IF(V4) {
+  RDDLOG_ON(V4) {
     auto range = buf->coalesce();
     std::string hex;
     hexlify(range, hex);
@@ -65,7 +65,7 @@ inline bool encodeData(IOBuf* buf,
   TypedIOBuf<uint32_t>(buf).push(htonl(n));
   rdd::io::Appender appender(buf, Protocol::CHUNK_SIZE);
   appender.pushAtMost(p, n);
-  RDDLOG_IF(V4) {
+  RDDLOG_ON(V4) {
     auto range = buf->coalesce();
     std::string hex;
     hexlify(range, hex);
@@ -88,7 +88,7 @@ inline bool encodeZlibData(IOBuf* buf,
   }
   compressed->cloneInto(*buf);
   RDDLOG(V3) << "encode thrift size: " << buf->computeChainDataLength();
-  RDDLOG_IF(V4) {
+  RDDLOG_ON(V4) {
     auto range = buf->coalesce();
     std::string hex;
     hexlify(range, hex);

@@ -64,9 +64,12 @@ public:
 #define RDDPLOG(severity) \
   RDDLOG(severity) << ::rdd::errnoStr(errno) << ", "
 
-#define RDDLOG_IF(severity) \
+#define RDDLOG_ON(severity) \
   if (::rdd::Singleton< ::rdd::logging::RDDLogger>::get()->level() \
     <= ::rdd::logging::LOG_##severity)
+
+#define RDDLOG_IF(severity, condition) \
+  (!(condition)) ? (void)0 : RDDLOG(severity)
 
 #define RDDCHECK(condition) \
   (condition) ? (void)0 : RDDLOG(FATAL) << "Check " #condition " failed. "

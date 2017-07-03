@@ -104,7 +104,7 @@ public:
   bool fetch(void (C::*recvFunc)(Res&), Res& _return,
          void (C::*sendFunc)(const Req&...), const Req&... requests) {
     return (send(sendFunc, requests...) &&
-            yieldTask() &&
+            FiberManager::yield() &&
             recv(recvFunc, _return));
   }
 
@@ -112,14 +112,14 @@ public:
   bool fetch(Res (C::*recvFunc)(void), Res& _return,
              void (C::*sendFunc)(const Req&...), const Req&... requests) {
     return (send(sendFunc, requests...) &&
-            yieldTask() &&
+            FiberManager::yield() &&
             recv(recvFunc, _return));
   }
 
   template <class... Req>
   bool fetch(void (C::*sendFunc)(const Req&...), const Req&... requests) {
     if (send(sendFunc, requests...)) {
-      Singleton<Actor>::get()->addClientTask((AsyncClient*)this);
+      Singleton<Actor>::get()->execute((AsyncClient*)this);
       return true;
     }
     return false;
@@ -128,7 +128,7 @@ public:
 protected:
   virtual std::shared_ptr<Channel> makeChannel() {
     std::shared_ptr<Protocol> protocol(new TFramedProtocol());
-    return std::make_shared<Channel>(peer_, timeout_opt_, protocol);
+    return std::make_shared<Channel>(peer_, timeoutOpt_, protocol);
   }
 
   bool decodeData() {

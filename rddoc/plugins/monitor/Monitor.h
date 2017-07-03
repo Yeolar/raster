@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <map>
 #include <string>
+#include <thread>
 #include "rddoc/util/Lock.h"
 #include "rddoc/util/Singleton.h"
 #include "rddoc/util/ThreadUtil.h"
@@ -74,13 +75,8 @@ public:
     prefix_ = prefix;
   }
 
-  static void* routine(void* ptr) {
-    ((Monitor*)ptr)->run();
-    return nullptr;
-  }
-
   void start() {
-    createThread(Monitor::routine, this);
+    std::thread(&Monitor::run, this).detach();
   }
 
   void run();

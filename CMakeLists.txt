@@ -81,6 +81,7 @@ add_subdirectory(rddoc/coroutine)
 add_subdirectory(rddoc/enc)
 add_subdirectory(rddoc/framework)
 add_subdirectory(rddoc/io)
+add_subdirectory(rddoc/io/event)
 add_subdirectory(rddoc/net)
 add_subdirectory(rddoc/plugins/leveldb)
 add_subdirectory(rddoc/plugins/memcached)
@@ -99,6 +100,7 @@ add_library(rdd_static STATIC
     $<TARGET_OBJECTS:rdd_enc>
     $<TARGET_OBJECTS:rdd_framework>
     $<TARGET_OBJECTS:rdd_io>
+    $<TARGET_OBJECTS:rdd_io_event>
     $<TARGET_OBJECTS:rdd_net>
     $<TARGET_OBJECTS:rdd_plugins_leveldb>
     $<TARGET_OBJECTS:rdd_plugins_memcached>
@@ -117,6 +119,7 @@ add_library(rdd_shared SHARED
     $<TARGET_OBJECTS:rdd_enc>
     $<TARGET_OBJECTS:rdd_framework>
     $<TARGET_OBJECTS:rdd_io>
+    $<TARGET_OBJECTS:rdd_io_event>
     $<TARGET_OBJECTS:rdd_net>
     $<TARGET_OBJECTS:rdd_plugins_leveldb>
     $<TARGET_OBJECTS:rdd_plugins_memcached>
@@ -149,9 +152,11 @@ add_subdirectory(empty-thrift)
 # Test
 if(GTEST_FOUND AND GMOCK_FOUND)
     enable_testing()
+    add_subdirectory(rddoc/concurrency/test)
     add_subdirectory(rddoc/enc/test)
     add_subdirectory(rddoc/gen/test)
     add_subdirectory(rddoc/io/test)
+    add_subdirectory(rddoc/parallel/test)
     add_subdirectory(rddoc/plugins/mysql/test)
     add_subdirectory(rddoc/util/test)
 endif()

@@ -15,6 +15,11 @@ public:
 RDD_CREATE_HAS_MEMBER_FN_TRAITS(has_test_traits, test);
 
 TEST(Traits, is_xxx) {
+  EXPECT_TRUE(IsRelocatable<int>::value);
+  EXPECT_TRUE(IsRelocatable<bool>::value);
+  EXPECT_TRUE(IsRelocatable<double>::value);
+  EXPECT_TRUE(IsRelocatable<void*>::value);
+
   EXPECT_TRUE (IsTriviallyCopyable<int>::value);
   EXPECT_FALSE(IsTriviallyCopyable<std::vector<int>>::value);
   EXPECT_TRUE (IsZeroInitializable<int>::value);

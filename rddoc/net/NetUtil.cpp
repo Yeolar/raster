@@ -69,12 +69,12 @@ std::string getAddr(const std::string& ifname) {
   return addr;
 }
 
-std::string getNodeName(bool trim_suffix) {
+std::string getNodeName(bool trimSuffix) {
   struct utsname buf;
   if (uname(&buf) != -1) {
     char* s = buf.nodename;
     char* p = strchr(s, '.');
-    return trim_suffix && p ? std::string(s, p - s) : s;
+    return trimSuffix && p ? std::string(s, p - s) : s;
   }
   return "(unknown)";
 }
@@ -101,7 +101,7 @@ std::string getNodeIp() {
 }
 
 // TODO prefer to use getnameinfo
-std::string ipv4ToHost(const std::string& ip, bool trim_suffix) {
+std::string ipv4ToHost(const std::string& ip, bool trimSuffix) {
   struct in_addr addr;
   if (inet_pton(AF_INET, ip.c_str(), &addr) != 1) {
     return ip + "(failed to get host)";
@@ -112,7 +112,7 @@ std::string ipv4ToHost(const std::string& ip, bool trim_suffix) {
   }
   char* s = he->h_name;
   char* p = strchr(s, '.');
-  return trim_suffix && p ? std::string(s, p - s) : s;
+  return trimSuffix && p ? std::string(s, p - s) : s;
 }
 
 }

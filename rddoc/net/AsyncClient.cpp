@@ -3,14 +3,14 @@
  */
 
 #include "rddoc/net/AsyncClient.h"
-#include "rddoc/net/EventPool.h"
+#include "rddoc/io/event/EventPool.h"
 
 namespace rdd {
 
 AsyncClient::AsyncClient(const ClientOption& option)
-  : peer_(option.peer), timeout_opt_(option.timeout) {
+  : peer_(option.peer), timeoutOpt_(option.timeout) {
   RDDLOG(DEBUG) << "AsyncClient: " << peer_.str()
-    << ", timeout=" << timeout_opt_;
+    << ", timeout=" << timeoutOpt_;
 }
 
 void AsyncClient::close() {
@@ -22,10 +22,10 @@ bool AsyncClient::connect() {
     return false;
   }
   RDD_EVLOG(V2, event()) << "connect";
-  if (!callback_mode_) {
-    Task* task = ThreadTask::getCurrentThreadTask();
-    event_->setTask(task);
-    task->addBlockedCallback(
+  if (!callbackMode_) {
+    ExecutorPtr executor = getCurrentExecutor();
+    event_->setExecutor(executor.get());
+    executor->addCallback(
         std::bind(&Actor::addEvent, Singleton<Actor>::get(), event()));
   }
   return true;
@@ -39,7 +39,7 @@ bool AsyncClient::initConnection() {
   if (keepalive_) {
     auto pool = Singleton<EventPoolManager>::get()->getPool(peer_.port);
     auto event = pool->get(peer_);
-    if (event && event->socket()->connected()) {
+    if (event && event->socket()->isConnected()) {
       event->reset();
       event->setType(Event::TOWRITE);
       event_ = event;

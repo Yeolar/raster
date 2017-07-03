@@ -3,6 +3,7 @@
  */
 
 #include "rddoc/util/ThreadUtil.h"
+#include <thread>
 #include <gtest/gtest.h>
 
 using namespace rdd;
@@ -17,6 +18,7 @@ void* routine(void* ptr) {
 }
 
 TEST(ThreadLocalPtr, all) {
-  createThread(routine, nullptr);
+  std::thread t(routine, nullptr);
   EXPECT_EQ(nullptr, tlp.get());
+  t.join();
 }

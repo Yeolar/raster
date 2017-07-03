@@ -20,7 +20,7 @@ public:
     return channel_;
   }
 
-  virtual void makeChannel(int port, const TimeoutOption& timeout_opt) = 0;
+  virtual void makeChannel(int port, const TimeoutOption& timeoutOpt) = 0;
 
 protected:
   std::shared_ptr<Channel> channel_;

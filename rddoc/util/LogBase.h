@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include "rddoc/util/FixedStream.h"
 #include "rddoc/util/Lock.h"
+#include "rddoc/util/String.h"
 #include "rddoc/util/ThreadUtil.h"
 #include "rddoc/util/Time.h"
 
@@ -158,8 +159,10 @@ public:
     , logger_(logger)
     , level_(level)
     , errno_(errno) {
+    uint64_t now = timestampNow();
     out_ << "[" << logging::getShortLevelName(level)
-         << timeNowPrintf(" %y%m%d %T ")
+         << timePrintf(now / 1000000, " %y%m%d %T")
+         << stringPrintf(".%06zu ", now % 1000000)
          << std::setw(5) << localThreadId() << " "
          << (traceid.empty() ? "" : traceid + " ")
          << file << ":" << line << "] ";
