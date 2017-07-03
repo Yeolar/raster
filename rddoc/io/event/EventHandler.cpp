@@ -190,7 +190,7 @@ void EventHandler::onComplete(Event* event) {
           delete event;
         }
       }
-      Singleton<Actor>::get()->addTask(event);
+      Singleton<Actor>::get()->execute(event);
       break;
     }
     // server: wait next; client: wait response
@@ -227,7 +227,7 @@ void EventHandler::closePeer(Event* event) {
   loop_->removeEvent(event);
   if (event->role() == Socket::CLIENT) {
     event->setType(Event::FAIL);
-    Singleton<Actor>::get()->addTask(event);
+    Singleton<Actor>::get()->execute(event);
   } else {
     delete event;
   }

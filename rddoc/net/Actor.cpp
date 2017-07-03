@@ -4,32 +4,11 @@
 
 #include "rddoc/net/Actor.h"
 #include "rddoc/net/AsyncClient.h"
+#include "rddoc/net/AsyncClientExecutor.h"
+#include "rddoc/io/event/EventExecutor.h"
 #include "rddoc/plugins/monitor/Monitor.h"
 
 namespace rdd {
-
-void eventRunner(Event* event) {
-  {
-    auto processor = event->processor(true);
-    processor->decodeData(event);
-    RDDLOG(V2) << "run process...";
-    processor->run();
-    RDDLOG(V2) << "run process done";
-    processor->encodeData(event);
-    event->setType(Event::TOWRITE);
-    Singleton<Actor>::get()->addEvent(event);
-  }
-  FiberManager::exit();
-}
-
-void clientRunner(AsyncClient* client) {
-  FiberManager::yield();
-  if (client->callbackMode()) {
-    client->callback();
-    delete client;
-  }
-  FiberManager::exit();
-}
 
 void Actor::start() {
   for (auto& kv : services_) {
@@ -43,74 +22,73 @@ void Actor::addService(const std::string& name,
   services_.emplace(name, service);
 }
 
-void Actor::createThreadPool(const std::string& name,
-                             int port,
-                             const TimeoutOption& timeoutOpt,
-                             size_t threadCount) {
-  if (port == 0) {
-    cpuPoolMap_.add(0, threadCount);
-    return;
-  }
+void Actor::configService(const std::string& name,
+                          int port,
+                          const TimeoutOption& timeoutOpt) {
   auto service = get_default(services_, name);
   if (!service) {
     RDDLOG(FATAL) << "service: [" << name << "] not added";
     return;
   }
   service->makeChannel(port, timeoutOpt);
-  cpuPoolMap_.add(service->channel()->id(), threadCount);
 }
 
-void Actor::addTask(Event* event) {
-  int id = event->channel()->id();
-  ThreadPool* pool = getPool(id);
-  if (!event->fiber()) {
+void Actor::configThreads(const std::string& name,
+                          size_t threadCount,
+                          bool bindCpu) {
+  auto factory = std::make_shared<ThreadFactory>(
+      (name == "io" ? "IOThreadPool" : "CPUThreadPool" + name) + ':');
+  if (name == "io") {
+    ioPool_.reset(new IOThreadPool(threadCount, factory, bindCpu));
+  } else {
+    cpuPoolMap_.emplace(
+        to<int>(name),
+        std::make_shared<CPUThreadPool>(threadCount, factory, bindCpu));
+  }
+}
+
+void Actor::execute(VoidFunc&& func) {
+  ExecutorPtr executor = ExecutorPtr(new FunctionExecutor(std::move(func)));
+  execute(executor);
+}
+
+void Actor::execute(Event* event) {
+  if (!event->executor()) {
+    ExecutorPtr executor = ExecutorPtr(new EventExecutor(event));
+    executor->addSchedule(std::bind(&Actor::addEvent, this, event));
+    execute(executor, event->channel()->id());
+  } else {
+    size_t i = event->group();
+    event->setGroup(0);
+    if (i == 0 || group_.finish(i)) {
+      //execute(event->executor(), event->channel()->id());
+      ThreadPool* pool = getPool(event->channel()->id());
+      RDDLOG(V2) << pool->getThreadFactory()->namePrefix()
+        << " re-add fiber(" << (void*)event->executor()->fiber_ << ")";
+      pool->add(std::bind(FiberManager::run, event->executor()->fiber_));
+    }
+  }
+}
+
+void Actor::execute(AsyncClient* client) {
+  ExecutorPtr executor = ExecutorPtr(new AsyncClientExecutor(client));
+  executor->addCallback(std::bind(&Actor::addEvent, this, client->event()));
+  execute(executor);
+}
+
+void Actor::execute(const ExecutorPtr& executor, int poolId) {
+  Fiber* fiber = executor->fiber_;
+  if (!fiber) {
     if (exceedFiberLimit()) {
-      RDDLOG(WARN) << "pool[" << id << "] exceed fiber capacity, drop fiber";
-      delete event;
-      return;
+      RDDLOG(WARN) << "pool[0] exceed fiber capacity";
+      // still add fiber
     }
-    Fiber* fiber = new Fiber(options_.stackSize);
-    fiber->set(eventRunner, event);
-    fiber->setData(event);
-    event->setFiber(fiber);
-    RDDLOG(V2) << "pool[" << id << "] "
-      << "add fiber(" << (void*)fiber << ") with ev(" << (void*)event << ")";
-    pool->add(std::bind(FiberManager::run, fiber));
+    fiber = new Fiber(options_.stackSize);
+    fiber->setExecutor(executor);
   }
-  else {
-    if (group_.finishGroup(event)) {
-      RDDLOG(V2) << "pool[" << id << "] "
-        << "re-add fiber(" << (void*)event->fiber() << ") "
-        << "with ev(" << (void*)event << ")";
-      pool->add(std::bind(FiberManager::run, event->fiber()));
-    }
-  }
-}
-
-void Actor::addTask(AsyncClient* client) {
-  ThreadPool* pool = getPool(0);
-  if (exceedFiberLimit()) {
-    RDDLOG(WARN) << "pool[0] exceed fiber capacity";
-    // still add fiber
-  }
-  Fiber* fiber = new Fiber(options_.stackSize);
-  fiber->set(clientRunner, client);
-  fiber->setData(client->event());
-  client->event()->setFiber(fiber);
-  fiber->addBlockedCallback(std::bind(&Actor::addEvent, this, client->event()));
-  RDDLOG(V2) << "pool[0] add asyncclient fiber(" << (void*)fiber << ")";
-  pool->add(std::bind(FiberManager::run, fiber));
-}
-
-void Actor::addTask(const PtrFunc& callback, void* ptr) {
-  ThreadPool* pool = getPool(0);
-  if (exceedFiberLimit()) {
-    RDDLOG(WARN) << "pool[0] exceed fiber capacity";
-    // cannot delete void*, so still add fiber
-  }
-  Fiber* fiber = new Fiber(options_.stackSize);
-  fiber->set(callback.target<void(*)(void*)>(), ptr);
-  RDDLOG(V2) << "pool[0] add callback fiber(" << (void*)fiber << ")";
+  ThreadPool* pool = getPool(poolId);
+  RDDLOG(V2) << pool->getThreadFactory()->namePrefix()
+    << " add fiber(" << (void*)fiber << ")";
   pool->add(std::bind(FiberManager::run, fiber));
 }
 
@@ -122,7 +100,7 @@ void Actor::addEvent(Event* event) {
       }
     }
   }
-  acceptor_.add(event);
+  ioPool_->getEventLoop()->addEvent(event);
 }
 
 void Actor::forwardEvent(Event* event, const Peer& peer) {
@@ -140,13 +118,13 @@ void Actor::forwardEvent(Event* event, const Peer& peer) {
   event->wbuf()->unshare();
   evcopy->setForward();
   evcopy->setType(Event::WRITED);
-  acceptor_.add(evcopy);
+  ioPool_->getEventLoop()->addEvent(evcopy);
 }
 
 void Actor::monitoring() const {
   RDDMON_AVG("totalfiber", Fiber::count());
   RDDMON_AVG("connection", Socket::count());
-  RDDMON_AVG("backendgroup", group_.workingGroupCount());
+  RDDMON_AVG("backendgroup", group_.count());
     /*
   for (auto& kv : cpuPools_) {
     RDDMON_AVG(to<std::string>("freethread.pool-", kv.first),

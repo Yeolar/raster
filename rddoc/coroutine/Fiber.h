@@ -4,14 +4,13 @@
 
 #pragma once
 
-#include <algorithm>
 #include <atomic>
-#include <list>
+#include <assert.h>
 #include "rddoc/coroutine/Context.h"
-#include "rddoc/util/Function.h"
+#include "rddoc/coroutine/Executor.h"
 #include "rddoc/util/Logging.h"
-#include "rddoc/util/String.h"
-#include "rddoc/util/ThreadUtil.h"
+#include "rddoc/util/noncopyable.h"
+#include "rddoc/util/Time.h"
 
 #define RDD_FCLOG(severity, t) \
   RDDLOG(severity) << "fiber(" << (void*)(t) << ", " \
@@ -42,10 +41,12 @@ public:
     --count_;
   }
 
-  template <class F, class... Ts>
-  void set(F&& func, Ts&&... args) {
-    context_.make(stackSize_, func, std::forward<Ts>(args)...);
-    setStatus(RUNABLE);
+  ExecutorPtr executor() const { return executor_; }
+
+  void setExecutor(const ExecutorPtr& executor) {
+    context_.make(stackSize_, &Executor::_, executor.get());
+    executor_ = executor;
+    executor_->fiber_ = this;
   }
 
   int status() const { return status_; }
@@ -61,11 +62,6 @@ public:
   void setBackContext(Context* context) {
     backContext_ = context;
   }
-
-  template <class T>
-  T* data() const { return reinterpret_cast<T*>(data_); }
-  template <class T>
-  void setData(T* ptr) { data_ = ptr; }
 
   bool isTimeout() {
     if (qtimeout_ > 0) {
@@ -93,18 +89,6 @@ public:
     swapContext(&context_, backContext_);
   }
 
-  void addBlockedCallback(const VoidFunc& callback) {
-    SpinLockGuard guard(blockedLock_);
-    blockedCallback_.emplace_back(callback);
-  }
-  void sweepBlockedCallback() {
-    SpinLockGuard guard(blockedLock_);
-    for (auto& callback : blockedCallback_) {
-      callback();
-    }
-    blockedCallback_.clear();
-  }
-
   uint64_t starttime() const {
     return timestamps_.empty() ? 0 : timestamps_.front().stamp;
   }
@@ -129,68 +113,11 @@ private:
   int stackSize_;
   Context context_;
   Context* backContext_{nullptr};
-  void* data_{nullptr};
+  ExecutorPtr executor_;
 
   uint64_t qstart_;           // deq start
   uint64_t qtimeout_{300000}; // deq timeout
   std::vector<Timestamp> timestamps_;
-
-  std::list<VoidFunc> blockedCallback_;
-  SpinLock blockedLock_;
-};
-
-class FiberManager : noncopyable {
-public:
-  static void update(Fiber* fiber) {
-    fiber_ = fiber;
-  }
-
-  static Fiber* get() {
-    return fiber_;
-  }
-
-  static void run(Fiber* fiber) {
-    update(fiber);
-    Context ctx;
-    fiber->setBackContext(&ctx);
-    fiber->execute();
-    switch (fiber->status()) {
-      case Fiber::BLOCK:
-        fiber->sweepBlockedCallback();
-        break;
-      case Fiber::INIT:
-      case Fiber::RUNABLE:
-      case Fiber::RUNNING:
-        RDDLOG(WARN) << "fiber status error";
-      case Fiber::EXIT:
-      default:
-        delete fiber;
-        break;
-    }
-  }
-
-  static bool yield() {
-    Fiber* fiber = get();
-    if (fiber) {
-      fiber->yield(Fiber::BLOCK);
-      return true;
-    }
-    return false;
-  }
-
-  static bool exit() {
-    Fiber* fiber = get();
-    if (fiber) {
-      fiber->yield(Fiber::EXIT);
-      return true;
-    }
-    return false;
-  }
-
-private:
-  FiberManager() {}
-
-  static __thread Fiber* fiber_;
 };
 
 }

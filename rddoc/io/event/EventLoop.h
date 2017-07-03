@@ -43,7 +43,8 @@ public:
     }
   }
 
-  void loop();
+  void loop() { loopBody(false); }
+  void loopOnce() { loopBody(true); }
   void stop();
 
   void addEvent(Event* event);
@@ -52,6 +53,8 @@ public:
   friend class EventHandler;
 
 private:
+  void loopBody(bool once);
+
   void dispatchEvent(Event* event);
   void addListenEvent(Event* event);
   void addReadEvent(Event* event);
@@ -71,9 +74,9 @@ private:
   Waker waker_;
   EventHandler handler_;
 
-  std::list<Event*> events_;
+  std::vector<Event*> events_;
   SpinLock eventsLock_;
-  std::list<VoidFunc> callbacks_;
+  std::vector<VoidFunc> callbacks_;
   SpinLock callbacksLock_;
 
   TimedHeap<Event> deadlineHeap_;

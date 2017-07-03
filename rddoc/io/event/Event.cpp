@@ -3,13 +3,14 @@
  */
 
 #include "rddoc/io/event/Event.h"
+#include "rddoc/io/event/EventExecutor.h"
 #include "rddoc/net/Channel.h"
 
 namespace rdd {
 
 Event* Event::getCurrentEvent() {
-  Fiber* fiber = FiberManager::get();
-  return fiber ? fiber->data<Event>() : nullptr;
+  ExecutorPtr executor = getCurrentExecutor();
+  return executor ? std::dynamic_pointer_cast<EventExecutor>(executor)->event() : nullptr;
 }
 
 Event::Event(const std::shared_ptr<Channel>& channel,
@@ -26,7 +27,7 @@ Event::Event(Waker* waker) {
   group_ = 0;
   action_ = NONE;
   waker_ = waker;
-  fiber_ = nullptr;
+  executor_ = nullptr;
 }
 
 Event::~Event() {
@@ -41,7 +42,7 @@ void Event::reset() {
   group_ = 0;
   action_ = NONE;
   waker_ = nullptr;
-  fiber_ = nullptr;
+  executor_ = nullptr;
   rbuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
   wbuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
   rlen_ = 0;

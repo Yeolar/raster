@@ -5,7 +5,7 @@
 #pragma once
 
 #include <initializer_list>
-#include "rddoc/coroutine/Fiber.h"
+#include "rddoc/coroutine/FiberManager.h"
 #include "rddoc/io/event/Event.h"
 #include "rddoc/net/Actor.h"
 #include "rddoc/net/NetUtil.h"

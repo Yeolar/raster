@@ -12,23 +12,17 @@
     "poll_timeout": 1000,
     "forwarding": false
   },
-  "thread": {
-    "0": {
-      "thread_count": 1,
-      "thread_count_limit": 4,
-      "bindcpu": false,
-      "waiting_task_limit": 100
-    },
+  "service": {
     "8000": {
-      "thread_count": 4,
-      "thread_count_limit": 16,
-      "bindcpu": false,
-      "waiting_task_limit": 100,
       "service": "Empty",
       "conn_timeout": 100000,
       "recv_timeout": 300000,
       "send_timeout": 1000000
     }
+  },
+  "thread": {
+    "io": { "thread_count": 4, "bindcpu": false },
+    "0": { "thread_count": 4, "bindcpu": false }
   },
   "net": {
     "copy": [
@@ -40,8 +34,13 @@
     "prefix": "empty"
   },
   "job": {
-    "graph": [
-      //{"name": "JobHandler", "id", 0, "next": []}
-    ]
+    "graph": {
+      "graph1": [
+        {"name": "EmptyJobExecutor:1", "next": ["EmptyJobExecutor:3"]},
+        {"name": "EmptyJobExecutor:2", "next": ["EmptyJobExecutor:3"]},
+        {"name": "EmptyJobExecutor:3", "next": []},
+        {"name": "EmptyJobExecutor:4", "next": []}
+      ]
+    }
   }
 }

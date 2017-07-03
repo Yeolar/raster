@@ -39,14 +39,14 @@ void EventLoop::listen(const std::shared_ptr<Channel>& channel, int backlog) {
   RDD_EVLOG(INFO, event) << "listen on port=" << port;
 }
 
-void EventLoop::loop() {
+void EventLoop::loopBody(bool once) {
   loopThread_ = pthread_self();
 
   while (!stop_) {
     uint64_t t0 = timestampNow();
 
-    std::list<Event*> events;
-    std::list<VoidFunc> callbacks;
+    std::vector<Event*> events;
+    std::vector<VoidFunc> callbacks;
     {
       SpinLockGuard guard(eventsLock_);
       events.swap(events_);
@@ -64,30 +64,35 @@ void EventLoop::loop() {
 
     checkTimeoutEvent();
 
-    int n = poll_.poll(timeout_);
-    if (n >= 0) {
-      for (int i = 0; i < n; ++i) {
-        epoll_data_t edata;
-        uint32_t etype = poll_.getData(i, edata);
-        Event* event = (Event*) edata.ptr;
-        if (event) {
-          if (event->type() == Event::WAKER) {
-            waker_.consume();
-          } else {
-            handler_.handle(event, etype);
+    if (!once) {
+      int n = poll_.poll(timeout_);
+      if (n >= 0) {
+        for (int i = 0; i < n; ++i) {
+          epoll_data_t edata;
+          uint32_t etype = poll_.getData(i, edata);
+          Event* event = (Event*) edata.ptr;
+          if (event) {
+            if (event->type() == Event::WAKER) {
+              waker_.consume();
+            } else {
+              handler_.handle(event, etype);
+            }
           }
         }
       }
+      RDDMON_AVG("loopevent", n);
+      RDDMON_MAX("loopevent.max", n);
     }
 
     uint64_t cost = timePassed(t0) / 1000;
-
-    RDDMON_AVG("loopevent", n);
-    RDDMON_MAX("loopevent.max", n);
     RDDMON_AVG("loopcost", cost);
     RDDMON_MAX("loopcost.max", cost);
 
     // Singleton<Actor>::get()->monitoring();
+
+    if (once) {
+      break;
+    }
   }
   stop_ = false;
   loopThread_ = 0;
@@ -119,7 +124,7 @@ void EventLoop::addCallback(const VoidFunc& callback) {
 
 void EventLoop::dispatchEvent(Event *event) {
   RDD_EVLOG(V2, event)
-    << "add event on fiber(" << (void*)event->fiber() << ")";
+    << "add event on fiber(" << (void*)event->executor() << ")";
   switch (event->type()) {
     case Event::LISTEN:
       addListenEvent(event); break;

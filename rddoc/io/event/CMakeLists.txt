@@ -2,7 +2,6 @@
 
 set(RDD_IO_EVENT_SRCS
     Event.cpp
-    EventGroup.cpp
     EventHandler.cpp
     EventLoop.cpp
     EventLoopManager.cpp

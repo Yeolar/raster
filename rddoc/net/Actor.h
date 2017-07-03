@@ -5,12 +5,14 @@
 #pragma once
 
 #include "rddoc/concurrency/CPUThreadPool.h"
+#include "rddoc/concurrency/IOThreadPool.h"
+#include "rddoc/coroutine/Executor.h"
 #include "rddoc/io/event/Event.h"
-#include "rddoc/io/event/EventGroup.h"
 #include "rddoc/io/event/EventLoop.h"
 #include "rddoc/net/Channel.h"
 #include "rddoc/net/Processor.h"
 #include "rddoc/net/Service.h"
+#include "rddoc/parallel/Group.h"
 #include "rddoc/util/Function.h"
 #include "rddoc/util/MapUtil.h"
 #include "rddoc/util/Signal.h"
@@ -49,28 +51,37 @@ public:
   void addService(const std::string& name,
                   const std::shared_ptr<Service>& service);
 
-  void createThreadPool(const std::string& name,
-                        int port,
-                        const TimeoutOption& timeout_opt,
-                        size_t threadCount);
+  void configService(const std::string& name,
+                     int port,
+                     const TimeoutOption& timeoutOpt);
+  void configThreads(const std::string& name,
+                     size_t threadCount,
+                     bool bindCpu);
 
   void addForwardTarget(const ForwardTarget& t) {
     forwards_.emplace_back(t);
   }
 
-  void addTask(Event* event);
-  void addTask(AsyncClient* client);
-  void addTask(const PtrFunc& callback, void* ptr);
+  void execute(const ExecutorPtr& executor, int poolId = 0);
+  void execute(VoidFunc&& func);
+  void execute(Event* event);
+  void execute(AsyncClient* client);
 
   void addEvent(Event* event);
   void forwardEvent(Event* event, const Peer& peer);
 
-  void addCallback(const VoidFunc& callback) {
-    acceptor_.add(callback);
-  }
-
   bool waitGroup(const std::vector<Event*>& events) {
-    return group_.createGroup(events);
+    for (auto& event : events) {
+      if (event->group() != 0) {
+        RDDLOG(WARN) << "create group on grouping Event, giveup";
+        return false;
+      }
+    }
+    size_t i = group_.create(events.size());
+    for (auto& event : events) {
+      event->setGroup(i);
+    }
+    return true;
   }
 
   bool exceedConnectionLimit() const {
@@ -83,22 +94,6 @@ public:
   void monitoring() const;
 
 private:
-  template <class T>
-  struct ThreadPoolMap {
-    std::map<int, std::shared_ptr<T>> pools;
-
-    void add(int id, size_t threadCount, bool bindCpu = false) {
-      auto factory = std::make_shared<ThreadFactory>(
-          to<std::string>(typeid(T).name(), id));
-      pools.emplace(id, std::make_shared<T>(threadCount, factory, bindCpu));
-    }
-
-    T* get(int id) {
-      auto it = pools.find(id);
-      return it != pools.end() ? it->second.get() : nullptr;
-    }
-  };
-
   class Acceptor {
   public:
     Acceptor() {
@@ -114,27 +109,27 @@ private:
       Singleton<Shutdown>::get()->addTask([&]() { loop_->stop(); });
     }
 
-    void add(Event* ev) { loop_->addEvent(ev); }
-    void add(const VoidFunc& callback) { loop_->addCallback(callback); }
-
   private:
     std::unique_ptr<EventLoop> loop_;
   };
 
   ThreadPool* getPool(int id) {
-    ThreadPool* pool = cpuPoolMap_.get(id);
+    auto pool = get_default(cpuPoolMap_, id);
     if (!pool) {
-      RDDLOG(FATAL) << "pool[" << id << "] not found";
+      pool = get_default(cpuPoolMap_, 0);
+      if (!pool) {
+        RDDLOG(FATAL) << "CPUThreadPool0 not found";
+      }
     }
-    return pool;
+    return pool.get();
   }
 
   Options options_;
-  EventGroup group_;
+  Group group_;
   Acceptor acceptor_;
 
-  //ThreadPoolMap<IOThreadPool> ioPoolMap_;
-  ThreadPoolMap<CPUThreadPool> cpuPoolMap_;
+  std::shared_ptr<IOThreadPool> ioPool_;
+  std::map<int, std::shared_ptr<CPUThreadPool>> cpuPoolMap_;
 
   std::map<std::string, std::shared_ptr<Service>> services_;
   std::vector<ForwardTarget> forwards_;

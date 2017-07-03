@@ -119,7 +119,7 @@ public:
   template <class... Req>
   bool fetch(void (C::*sendFunc)(const Req&...), const Req&... requests) {
     if (send(sendFunc, requests...)) {
-      Singleton<Actor>::get()->addTask((AsyncClient*)this);
+      Singleton<Actor>::get()->execute((AsyncClient*)this);
       return true;
     }
     return false;

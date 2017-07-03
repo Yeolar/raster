@@ -9,9 +9,8 @@
 #include "rddoc/framework/Config.h"
 #include "rddoc/io/FileUtil.h"
 #include "rddoc/net/Actor.h"
-#include "rddoc/parallel/JobHandler.h"
+#include "rddoc/parallel/JobScheduler.h"
 #include "rddoc/plugins/monitor/Monitor.h"
-#include "rddoc/util/DAG.h"
 #include "rddoc/util/Logging.h"
 
 namespace rdd {
@@ -45,7 +44,26 @@ void configActor(const dynamic& j) {
   Singleton<Actor>::get()->setOptions(opts);
 }
 
-void configTaskThreadPool(const dynamic& j) {
+void configService(const dynamic& j) {
+  if (!j.isObject()) {
+    RDDLOG(FATAL) << "config service error: " << j;
+    return;
+  }
+  for (auto& kv : j.items()) {
+    const dynamic& k = kv.first;
+    const dynamic& v = kv.second;
+    RDDLOG(INFO) << "config service." << k;
+    auto service = json::get(v, "service", "");
+    int port = k.asInt();
+    TimeoutOption timeoutOpt;
+    timeoutOpt.ctimeout = json::get(v, "conn_timeout", 100000);
+    timeoutOpt.rtimeout = json::get(v, "recv_timeout", 300000);
+    timeoutOpt.wtimeout = json::get(v, "send_timeout", 1000000);
+    Singleton<Actor>::get()->configService(service, port, timeoutOpt);
+  }
+}
+
+void configThreadPool(const dynamic& j) {
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config thread error: " << j;
     return;
@@ -54,19 +72,10 @@ void configTaskThreadPool(const dynamic& j) {
     const dynamic& k = kv.first;
     const dynamic& v = kv.second;
     RDDLOG(INFO) << "config thread." << k;
-    auto service = json::get(v, "service", "");
-    int port = k.asInt();
-    if (port != 0 && service == "") {
-      RDDLOG(FATAL) << "config thread." << k << " error: " << v;
-      return;
-    }
-    int thread_count = json::get(v, "thread_count", 4);
-    TimeoutOption timeout_opt;
-    timeout_opt.ctimeout = json::get(v, "conn_timeout", 100000);
-    timeout_opt.rtimeout = json::get(v, "recv_timeout", 300000);
-    timeout_opt.wtimeout = json::get(v, "send_timeout", 1000000);
-    Singleton<Actor>::get()->createThreadPool(
-        service, port, timeout_opt, thread_count);
+    auto name = k.asString();
+    int threadCount = json::get(v, "thread_count", 4);
+    bool bindCpu = json::get(v, "bind_cpu", false);
+    Singleton<Actor>::get()->configThreads(name, threadCount, bindCpu);
   }
 }
 
@@ -98,17 +107,21 @@ void configMonitor(const dynamic& j) {
 }
 
 void configJobGraph(const dynamic& j) {
-  if (!j.isArray()) {
+  if (!j.isObject()) {
     RDDLOG(FATAL) << "config job.graph error: " << j;
     return;
   }
   RDDLOG(INFO) << "config job.graph";
-  for (auto& i : j) {
-    auto name = json::get(i, "name", "");
-    int id = json::get(i, "id", 0);
-    auto next = json::getArray<int>(i, "next");
-    Singleton<JobHandlerManager>::get()->addJobHandler(id, name);
-    Singleton<DAG<int>>::get()->addNode(id, next);
+  for (auto& kv : j.items()) {
+    const dynamic& k = kv.first;
+    const dynamic& v = kv.second;
+    RDDLOG(INFO) << "config job.graph." << k;
+    Graph& g = Singleton<JobGraphManager>::get()->getGraph(k.asString());
+    for (auto& i : v) {
+      auto name = json::get(i, "name", "");
+      auto next = json::getArray<std::string>(i, "next");
+      g.add(name, next);
+    }
   }
 }
 

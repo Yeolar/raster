@@ -23,9 +23,9 @@ bool AsyncClient::connect() {
   }
   RDD_EVLOG(V2, event()) << "connect";
   if (!callbackMode_) {
-    Fiber* fiber = FiberManager::get();
-    event_->setFiber(fiber);
-    fiber->addBlockedCallback(
+    ExecutorPtr executor = getCurrentExecutor();
+    event_->setExecutor(executor.get());
+    executor->addCallback(
         std::bind(&Actor::addEvent, Singleton<Actor>::get(), event()));
   }
   return true;

@@ -13,7 +13,6 @@
 #include "rddoc/io/Waker.h"
 #include "rddoc/net/Socket.h"
 #include "rddoc/util/ContextWrapper.h"
-#include "rddoc/util/Function.h"
 
 #define RDD_EVLOG(severity, ev) \
   RDDLOG(severity) << "ev(" << (void*)(ev) << ", " \
@@ -97,8 +96,8 @@ public:
   std::shared_ptr<Channel> channel() const;
   std::shared_ptr<Processor> processor(bool create = false);
 
-  Fiber* fiber() const { return fiber_; }
-  void setFiber(Fiber* fiber) { fiber_ = fiber; }
+  Executor* executor() const { return executor_; }
+  void setExecutor(Executor* executor) { executor_ = executor; }
 
   int readData();
   int writeData();
@@ -180,7 +179,7 @@ private:
   std::shared_ptr<Processor> processor_;
 
   Waker* waker_;
-  Fiber* fiber_;
+  Executor* executor_;
 
   std::unique_ptr<IOBuf> rbuf_;
   std::unique_ptr<IOBuf> wbuf_;

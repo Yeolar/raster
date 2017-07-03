@@ -74,10 +74,14 @@ void IOThreadPool::threadRun(ThreadPtr thread) {
   ioThread->eventLoop = eventLoopManager_->getEventLoop();
   thisThread_.reset(new std::shared_ptr<IOThread>(ioThread));
 
-  ioThread->eventLoop->addCallback(
-      [thread]{ thread->startupBaton.post(); });
+  thread->startupBaton.post();
   while (ioThread->shouldRun) {
     ioThread->eventLoop->loop();
+  }
+  if (isJoin_) {
+    while (ioThread->pendingTasks > 0) {
+      ioThread->eventLoop->loopOnce();
+    }
   }
   stoppedThreads_.add(ioThread);
 
