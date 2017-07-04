@@ -6,7 +6,7 @@
 
 #include <atomic>
 #include <assert.h>
-#include "rddoc/coroutine/Context.h"
+#include "rddoc/coroutine/BoostContext.h"
 #include "rddoc/coroutine/Executor.h"
 #include "rddoc/util/Logging.h"
 #include "rddoc/util/noncopyable.h"
@@ -31,23 +31,24 @@ public:
 
   static size_t count() { return count_; }
 
-  Fiber(int stackSize)
-    : stackSize_(stackSize)
-    , qstart_(timestampNow()) {
+  Fiber(int stackSize, const ExecutorPtr& executor)
+    : stackLimit_(new unsigned char[stackSize]),
+      stackSize_(stackSize),
+      context_(std::bind(&Executor::run, executor.get()),
+               stackLimit_, stackSize_),
+      qstart_(timestampNow()) {
+    executor_ = executor;
+    executor_->fiber_ = this;
     timestamps_.emplace_back(Timestamp(status_));
     ++count_;
   }
+
   virtual ~Fiber() {
+    delete stackLimit_;
     --count_;
   }
 
   ExecutorPtr executor() const { return executor_; }
-
-  void setExecutor(const ExecutorPtr& executor) {
-    context_.make(stackSize_, &Executor::_, executor.get());
-    executor_ = executor;
-    executor_->fiber_ = this;
-  }
 
   int status() const { return status_; }
 
@@ -57,10 +58,6 @@ public:
   }
   char statusLabel() const {
     return "IARBQW"[status_];
-  }
-
-  void setBackContext(Context* context) {
-    backContext_ = context;
   }
 
   bool isTimeout() {
@@ -76,17 +73,14 @@ public:
   }
 
   void execute() {
-    assert(backContext_ != nullptr);
     assert(status_ == RUNABLE);
     setStatus(RUNNING);
-    swapContext(backContext_, &context_);
+    context_.activate();
   }
   void yield(int status) {
-    assert(backContext_ != nullptr);
     assert(status_ == RUNNING);
     setStatus(status);
-    context_.recordStackPosition();
-    swapContext(&context_, backContext_);
+    context_.deactivate();
   }
 
   uint64_t starttime() const {
@@ -110,9 +104,9 @@ private:
   static std::atomic<size_t> count_;
 
   int status_{INIT};
-  int stackSize_;
+  unsigned char* stackLimit_;
+  size_t stackSize_;
   Context context_;
-  Context* backContext_{nullptr};
   ExecutorPtr executor_;
 
   uint64_t qstart_;           // deq start

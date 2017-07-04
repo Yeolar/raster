@@ -4,64 +4,41 @@
 
 #pragma once
 
-#include <cstdlib>
-#include <utility>
 #include <ucontext.h>
-#include "rddoc/util/Logging.h"
-#include "rddoc/util/noncopyable.h"
+#include "rddoc/util/Function.h"
 
 namespace rdd {
 
-class Context : noncopyable {
+class Context {
 public:
-  Context() {}
-  ~Context() {
-    if (ptr_) {
-      freeStack();
-    }
+  Context(VoidFunc&& func,
+          unsigned char* stackLimit,
+          size_t stackSize)
+    : func_(std::move(func)) {
+    getcontext(&fiberContext_);
+    fiberContext_.uc_stack.ss_sp = stackLimit;
+    fiberContext_.uc_stack.ss_size = stackSize;
+    makecontext(&fiberContext_, (void (*)())fiberFunc, 1, this);
   }
 
-  template <class F, class... Ts>
-  void make(int stackSize, F&& func, Ts&&... args) {
-    allocStack(stackSize);
-    getcontext(&ctx_);
-    ctx_.uc_stack.ss_sp = ptr_;
-    ctx_.uc_stack.ss_size = size_;
-    makecontext(&ctx_,
-                (void (*)(void))func,
-                sizeof...(Ts),
-                std::forward<Ts>(args)...);
+  void activate() {
+    swapcontext(&mainContext_, &fiberContext_);
   }
 
-  ucontext_t* ctx() { return &ctx_; }
-
-  void recordStackPosition() {
-    int dummy;
-    used_ = (char*)ptr_ + size_ - (char*)&dummy;
-    if (used_ >= size_) {
-      RDDLOG(FATAL) << "context stack usage: " << used_ << "/" << size_;
-    }
-    RDDLOG(V5) << "context stack usage: " << used_ << "/" << size_;
+  void deactivate() {
+    swapcontext(&fiberContext_, &mainContext_);
   }
 
 private:
-  void allocStack(int stackSize) {
-    ptr_ = malloc(stackSize);
-    size_ = stackSize;
-  }
-  void freeStack() {
-    free(ptr_);
+  static void fiberFunc(intptr_t arg) {
+    auto ctx = reinterpret_cast<Context*>(arg);
+    ctx->func_();
   }
 
-  ucontext_t ctx_;
-  void* ptr_{nullptr};
-  int size_{0};
-  int used_{0};
+  VoidFunc func_;
+  ucontext_t fiberContext_;
+  ucontext_t mainContext_;
 };
-
-inline void swapContext(Context* oldCtx, Context* newCtx) {
-  swapcontext(oldCtx->ctx(), newCtx->ctx());
-}
 
 }
 

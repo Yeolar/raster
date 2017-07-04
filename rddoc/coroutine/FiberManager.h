@@ -21,8 +21,6 @@ public:
 
   static void run(Fiber* fiber) {
     update(fiber);
-    Context ctx;
-    fiber->setBackContext(&ctx);
     fiber->setStatus(Fiber::RUNABLE);
     fiber->execute();
     switch (fiber->status()) {
