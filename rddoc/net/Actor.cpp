@@ -83,8 +83,7 @@ void Actor::execute(const ExecutorPtr& executor, int poolId) {
       RDDLOG(WARN) << "pool[0] exceed fiber capacity";
       // still add fiber
     }
-    fiber = new Fiber(options_.stackSize);
-    fiber->setExecutor(executor);
+    fiber = new Fiber(options_.stackSize, executor);
   }
   ThreadPool* pool = getPool(poolId);
   RDDLOG(V2) << pool->getThreadFactory()->namePrefix()

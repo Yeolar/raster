@@ -14,8 +14,6 @@ class Fiber;
 
 class Executor {
 public:
-  static void _(Executor* o) { o->run(); }
-
   virtual void run() = 0;
 
   void addCallback(VoidFunc&& callback) {
