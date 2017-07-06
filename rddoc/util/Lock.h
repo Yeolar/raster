@@ -10,35 +10,6 @@
 
 namespace rdd {
 
-class Lock : noncopyable {
-public:
-  Lock() {
-    pthread_mutex_init(&lock_, nullptr);
-  }
-  ~Lock() {
-    pthread_mutex_destroy(&lock_);
-  }
-
-  void lock() const {
-    pthread_mutex_lock(&lock_);
-  }
-  void unlock() const {
-    pthread_mutex_unlock(&lock_);
-  }
-  bool trylock() const {
-    int rc = pthread_mutex_trylock(&lock_);
-    if (rc == 0) {
-      return true;
-    } else if (rc == EBUSY) {
-      return false;
-    }
-    return false;  // error
-  }
-
-private:
-  mutable pthread_mutex_t lock_;
-};
-
 class SpinLock : noncopyable {
 public:
   SpinLock() {
@@ -90,7 +61,6 @@ private:
   bool locked_;
 };
 
-typedef LockGuardImpl<Lock> LockGuard;
 typedef LockGuardImpl<SpinLock> SpinLockGuard;
 
 class RWLock : noncopyable {

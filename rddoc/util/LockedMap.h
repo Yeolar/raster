@@ -5,8 +5,8 @@
 #pragma once
 
 #include <map>
+#include <mutex>
 #include <vector>
-#include "rddoc/util/Lock.h"
 
 namespace rdd {
 
@@ -16,22 +16,22 @@ public:
   LockedMap() {}
 
   void insert(const K& k, const V& v) {
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     map_.emplace(k, v);
   }
 
   void update(const K& k, const V& v) {
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     map_[k] = v;
   }
 
   void erase(const K& k) {
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     map_.erase(k);
   }
 
   bool get(const K& k, V& v) const {
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     auto it = map_.find(k);
     if (it != map_.end()) {
       v = it->second;
@@ -47,18 +47,18 @@ public:
   }
 
   V operator[](const K& k) {
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     return map_[k];
   }
 
   size_t size() const {
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     return map_.size();
   }
 
   std::vector<K> keys() const {
     std::vector<K> v;
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     for (auto& kv : map_) {
       v.push_back(kv.first);
     }
@@ -67,7 +67,7 @@ public:
 
   std::vector<V> values() const {
     std::vector<V> v;
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     for (auto& kv : map_) {
       v.push_back(kv.second);
     }
@@ -76,7 +76,7 @@ public:
 
 private:
   std::map<K, V> map_;
-  mutable Lock lock_;
+  mutable std::mutex lock_;
 };
 
 }

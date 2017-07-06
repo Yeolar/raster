@@ -4,10 +4,10 @@
 
 #pragma once
 
+#include <mutex>
 #include <set>
 #include <stdexcept>
 #include "rddoc/io/event/EventLoop.h"
-#include "rddoc/util/Lock.h"
 #include "rddoc/util/noncopyable.h"
 #include "rddoc/util/ThreadUtil.h"
 
@@ -51,7 +51,7 @@ public:
 
   template<typename F>
   void withEventLoopSet(const F& runnable) {
-    LockGuard guard(loopsLock_);
+    std::lock_guard<std::mutex> guard(loopsLock_);
     const std::set<EventLoop*>& constSet = loops_;
     runnable(constSet);
   }
@@ -75,19 +75,19 @@ private:
   };
 
   void trackEventLoop(EventLoop* loop) {
-    LockGuard guard(loopsLock_);
+    std::lock_guard<std::mutex> guard(loopsLock_);
     loops_.insert(loop);
   }
 
   void untrackEventLoop(EventLoop* loop) {
-    LockGuard guard(loopsLock_);
+    std::lock_guard<std::mutex> guard(loopsLock_);
     loops_.erase(loop);
   }
 
   mutable ThreadLocalPtr<EventLoopInfo> localStore_;
 
   mutable std::set<EventLoop*> loops_;
-  Lock loopsLock_;
+  std::mutex loopsLock_;
 };
 
 }

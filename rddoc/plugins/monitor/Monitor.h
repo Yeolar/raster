@@ -6,9 +6,9 @@
 
 #include <algorithm>
 #include <map>
+#include <mutex>
 #include <string>
 #include <thread>
-#include "rddoc/util/Lock.h"
 #include "rddoc/util/Singleton.h"
 #include "rddoc/util/ThreadUtil.h"
 
@@ -88,7 +88,7 @@ private:
 
   std::string prefix_;
   std::map<std::string, MonitorValue> mvalues_;
-  Lock lock_;
+  std::mutex lock_;
 };
 
 }

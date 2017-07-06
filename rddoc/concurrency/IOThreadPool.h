@@ -17,7 +17,7 @@ struct IOThread : public Thread {
   std::atomic<bool> shouldRun;
   std::atomic<size_t> pendingTasks;
   EventLoop* eventLoop;
-  Lock eventLoopShutdownLock_;
+  std::mutex eventLoopShutdownLock_;
 };
 
 /**

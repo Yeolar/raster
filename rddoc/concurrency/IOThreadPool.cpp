@@ -85,7 +85,7 @@ void IOThreadPool::threadRun(ThreadPtr thread) {
   }
   stoppedThreads_.add(ioThread);
 
-  LockGuard guard(ioThread->eventLoopShutdownLock_);
+  std::lock_guard<std::mutex> guard(ioThread->eventLoopShutdownLock_);
   ioThread->eventLoop = nullptr;
 }
 
@@ -96,7 +96,7 @@ void IOThreadPool::stopThreads(size_t n) {
       o->threadStopped(ioThread.get());
     }
     ioThread->shouldRun = false;
-    LockGuard guard(ioThread->eventLoopShutdownLock_);
+    std::lock_guard<std::mutex> guard(ioThread->eventLoopShutdownLock_);
     if (ioThread->eventLoop) {
       ioThread->eventLoop->stop();
     }

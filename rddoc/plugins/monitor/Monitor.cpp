@@ -25,7 +25,7 @@ void Monitor::run() {
 
 void Monitor::addToMonitor(const std::string& name, int type, int value) {
   auto key = prefix_.empty() ? name : prefix_ + '.' + name;
-  LockGuard guard(lock_);
+  std::lock_guard<std::mutex> guard(lock_);
   if (!contain(mvalues_, key)) {
     mvalues_.emplace(key, MonitorValue(type));
   }
@@ -39,7 +39,7 @@ void Monitor::addToMonitor(const std::string& name, int type, int value) {
 }
 
 void Monitor::dump(std::map<std::string, int>& data) {
-  LockGuard guard(lock_);
+  std::lock_guard<std::mutex> guard(lock_);
   for (auto& kv : mvalues_) {
     if (kv.second.isSet()) {
       data[kv.first] = kv.second.value();

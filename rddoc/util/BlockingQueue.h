@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include <mutex>
 #include <queue>
-#include "rddoc/util/Lock.h"
 #include "rddoc/util/Sem.h"
 
 namespace rdd {
@@ -22,7 +22,7 @@ template <class T>
 class GenericBlockingQueue : public BlockingQueue<T> {
 public:
   void add(T item) {
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     queue_.push(std::move(item));
     sem_.post();
   }
@@ -30,7 +30,7 @@ public:
   T take() {
     while (1) {
       {
-        LockGuard guard(lock_);
+        std::lock_guard<std::mutex> guard(lock_);
         if (queue_.size() > 0) {
           auto item = std::move(queue_.front());
           queue_.pop();
@@ -42,12 +42,12 @@ public:
   }
 
   size_t size() {
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     return queue_.size();
   }
 
 private:
-  Lock lock_;
+  std::mutex lock_;
   Sem sem_;
   std::queue<T> queue_;
 };

@@ -5,10 +5,10 @@
 #pragma once
 
 #include <atomic>
+#include <mutex>
 #include <stdexcept>
 #include <vector>
 #include "rddoc/coroutine/Executor.h"
-#include "rddoc/util/Lock.h"
 
 namespace rdd {
 
@@ -42,7 +42,7 @@ public:
   }
 
   void schedule(Key i) {
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     for (auto key : nodes_[i].nexts) {
       if (--nodes_[key].waitCount == 0) {
         execute(nodes_[key].executor);
@@ -129,7 +129,7 @@ private:
   }
 
   std::vector<Node> nodes_;
-  Lock lock_;
+  std::mutex lock_;
 };
 
 }

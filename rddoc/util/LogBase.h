@@ -9,12 +9,12 @@
 #include <functional>
 #include <iomanip>
 #include <iostream>
+#include <mutex>
 #include <string>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "rddoc/util/FixedStream.h"
-#include "rddoc/util/Lock.h"
 #include "rddoc/util/String.h"
 #include "rddoc/util/ThreadUtil.h"
 #include "rddoc/util/Time.h"
@@ -74,7 +74,7 @@ public:
   }
 
   void log(const std::string& message) {
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     update(time(nullptr));
     ::write(fd_ >= 0 ? fd_ : STDERR_FILENO, message.c_str(), message.size());
   }
@@ -137,7 +137,7 @@ private:
   int level_;
   int rotate_;
   int fd_;
-  Lock lock_;
+  std::mutex lock_;
 };
 
 // This class is used to explicitly ignore values in the conditional

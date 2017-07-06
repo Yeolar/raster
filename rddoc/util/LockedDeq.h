@@ -5,7 +5,7 @@
 #pragma once
 
 #include <deque>
-#include "rddoc/util/Lock.h"
+#include <mutex>
 
 namespace rdd {
 
@@ -15,12 +15,12 @@ public:
   LockedDeq() {}
 
   void push(const V& v) {
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     deq_.push_back(v);
   }
 
   bool pop(V& v) {
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     if (deq_.empty()) {
       return false;
     }
@@ -36,13 +36,13 @@ public:
   }
 
   size_t size() const {
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     return deq_.size();
   }
 
 private:
   std::deque<V> deq_;
-  mutable Lock lock_;
+  mutable std::mutex lock_;
 };
 
 }

@@ -36,8 +36,9 @@
 
 #include <atomic>
 #include <memory>
-#include "rddoc/util/Lock.h"
+#include <mutex>
 #include "rddoc/util/Macro.h"
+#include "rddoc/util/noncopyable.h"
 
 namespace rdd {
 
@@ -72,13 +73,13 @@ private:
   SingletonHolder() : state_(UNREGISTERED) {}
 
   void createInstance() {
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     instance_ = std::make_shared<T>();
     instance_ptr_ = instance_.get();
     state_.store(LIVING);
   }
 
-  Lock lock_;
+  std::mutex lock_;
   std::atomic<int> state_;
   std::shared_ptr<T> instance_;
   T* instance_ptr_{nullptr};

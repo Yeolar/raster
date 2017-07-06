@@ -10,6 +10,7 @@
 #include "rddoc/io/event/Event.h"
 #include "rddoc/io/event/EventHandler.h"
 #include "rddoc/io/event/Poll.h"
+#include "rddoc/util/Lock.h"
 #include "rddoc/util/TimedHeap.h"
 
 namespace rdd {

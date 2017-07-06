@@ -5,10 +5,10 @@
 #pragma once
 
 #include <map>
+#include <mutex>
 #include <thread>
 #include <stdint.h>
 #include <unistd.h>
-#include "rddoc/util/Lock.h"
 #include "rddoc/util/ThreadUtil.h"
 #include "rddoc/util/Time.h"
 
@@ -47,7 +47,7 @@ public:
   template <class T>
   void addTask(T* task, uint64_t interval) {
     if (task != nullptr) {
-      LockGuard guard(lock_);
+      std::lock_guard<std::mutex> guard(lock_);
       tasks_.emplace((AutoTask*)task, interval);
     }
   }
@@ -56,7 +56,7 @@ public:
     uint64_t passed = timePassed(timestamp_);
     std::map<AutoTask*, uint64_t> tasks;
     {
-      LockGuard guard(lock_);
+      std::lock_guard<std::mutex> guard(lock_);
       tasks = tasks_;
     }
     for (auto& kv : tasks) {
@@ -69,7 +69,7 @@ public:
 private:
   uint64_t timestamp_{0};
   std::map<AutoTask*, uint64_t> tasks_;
-  Lock lock_;
+  std::mutex lock_;
 };
 
 }

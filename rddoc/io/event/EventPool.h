@@ -7,9 +7,9 @@
 #include <deque>
 #include <map>
 #include <memory>
+#include <mutex>
 #include "rddoc/io/event/Event.h"
 #include "rddoc/net/NetUtil.h"
-#include "rddoc/util/Lock.h"
 
 namespace rdd {
 
@@ -25,7 +25,7 @@ public:
 
 private:
   std::map<Peer, std::deque<std::shared_ptr<Event>>> pool_;
-  mutable Lock lock_;
+  mutable std::mutex lock_;
 };
 
 class EventPoolManager {
@@ -33,7 +33,7 @@ public:
   EventPoolManager() {}
 
   EventPool* getPool(int id) {
-    LockGuard guard(lock_);
+    std::lock_guard<std::mutex> guard(lock_);
     if (pool_.find(id) == pool_.end()) {
       pool_.emplace(id, std::make_shared<EventPool>());
     }
@@ -42,7 +42,7 @@ public:
 
 private:
   std::map<int, std::shared_ptr<EventPool>> pool_;
-  mutable Lock lock_;
+  mutable std::mutex lock_;
 };
 
 }
