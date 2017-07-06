@@ -64,8 +64,8 @@ void Actor::execute(Event* event) {
       //execute(event->executor(), event->channel()->id());
       ThreadPool* pool = getPool(event->channel()->id());
       RDDLOG(V2) << pool->getThreadFactory()->namePrefix()
-        << " re-add fiber(" << (void*)event->executor()->fiber_ << ")";
-      pool->add(std::bind(FiberManager::run, event->executor()->fiber_));
+        << " re-add fiber(" << (void*)event->executor()->fiber << ")";
+      pool->add(std::bind(FiberManager::run, event->executor()->fiber));
     }
   }
 }
@@ -77,7 +77,7 @@ void Actor::execute(AsyncClient* client) {
 }
 
 void Actor::execute(const ExecutorPtr& executor, int poolId) {
-  Fiber* fiber = executor->fiber_;
+  Fiber* fiber = executor->fiber;
   if (!fiber) {
     if (exceedFiberLimit()) {
       RDDLOG(WARN) << "pool[0] exceed fiber capacity";

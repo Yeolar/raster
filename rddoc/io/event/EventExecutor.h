@@ -16,6 +16,8 @@ public:
     event_->setExecutor(this);
   }
 
+  virtual ~EventExecutor() {}
+
   void handle() {
     auto processor = event_->processor(true);
     processor->decodeData(event_);

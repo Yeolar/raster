@@ -12,7 +12,7 @@
 #include "rddoc/protocol/thrift/SyncClient.h"
 #include "rddoc/util/Conv.h"
 #include "rddoc/util/Logging.h"
-#include "rddoc/util/ProducerConsumerVector.h"
+#include "rddoc/util/ProducerConsumerQueue.h"
 
 namespace rdd {
 
@@ -21,7 +21,7 @@ public:
   FlumeClient(const ClientOption& option,
          const std::string& category,
          const std::string& logdir = "/opt/logs/logs/flume_delay")
-    : category_(category), logdir_(logdir) {
+    : category_(category), logdir_(logdir), queue_(10240) {
     client_ = std::make_shared<TSyncClient<ScribeClient>>(option);
     if (!client_->connect()) {
       RDDLOG(ERROR) << "connect flume client failed";
@@ -30,23 +30,28 @@ public:
 
   ~FlumeClient() {
     send();
-    send();
   }
 
-  void add(const std::string& message) {
+  bool add(const std::string& message) {
+    if (queue_.isFull()) {
+      return false;
+    }
     LogEntry entry;
     entry.category = category_;
     entry.message = message + "\n";
-    pcvec_.add(entry);
+    queue_.write(entry);
+    return true;
   }
 
   void send() {
-    using namespace std::placeholders;
-    pcvec_.consume(std::bind(&FlumeClient::sendInBatch, this, _1));
+    std::vector<LogEntry> entries;
+    while (!queue_.isEmpty()) {
+      LogEntry entry;
+      queue_.read(entry);
+      entries.push_back(entry);
+    }
+    sendInBatch(entries);
   }
-
-  size_t bufferSize() const { return pcvec_.size(); }
-  size_t bufferCapacity() const { return pcvec_.capacity(); }
 
 private:
   void sendInBatch(const std::vector<LogEntry>& entries);
@@ -54,8 +59,8 @@ private:
 
   std::string category_;
   std::string logdir_;
+  ProducerConsumerQueue<LogEntry> queue_;
   std::shared_ptr<TSyncClient<ScribeClient>> client_;
-  ProducerConsumerVector<LogEntry> pcvec_;
 };
 
 }

@@ -19,19 +19,13 @@ public:
     handle();
     FiberManager::exit();
   }
-
-  template <class T>
-  T* data() const { return reinterpret_cast<T*>(data_); }
-  template <class T>
-  void setData(T* ptr) { data_ = ptr; }
-
-private:
-  void* data_{nullptr};
 };
 
 class FunctionExecutor : public GenericExecutor {
 public:
   FunctionExecutor(VoidFunc&& func) : func_(func) {}
+
+  virtual ~FunctionExecutor() {}
 
   void handle() {
     func_();

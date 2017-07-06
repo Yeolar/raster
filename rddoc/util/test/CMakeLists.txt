@@ -8,7 +8,6 @@ set(RDD_UTIL_TEST_SRCS
     FixedStreamTest.cpp
     HashTest.cpp
     LoggingTest.cpp
-    ProducerConsumerVectorTest.cpp
     ReflectObjectTest.cpp
     ShaTest.cpp
     SingletonTest.cpp

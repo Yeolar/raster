@@ -14,6 +14,8 @@ class Fiber;
 
 class Executor {
 public:
+  virtual ~Executor() {}
+
   virtual void run() = 0;
 
   void addCallback(VoidFunc&& callback) {
@@ -30,7 +32,9 @@ public:
     for (auto& f : schedules_) { f(); }
   }
 
-  Fiber* fiber_{nullptr};
+  Fiber* fiber{nullptr};
+
+private:
   std::list<VoidFunc> callbacks_;
   std::list<VoidFunc> schedules_;
 };

@@ -38,7 +38,7 @@ public:
                stackLimit_, stackSize_),
       qstart_(timestampNow()) {
     executor_ = executor;
-    executor_->fiber_ = this;
+    executor_->fiber = this;
     timestamps_.emplace_back(Timestamp(status_));
     ++count_;
   }

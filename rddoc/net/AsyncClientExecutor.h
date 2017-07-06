@@ -16,6 +16,8 @@ public:
     assert(client_->callbackMode());
   }
 
+  virtual ~AsyncClientExecutor() {}
+
   void handle() {
     FiberManager::yield();
     client_->callback();
