@@ -6,7 +6,7 @@
 
 #include <assert.h>
 #include <atomic>
-#include "rddoc/util/Lock.h"
+#include "rddoc/util/SpinLock.h"
 
 namespace rdd {
 

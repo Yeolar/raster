@@ -48,14 +48,14 @@ void EventLoop::loopBody(bool once) {
     std::vector<Event*> events;
     std::vector<VoidFunc> callbacks;
     {
-      SpinLockGuard guard(eventsLock_);
+      std::lock_guard<std::mutex> guard(eventsLock_);
       events.swap(events_);
     }
     for (auto& e : events) {
       dispatchEvent(e);
     }
     {
-      SpinLockGuard guard(callbacksLock_);
+      std::lock_guard<std::mutex> guard(callbacksLock_);
       callbacks.swap(callbacks_);
     }
     for (auto& callback : callbacks) {
@@ -108,7 +108,7 @@ void EventLoop::stop() {
 
 void EventLoop::addEvent(Event* event) {
   {
-    SpinLockGuard guard(eventsLock_);
+    std::lock_guard<std::mutex> guard(eventsLock_);
     events_.emplace_back(event);
   }
   waker_.wake();
@@ -116,7 +116,7 @@ void EventLoop::addEvent(Event* event) {
 
 void EventLoop::addCallback(const VoidFunc& callback) {
   {
-    SpinLockGuard guard(callbacksLock_);
+    std::lock_guard<std::mutex> guard(callbacksLock_);
     callbacks_.emplace_back(callback);
   }
   waker_.wake();

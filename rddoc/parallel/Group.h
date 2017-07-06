@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <vector>
 #include <assert.h>
-#include "rddoc/util/Lock.h"
+#include "rddoc/util/RWLock.h"
 
 namespace rdd {
 

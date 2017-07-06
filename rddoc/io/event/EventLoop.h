@@ -10,7 +10,6 @@
 #include "rddoc/io/event/Event.h"
 #include "rddoc/io/event/EventHandler.h"
 #include "rddoc/io/event/Poll.h"
-#include "rddoc/util/Lock.h"
 #include "rddoc/util/TimedHeap.h"
 
 namespace rdd {
@@ -76,9 +75,9 @@ private:
   EventHandler handler_;
 
   std::vector<Event*> events_;
-  SpinLock eventsLock_;
+  std::mutex eventsLock_;
   std::vector<VoidFunc> callbacks_;
-  SpinLock callbacksLock_;
+  std::mutex callbacksLock_;
 
   TimedHeap<Event> deadlineHeap_;
 };

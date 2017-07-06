@@ -2,11 +2,11 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include <mutex>
 #include <new>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "rddoc/util/Lock.h"
 
 #ifndef RDD_DEBUG_NEW_HASH_BSIZE
 #define RDD_DEBUG_NEW_HASH_BSIZE 16384
@@ -28,7 +28,7 @@ struct NewPtrNode {
 
 struct NewPtrList {
   NewPtrNode* head;
-  Lock        lock;
+  std::mutex  lock;
 };
 
 static NewPtrList new_ptr_list[RDD_DEBUG_NEW_HASH_BSIZE];
@@ -42,7 +42,7 @@ bool checkLeaks() {
   strftime(name, sizeof(name), "memtrace_%y%m%d%H%M%S", localtime(&t));
   FILE* fp = fopen(name, "w");
   for (int i = 0; i < RDD_DEBUG_NEW_HASH_BSIZE; ++i) {
-    LockGuard guard(new_ptr_list[i].lock);
+    std::lock_guard<std::mutex> guard(new_ptr_list[i].lock);
     NewPtrNode* ptr = new_ptr_list[i].head;
     if (ptr) {
       leaked = true;
@@ -72,7 +72,7 @@ void* operator new(size_t size, const char* file, int line) {
   void* pointer = (char*)ptr + sizeof(rdd::NewPtrNode);
   size_t i = RDD_DEBUG_NEW_HASH(pointer);
   {
-    rdd::LockGuard guard(rdd::new_ptr_list[i].lock);
+    std::lock_guard<std::mutex> guard(rdd::new_ptr_list[i].lock);
     ptr->next = rdd::new_ptr_list[i].head;
     ptr->file = file;
     ptr->line = line;
@@ -113,7 +113,7 @@ void operator delete(void* pointer) {
   rdd::NewPtrNode* ptr = nullptr;
   rdd::NewPtrNode* ptr_last = nullptr;
   {
-    rdd::LockGuard guard(rdd::new_ptr_list[i].lock);
+    std::lock_guard<std::mutex> guard(rdd::new_ptr_list[i].lock);
     ptr = rdd::new_ptr_list[i].head;
     while (ptr) {
       if ((char*)ptr + sizeof(rdd::NewPtrNode) != pointer) {
