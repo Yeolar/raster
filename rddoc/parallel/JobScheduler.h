@@ -9,6 +9,7 @@
 #include "rddoc/coroutine/FiberManager.h"
 #include "rddoc/net/Actor.h"
 #include "rddoc/parallel/DAG.h"
+#include "rddoc/parallel/Graph.h"
 #include "rddoc/parallel/JobExecutor.h"
 #include "rddoc/util/ReflectObject.h"
 
@@ -21,32 +22,25 @@ public:
   }
 };
 
-struct Graph {
-  typedef std::string Node;
-  typedef std::vector<Node> Next;
-
-  std::vector<std::pair<Node, Next>> graph;
-
-  void add(const Node& node, const Next& next) {
-    graph.emplace_back(node, next);
-  }
-};
+typedef JobGraph<std::string> JobGraph;
 
 class JobGraphManager {
 public:
   JobGraphManager() {}
 
-  Graph& getGraph(const std::string& key) {
+  JobGraph& getGraph(const std::string& key) {
     return graphs_[key];
   }
 
 private:
-  std::map<std::string, Graph> graphs_;
+  std::map<std::string, JobGraph> graphs_;
 };
 
 class JobScheduler {
 public:
-  JobScheduler(const Graph& graph,
+  JobScheduler() {}
+
+  JobScheduler(const JobGraph& graph,
                const JobExecutor::ContextPtr& ctx = nullptr) {
     init(graph, ctx);
   }
@@ -55,8 +49,32 @@ public:
     init(Singleton<JobGraphManager>::get()->getGraph(key), ctx);
   }
 
+  void add(const ExecutorPtr& executor,
+           const std::string& name,
+           const std::vector<std::string>& next) {
+    map_[name] = dag_.add(executor);
+    graph_.add(name, next);
+  }
+
+  void add(JobExecutor* executor,
+           const JobExecutor::ContextPtr& ctx,
+           const std::string& name,
+           const std::vector<std::string>& next) {
+    executor->setName(name);
+    executor->setContext(ctx);
+    add(ExecutorPtr(executor), name, next);
+  }
+
+  void add(const JobExecutor::ContextPtr& ctx,
+           const std::string& name,
+           const std::vector<std::string>& next) {
+    auto clsname = name.substr(0, name.find(':'));
+    add(makeReflectObject<JobExecutor>(clsname), ctx, name, next);
+  }
+
   void run() {
     if (!dag_.empty()) {
+      setDependency();
       ExecutorPtr executor = getCurrentExecutor();
       executor->addCallback(
           std::bind(&ActorDAG::schedule, &dag_, dag_.go(executor)));
@@ -65,24 +83,25 @@ public:
   }
 
 private:
-  void init(const Graph& graph, const JobExecutor::ContextPtr& ctx) {
-    std::map<Graph::Node, DAG::Key> m;
-    for (auto& p : graph.graph) {
-      auto clsname = p.first.substr(0, p.first.find(':'));
-      auto executor = makeReflectObject<JobExecutor>(clsname);
-      executor->setName(p.first);
-      executor->setContext(ctx);
-      m[p.first] = dag_.add(ExecutorPtr(executor));
-    }
-    for (auto& p : graph.graph) {
-      for (auto& q : p.second) {
-        dag_.dependency(m[p.first], m[q]);
-      }
+  void init(const JobGraph& graph, const JobExecutor::ContextPtr& ctx) {
+    for (auto& p : graph) {
+      add(ctx, p.name, p.next);
     }
   }
 
+  void setDependency() {
+    for (auto& p : graph_) {
+      for (auto& q : p.next) {
+        dag_.dependency(map_[p.name], map_[q]);
+      }
+    }
+    setup_ = true;
+  }
+
   ActorDAG dag_;
-  std::shared_ptr<JobExecutor::Context> ctx_;
+  JobGraph graph_;
+  std::map<std::string, DAG::Key> map_;
+  bool setup_{false};
 };
 
 }
