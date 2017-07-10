@@ -24,6 +24,7 @@ void configLogging(const dynamic& j) {
   logging::BaseLogger::Options opts;
   opts.logfile = json::get(j, "logfile", "rdd.log");
   opts.level   = json::get(j, "level", 1);
+  opts.async   = json::get(j, "async", true);
   Singleton<logging::RDDLogger>::get()->setOptions(opts);
 }
 

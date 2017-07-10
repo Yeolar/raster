@@ -2,7 +2,7 @@
   "logging": {
     "logfile": "log/empty.log",
     "level": 1,
-    "rotate": 0
+    "async": true
   },
   "actor": {
     "stack_size": 65536,

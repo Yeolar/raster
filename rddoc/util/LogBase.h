@@ -11,10 +11,12 @@
 #include <iostream>
 #include <mutex>
 #include <string>
+#include <thread>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "rddoc/util/FixedStream.h"
+#include "rddoc/util/ProducerConsumerQueue.h"
 #include "rddoc/util/String.h"
 #include "rddoc/util/ThreadUtil.h"
 #include "rddoc/util/Time.h"
@@ -58,22 +60,42 @@ public:
   struct Options {
     std::string logfile;
     int level;
+    bool async;
   };
 
   BaseLogger(const std::string& name)
-    : time_(time(nullptr))
-    , name_(name)
+    : name_(name)
+    , fd_(-1)
     , level_(1)
-    , fd_(-1) {
+    , async_(false)
+    , queue_(10240) {
   }
 
   virtual ~BaseLogger() {
     close();
+    if (async_) {
+      handle_.join();
+    }
   }
 
-  void log(const std::string& message) {
-    std::lock_guard<std::mutex> guard(lock_);
-    ::write(fd_ >= 0 ? fd_ : STDERR_FILENO, message.c_str(), message.size());
+  void run() {
+    while (true) {
+      while (!queue_.isEmpty()) {
+        std::string message;
+        queue_.read(message);
+        write(message);
+      }
+      usleep(1000);
+    }
+  }
+
+  void log(const std::string& message, bool async = true) {
+    if (async_ && async && !queue_.isFull()) {
+      queue_.write(message);
+    } else {
+      std::lock_guard<std::mutex> guard(lock_);
+      write(message);
+    }
   }
 
   int level() const { return level_; }
@@ -87,13 +109,18 @@ public:
     }
   }
 
+  void setAsync(bool async) {
+    async_ = async;
+    if (async_) {
+      handle_ = std::thread(std::bind(&BaseLogger::run, this));
+    }
+  }
+
   void setOptions(const Options& opts) {
     setLogFile(opts.logfile);
     setLevel(opts.level);
+    setAsync(opts.async);
   }
-
-protected:
-  time_t time_;
 
 private:
   void open() {
@@ -106,10 +133,18 @@ private:
     }
   }
 
+  void write(const std::string& message) const {
+    int fd = fd_;
+    ::write(fd >= 0 ? fd : STDERR_FILENO, message.c_str(), message.size());
+  }
+
   std::string name_;
   std::string file_;
+  std::atomic<int> fd_;
   int level_;
-  int fd_;
+  bool async_;
+  std::thread handle_;
+  ProducerConsumerQueue<std::string> queue_;
   std::mutex lock_;
 };
 
@@ -143,7 +178,7 @@ public:
 
   virtual ~LogMessage() {
     out_ << std::endl;
-    logger_->log(out_.str());
+    logger_->log(out_.str(), level_ != LOG_FATAL);
     errno = errno_;
     if (level_ == LOG_FATAL)
       abort();
