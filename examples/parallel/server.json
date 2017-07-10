@@ -1,0 +1,45 @@
+{
+  "logging": {
+    "logfile": "log/empty.log",
+    "level": 1
+  },
+  "actor": {
+    "stack_size": 65536,
+    "conn_limit": 100000,
+    "task_limit": 4000,
+    "poll_size": 1024,
+    "poll_timeout": 1000,
+    "forwarding": false
+  },
+  "service": {
+    "8000": {
+      "service": "Empty",
+      "conn_timeout": 100000,
+      "recv_timeout": 300000,
+      "send_timeout": 1000000
+    }
+  },
+  "thread": {
+    "io": { "thread_count": 4, "bindcpu": false },
+    "0": { "thread_count": 4, "bindcpu": false }
+  },
+  "net": {
+    "copy": [
+      //{"port": 9090, "fhost": "", "fport": 9091, "flow": 100}
+    ]
+  },
+  "monitor": {
+    "open": false,
+    "prefix": "empty"
+  },
+  "job": {
+    "graph": {
+      "graph1": [
+        {"name": "EmptyJobExecutor:1", "next": ["EmptyJobExecutor:3"]},
+        {"name": "EmptyJobExecutor:2", "next": ["EmptyJobExecutor:3"]},
+        {"name": "EmptyJobExecutor:3", "next": []},
+        {"name": "EmptyJobExecutor:4", "next": []}
+      ]
+    }
+  }
+}

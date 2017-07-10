@@ -9,7 +9,7 @@
 #include "rddoc/framework/Config.h"
 #include "rddoc/io/FileUtil.h"
 #include "rddoc/net/Actor.h"
-#include "rddoc/parallel/JobScheduler.h"
+#include "rddoc/parallel/Scheduler.h"
 #include "rddoc/plugins/monitor/Monitor.h"
 #include "rddoc/util/Logging.h"
 
@@ -24,7 +24,6 @@ void configLogging(const dynamic& j) {
   logging::BaseLogger::Options opts;
   opts.logfile = json::get(j, "logfile", "rdd.log");
   opts.level   = json::get(j, "level", 1);
-  opts.rotate  = json::get(j, "rotate", 0);
   Singleton<logging::RDDLogger>::get()->setOptions(opts);
 }
 
@@ -116,7 +115,7 @@ void configJobGraph(const dynamic& j) {
     const dynamic& k = kv.first;
     const dynamic& v = kv.second;
     RDDLOG(INFO) << "config job.graph." << k;
-    Graph& g = Singleton<JobGraphManager>::get()->getGraph(k.asString());
+    Graph& g = Singleton<GraphManager>::get()->getGraph(k.asString());
     for (auto& i : v) {
       auto name = json::get(i, "name", "");
       auto next = json::getArray<std::string>(i, "next");

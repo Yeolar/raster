@@ -35,12 +35,6 @@
   },
   "job": {
     "graph": {
-      "graph1": [
-        {"name": "EmptyJobExecutor:1", "next": ["EmptyJobExecutor:3"]},
-        {"name": "EmptyJobExecutor:2", "next": ["EmptyJobExecutor:3"]},
-        {"name": "EmptyJobExecutor:3", "next": []},
-        {"name": "EmptyJobExecutor:4", "next": []}
-      ]
     }
   }
 }

@@ -5,12 +5,9 @@
 #include <gflags/gflags.h>
 #include "rddoc/framework/Config.h"
 #include "rddoc/net/Actor.h"
-#include "rddoc/parallel/JobExecutor.h"
-#include "rddoc/parallel/JobScheduler.h"
 #include "rddoc/protocol/thrift/AsyncClient.h"
 #include "rddoc/protocol/thrift/AsyncServer.h"
 #include "rddoc/util/Logging.h"
-#include "rddoc/util/ReflectObject.h"
 #include "rddoc/util/ScopeGuard.h"
 #include "rddoc/util/Signal.h"
 #include "rddoc/util/Uuid.h"
@@ -21,27 +18,6 @@ static const char* VERSION = "1.0.0";
 DEFINE_string(conf, "server.json", "Server config file");
 
 namespace rdd {
-
-class EmptyJobExecutor : public ReflectObject<JobExecutor, EmptyJobExecutor> {
-public:
-  struct MyContext : public Context {
-    empty::Result* result;
-  };
-
-  virtual ~EmptyJobExecutor() {}
-
-  void handle() {
-    if (context_) {
-      RDDLOG(INFO) << "handle in " << name_ << ": code="
-        << std::dynamic_pointer_cast<MyContext>(context_)->result->code;
-    } else {
-      RDDLOG(INFO) << "handle in " << name_;
-    }
-    //usleep(100000);
-  }
-};
-RDD_RF_REG(JobExecutor, EmptyJobExecutor);
-
 namespace empty {
 
 class EmptyHandler : virtual public EmptyIf {
@@ -73,13 +49,6 @@ public:
         _return.__set_code(ResultCode::E_BACKEND_FAILURE);
       }
     }
-
-    /*
-    auto jobctx = new EmptyJobExecutor::MyContext();
-    jobctx->result = &_return;
-    make_unique<JobScheduler>(
-        "graph1", JobExecutor::ContextPtr(jobctx))->run();
-        */
 
     RDDTLOG(INFO, query.traceid) << "query: \"" << query.query << "\""
       << " code=" << _return.code;

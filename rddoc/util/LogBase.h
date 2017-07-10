@@ -58,14 +58,12 @@ public:
   struct Options {
     std::string logfile;
     int level;
-    int rotate;
   };
 
   BaseLogger(const std::string& name)
     : time_(time(nullptr))
     , name_(name)
     , level_(1)
-    , rotate_(0)
     , fd_(-1) {
   }
 
@@ -75,22 +73,11 @@ public:
 
   void log(const std::string& message) {
     std::lock_guard<std::mutex> guard(lock_);
-    update(time(nullptr));
     ::write(fd_ >= 0 ? fd_ : STDERR_FILENO, message.c_str(), message.size());
-  }
-
-  void update(time_t now) {
-    if (rotate_ > 0 && now > time_ && !isSameDay(time_, now)) {
-      archive(time_);
-      time_ = now;
-    }
   }
 
   int level() const { return level_; }
   void setLevel(int level) { level_ = level; }
-
-  int rotate() const { return rotate_; }
-  void setRotate(int rotate) { rotate_ = rotate; }
 
   void setLogFile(const std::string& file) {
     if (!file.empty() && file != file_) {
@@ -103,7 +90,6 @@ public:
   void setOptions(const Options& opts) {
     setLogFile(opts.logfile);
     setLevel(opts.level);
-    setRotate(opts.rotate);
   }
 
 protected:
@@ -120,22 +106,9 @@ private:
     }
   }
 
-  void archive(time_t t) {
-    std::string newpath = file_ + timePrintf(t, ".%Y%m%d");
-    std::string delpath = file_ + timePrintf(t - 86400*rotate_, ".%Y%m%d");
-    close();
-    if (rename(file_.c_str(), newpath.c_str()) != -1) {
-      open();
-    }
-    if (access(delpath.c_str(), W_OK) == 0) {
-      remove(delpath.c_str());
-    }
-  }
-
   std::string name_;
   std::string file_;
   int level_;
-  int rotate_;
   int fd_;
   std::mutex lock_;
 };

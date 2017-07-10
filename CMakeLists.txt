@@ -147,7 +147,8 @@ install(TARGETS rdd_shared
 )
 
 # Binary
-add_subdirectory(empty-thrift)
+add_subdirectory(examples/empty)
+add_subdirectory(examples/parallel)
 
 # Test
 if(GTEST_FOUND AND GMOCK_FOUND)

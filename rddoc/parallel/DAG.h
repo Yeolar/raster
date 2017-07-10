@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <vector>
 #include "rddoc/coroutine/Executor.h"
+#include "rddoc/util/Logging.h"
 
 namespace rdd {
 
@@ -17,12 +18,8 @@ public:
   typedef size_t Key;
 
   Key add(const ExecutorPtr& executor) {
-    if (executor) {
-      executor->addSchedule(
-          std::bind(&DAG::schedule, this, nodes_.size()));
-    }
-    nodes_.emplace_back(executor);
-    return nodes_.size() - 1;
+    executor->addSchedule(std::bind(&DAG::schedule, this, nodes_.size()));
+    return addNode(executor);
   }
 
   // a -> b
@@ -42,7 +39,6 @@ public:
   }
 
   void schedule(Key i) {
-    std::lock_guard<std::mutex> guard(lock_);
     for (auto key : nodes_[i].nexts) {
       if (--nodes_[key].waitCount == 0) {
         execute(nodes_[key].executor);
@@ -64,11 +60,11 @@ public:
         leafNodes.push_back(key);
       }
     }
-    auto sourceKey = add(nullptr);
+    auto sourceKey = addNode(nullptr);
     for (auto key : rootNodes) {
       dependency(sourceKey, key);
     }
-    auto sinkKey = add(executor);
+    auto sinkKey = addNode(executor);
     for (auto key : leafNodes) {
       dependency(key, sinkKey);
     }
@@ -91,6 +87,11 @@ private:
     bool hasPrev{false};
     std::atomic<size_t> waitCount{0};
   };
+
+  Key addNode(const ExecutorPtr& executor) {
+    nodes_.emplace_back(executor);
+    return nodes_.size() - 1;
+  }
 
   bool hasCycle() {
     std::vector<std::vector<Key>> nexts;
@@ -129,7 +130,6 @@ private:
   }
 
   std::vector<Node> nodes_;
-  std::mutex lock_;
 };
 
 }

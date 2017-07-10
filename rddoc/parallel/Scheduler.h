@@ -22,31 +22,17 @@ public:
   }
 };
 
-typedef JobGraph<std::string> JobGraph;
-
-class JobGraphManager {
+class Scheduler {
 public:
-  JobGraphManager() {}
+  Scheduler() {}
 
-  JobGraph& getGraph(const std::string& key) {
-    return graphs_[key];
-  }
-
-private:
-  std::map<std::string, JobGraph> graphs_;
-};
-
-class JobScheduler {
-public:
-  JobScheduler() {}
-
-  JobScheduler(const JobGraph& graph,
-               const JobExecutor::ContextPtr& ctx = nullptr) {
+  Scheduler(const Graph& graph,
+            const JobExecutor::ContextPtr& ctx = nullptr) {
     init(graph, ctx);
   }
-  JobScheduler(const std::string& key,
-               const JobExecutor::ContextPtr& ctx = nullptr) {
-    init(Singleton<JobGraphManager>::get()->getGraph(key), ctx);
+  Scheduler(const std::string& key,
+            const JobExecutor::ContextPtr& ctx = nullptr) {
+    init(Singleton<GraphManager>::get()->getGraph(key), ctx);
   }
 
   void add(const ExecutorPtr& executor,
@@ -83,23 +69,23 @@ public:
   }
 
 private:
-  void init(const JobGraph& graph, const JobExecutor::ContextPtr& ctx) {
+  void init(const Graph& graph, const JobExecutor::ContextPtr& ctx) {
     for (auto& p : graph) {
-      add(ctx, p.name, p.next);
+      add(ctx, p.node, p.next);
     }
   }
 
   void setDependency() {
     for (auto& p : graph_) {
       for (auto& q : p.next) {
-        dag_.dependency(map_[p.name], map_[q]);
+        dag_.dependency(map_[p.node], map_[q]);
       }
     }
     setup_ = true;
   }
 
   ActorDAG dag_;
-  JobGraph graph_;
+  Graph graph_;
   std::map<std::string, DAG::Key> map_;
   bool setup_{false};
 };
