@@ -16,7 +16,6 @@ set(RDD_UTIL_SRCS
     String.cpp
     SysUtil.cpp
     TestUtil.cpp
-    Thread.cpp
     Time.cpp
     Unicode.cpp
     Utf8StringPiece.cpp
