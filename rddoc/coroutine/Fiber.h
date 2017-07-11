@@ -14,7 +14,6 @@
 
 #define RDD_FCLOG(severity, t) \
   RDDLOG(severity) << "fiber(" << (void*)(t) << ", " \
-    << (t)->type() << ", " \
     << (t)->timestampStr() << ") "
 
 namespace rdd {
@@ -64,8 +63,8 @@ public:
     if (qtimeout_ > 0) {
       uint64_t interval = timePassed(qstart_);
       if (interval > qtimeout_) {
-        RDDLOG(WARN) << "fiber (" << (void*)this
-          << ") is timeout(us): " << interval << ">" << qtimeout_;
+        RDD_FCLOG(WARN, this) << "is timeout(us): "
+          << interval << ">" << qtimeout_;
         return true;
       }
     }
@@ -75,11 +74,13 @@ public:
   void execute() {
     assert(status_ == RUNABLE);
     setStatus(RUNNING);
+    RDD_FCLOG(V5, this) << "execute";
     context_.activate();
   }
   void yield(int status) {
     assert(status_ == RUNNING);
     setStatus(status);
+    RDD_FCLOG(V5, this) << "yield:" << statusLabel();
     context_.deactivate();
   }
 

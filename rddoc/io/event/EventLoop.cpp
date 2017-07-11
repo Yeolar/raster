@@ -124,7 +124,7 @@ void EventLoop::addCallback(const VoidFunc& callback) {
 
 void EventLoop::dispatchEvent(Event *event) {
   RDD_EVLOG(V2, event)
-    << "add event on fiber(" << (void*)event->executor() << ")";
+    << "add event with executor(" << (void*)event->executor() << ")";
   switch (event->type()) {
     case Event::LISTEN:
       addListenEvent(event); break;

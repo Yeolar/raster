@@ -30,7 +30,7 @@ public:
       case Fiber::INIT:
       case Fiber::RUNABLE:
       case Fiber::RUNNING:
-        RDDLOG(WARN) << "fiber status error";
+        RDD_FCLOG(WARN, fiber) << "status error";
       case Fiber::EXIT:
         fiber->executor()->schedule();
       default:

@@ -6,7 +6,6 @@
 
 #include <mutex>
 #include <stdio.h>
-#include <pthread.h>
 #include "rddoc/util/Conv.h"
 #include "rddoc/util/ThreadUtil.h"
 

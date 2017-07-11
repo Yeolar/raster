@@ -30,7 +30,7 @@ namespace logging {
 
 enum LogSeverity {
   // framework
-  LOG_V5      = -5, // coroutine context
+  LOG_V5      = -5, // coroutine
   LOG_V4      = -4, // data
   LOG_V3      = -3, // protocol, plugin
   LOG_V2      = -2, // event, task

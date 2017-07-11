@@ -113,16 +113,7 @@ private:
     std::unique_ptr<EventLoop> loop_;
   };
 
-  ThreadPool* getPool(int id) {
-    auto pool = get_default(cpuPoolMap_, id);
-    if (!pool) {
-      pool = get_default(cpuPoolMap_, 0);
-      if (!pool) {
-        RDDLOG(FATAL) << "CPUThreadPool0 not found";
-      }
-    }
-    return pool.get();
-  }
+  void addFiber(Fiber* fiber, int poolId);
 
   Options options_;
   Group group_;

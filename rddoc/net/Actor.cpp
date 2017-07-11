@@ -61,11 +61,7 @@ void Actor::execute(Event* event) {
     size_t i = event->group();
     event->setGroup(0);
     if (i == 0 || group_.finish(i)) {
-      //execute(event->executor(), event->channel()->id());
-      ThreadPool* pool = getPool(event->channel()->id());
-      RDDLOG(V2) << pool->getThreadFactory()->namePrefix()
-        << " re-add fiber(" << (void*)event->executor()->fiber << ")";
-      pool->add(std::bind(FiberManager::run, event->executor()->fiber));
+      addFiber(event->executor()->fiber, event->channel()->id());
     }
   }
 }
@@ -80,14 +76,26 @@ void Actor::execute(const ExecutorPtr& executor, int poolId) {
   Fiber* fiber = executor->fiber;
   if (!fiber) {
     if (exceedFiberLimit()) {
-      RDDLOG(WARN) << "pool[0] exceed fiber capacity";
+      RDDLOG(WARN) << "exceed fiber capacity";
       // still add fiber
     }
     fiber = new Fiber(options_.stackSize, executor);
   }
-  ThreadPool* pool = getPool(poolId);
+  addFiber(fiber, poolId);
+}
+
+void Actor::addFiber(Fiber* fiber, int poolId) {
+  auto pool = get_default(cpuPoolMap_, poolId);
+  if (!pool) {
+    pool = get_default(cpuPoolMap_, 0);
+    if (!pool) {
+      RDDLOG(FATAL) << "CPUThreadPool" << poolId
+        << " and CPUThreadPool0 not found";
+    }
+  }
   RDDLOG(V2) << pool->getThreadFactory()->namePrefix()
-    << " add fiber(" << (void*)fiber << ")";
+    << "* add fiber(" << (void*)fiber << ")"
+    << " with executor(" << (void*)fiber->executor().get() << ")";
   pool->add(std::bind(FiberManager::run, fiber));
 }
 

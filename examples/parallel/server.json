@@ -1,6 +1,6 @@
 {
   "logging": {
-    "logfile": "log/empty.log",
+    "logfile": "log/parallel.log",
     "level": 1,
     "async": true
   },
