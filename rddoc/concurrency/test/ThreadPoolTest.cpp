@@ -10,7 +10,7 @@
 using namespace rdd;
 
 static VoidFunc burnMs(uint64_t ms) {
-  return [ms]() { usleep(ms); };
+  return [ms]() { usleep(ms * 1000); };
 }
 
 template <class Pool>
@@ -164,20 +164,80 @@ TEST(ThreadPoolTest, IOPoolStats) {
   poolStats<IOThreadPool>();
 }
 
+template <class Pool>
+static void taskStats() {
+  Pool pool(1);
+  std::atomic<int> c(0);
+  auto s = pool.subscribeToTaskStats(
+      Observer<Task::Stats>::create(
+          [&](Task::Stats stats) {
+        int i = c++;
+        EXPECT_LT(0, stats.runTime);
+        if (i == 1) {
+          EXPECT_LT(0, stats.waitTime);
+        }
+      }));
+  pool.add(burnMs(10));
+  pool.add(burnMs(10));
+  pool.join();
+  EXPECT_EQ(2, c);
+}
+
+TEST(ThreadPoolTest, CPUTaskStats) {
+  taskStats<CPUThreadPool>();
+}
+
+TEST(ThreadPoolTest, IOTaskStats) {
+  taskStats<IOThreadPool>();
+}
+
+template <class Pool>
+static void expiration() {
+  Pool pool(1);
+  std::atomic<int> statCbCount(0);
+  auto s = pool.subscribeToTaskStats(
+      Observer<Task::Stats>::create(
+          [&](Task::Stats stats) {
+        int i = statCbCount++;
+        if (i == 0) {
+          EXPECT_FALSE(stats.expired);
+        } else if (i == 1) {
+          EXPECT_TRUE(stats.expired);
+        } else {
+          FAIL();
+        }
+      }));
+  std::atomic<int> expireCbCount(0);
+  auto expireCb = [&] () { expireCbCount++; };
+  pool.add(burnMs(10), 60000000, expireCb);
+  pool.add(burnMs(10), 10000, expireCb);
+  pool.join();
+  EXPECT_EQ(2, statCbCount);
+  EXPECT_EQ(1, expireCbCount);
+}
+
+TEST(ThreadPoolTest, CPUExpiration) {
+  expiration<CPUThreadPool>();
+}
+
+TEST(ThreadPoolTest, IOExpiration) {
+  expiration<IOThreadPool>();
+}
+
 class TestObserver : public ThreadPool::Observer {
- public:
-  void threadStarted(Thread*) { threads_++; }
-  void threadStopped(Thread*) { threads_--; }
-  void threadPreviouslyStarted(Thread*) {
+public:
+  void threadStarted(ThreadPool::ThreadHandle*) { threads_++; }
+  void threadStopped(ThreadPool::ThreadHandle*) { threads_--; }
+  void threadPreviouslyStarted(ThreadPool::ThreadHandle*) {
     threads_++;
   }
-  void threadNotYetStopped(Thread*) {
+  void threadNotYetStopped(ThreadPool::ThreadHandle*) {
     threads_--;
   }
   void checkCalls() {
     ASSERT_EQ(threads_, 0);
   }
- private:
+private:
   std::atomic<int> threads_{0};
 };
 

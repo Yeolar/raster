@@ -58,7 +58,7 @@ EventLoopManager* IOThreadPool::getEventLoopManager() {
   return eventLoopManager_;
 }
 
-std::shared_ptr<IOThread> IOThreadPool::pickThread() {
+std::shared_ptr<IOThreadPool::IOThread> IOThreadPool::pickThread() {
   if (*thisThread_) {
     return *thisThread_;
   }

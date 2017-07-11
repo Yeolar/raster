@@ -10,16 +10,6 @@
 
 namespace rdd {
 
-struct IOThread : public Thread {
-  IOThread(bool bindCpu_)
-    : Thread(bindCpu_), shouldRun(true), pendingTasks(0) {}
-
-  std::atomic<bool> shouldRun;
-  std::atomic<size_t> pendingTasks;
-  EventLoop* eventLoop;
-  std::mutex eventLoopShutdownLock_;
-};
-
 /**
  * A Thread Pool for IO bound tasks
  */
@@ -46,8 +36,20 @@ public:
   EventLoopManager* getEventLoopManager();
 
 private:
+  struct IOThread : public Thread {
+    IOThread(ThreadPool* pool, bool bindCpu_)
+      : Thread(pool, bindCpu_),
+        shouldRun(true),
+        pendingTasks(0) {}
+
+    std::atomic<bool> shouldRun;
+    std::atomic<size_t> pendingTasks;
+    EventLoop* eventLoop;
+    std::mutex eventLoopShutdownLock_;
+  };
+
   ThreadPtr makeThread() {
-    return std::make_shared<IOThread>(bindCpu_);
+    return std::make_shared<IOThread>(this, bindCpu_);
   }
 
   std::shared_ptr<IOThread> pickThread();

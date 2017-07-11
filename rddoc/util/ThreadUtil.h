@@ -45,6 +45,8 @@ public:
   T* operator->() const { return get(); }
   T& operator*() const { return *get(); }
 
+  explicit operator bool() const { return get() != nullptr; }
+
 private:
   static void OnThreadExit(void* obj) {
     delete static_cast<T*>(obj);

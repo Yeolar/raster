@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "rddoc/concurrency/Observable.h"
 #include "rddoc/concurrency/ThreadFactory.h"
 #include "rddoc/util/Baton.h"
 #include "rddoc/util/BlockingQueue.h"
@@ -12,27 +13,6 @@
 #include "rddoc/util/RWSpinLock.h"
 
 namespace rdd {
-
-struct Thread {
-  explicit Thread(bool bindCpu_)
-    : id(nextId++), handle(), bindCpu(bindCpu_), idle(true) {}
-
-  virtual ~Thread() {}
-
-  static std::atomic<uint64_t> nextId;
-
-  uint64_t id;
-  std::thread handle;
-  bool bindCpu;
-  bool idle;
-  Baton startupBaton;
-};
-
-typedef std::shared_ptr<Thread> ThreadPtr;
-
-inline bool operator< (const ThreadPtr& lhs, const ThreadPtr& rhs) {
-  return lhs->id < rhs->id;
-}
 
 struct Task {
   struct Stats {
@@ -63,7 +43,9 @@ public:
       size_t numThreads,
       std::shared_ptr<ThreadFactory> threadFactory,
       bool bindCpu)
-    : threadFactory_(std::move(threadFactory)), bindCpu_(bindCpu) {}
+    : threadFactory_(std::move(threadFactory)),
+      bindCpu_(bindCpu),
+      taskStatsSubject_(std::make_shared<Subject<Task::Stats>>()) {}
 
   virtual ~ThreadPool() {}
 
@@ -96,14 +78,23 @@ public:
 
   Stats getStats();
 
+  Subscription<Task::Stats> subscribeToTaskStats(
+      const ObserverPtr<Task::Stats>& observer) {
+    return taskStatsSubject_->subscribe(observer);
+  }
+
+  struct ThreadHandle {
+    virtual ~ThreadHandle() {}
+  };
+
   class Observer {
   public:
-    virtual void threadStarted(Thread*) = 0;
-    virtual void threadStopped(Thread*) = 0;
-    virtual void threadPreviouslyStarted(Thread* h) {
+    virtual void threadStarted(ThreadHandle*) = 0;
+    virtual void threadStopped(ThreadHandle*) = 0;
+    virtual void threadPreviouslyStarted(ThreadHandle* h) {
       threadStarted(h);
     }
-    virtual void threadNotYetStopped(Thread* h) {
+    virtual void threadNotYetStopped(ThreadHandle* h) {
       threadStopped(h);
     }
   };
@@ -112,11 +103,37 @@ public:
   void removeObserver(std::shared_ptr<Observer>);
 
 protected:
+  struct Thread : public ThreadHandle {
+    explicit Thread(ThreadPool* pool, bool bindCpu_)
+      : id(nextId++),
+        handle(),
+        bindCpu(bindCpu_),
+        idle(true),
+        taskStatsSubject(pool->taskStatsSubject_) {}
+
+    virtual ~Thread() {}
+
+    bool operator< (const Thread& o) {
+      return id < o.id;
+    }
+
+    static std::atomic<uint64_t> nextId;
+
+    uint64_t id;
+    std::thread handle;
+    bool bindCpu;
+    bool idle;
+    Baton startupBaton;
+    SubjectPtr<Task::Stats> taskStatsSubject;
+  };
+
+  typedef std::shared_ptr<Thread> ThreadPtr;
+
   void addThreads(size_t n);
   void removeThreads(size_t n, bool isJoin);
 
   virtual ThreadPtr makeThread() {
-    return std::make_shared<Thread>(bindCpu_);
+    return std::make_shared<Thread>(this, bindCpu_);
   }
 
   static void runTask(const ThreadPtr& thread, Task&& task);
@@ -133,6 +150,7 @@ protected:
   GenericBlockingQueue<ThreadPtr> stoppedThreads_;
   std::atomic<bool> isJoin_; // whether the current downsizing is a join
 
+  SubjectPtr<Task::Stats> taskStatsSubject_;
   std::vector<std::shared_ptr<Observer>> observers_;
 };
 

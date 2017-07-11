@@ -6,7 +6,7 @@
 
 namespace rdd {
 
-std::atomic<uint64_t> Thread::nextId(0);
+std::atomic<uint64_t> ThreadPool::Thread::nextId(0);
 
 size_t ThreadPool::numThreads() {
   RWSpinLock::ReadHolder{&threadsLock_};
@@ -131,6 +131,7 @@ void ThreadPool::runTask(const ThreadPtr& thread, Task&& task) {
     task.stats_.runTime = timestampNow() - startTime;
   }
   thread->idle = true;
+  thread->taskStatsSubject->on(std::move(task.stats_));
 }
 
 }
