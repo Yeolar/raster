@@ -11,19 +11,19 @@
 #include "rddoc/util/ScopeGuard.h"
 #include "rddoc/util/Signal.h"
 #include "rddoc/util/Uuid.h"
-#include "gen-cpp/Empty.h"
+#include "gen-cpp/Proxy.h"
 
 static const char* VERSION = "1.0.0";
 
 DEFINE_string(conf, "server.json", "Server config file");
 
 namespace rdd {
-namespace empty {
+namespace proxy {
 
-class EmptyHandler : virtual public EmptyIf {
+class ProxyHandler : virtual public ProxyIf {
 public:
-  EmptyHandler() {
-    RDDLOG(DEBUG) << "EmptyHandler init";
+  ProxyHandler() {
+    RDDLOG(DEBUG) << "ProxyHandler init";
   }
 
   void run(Result& _return, const Query& query) {
@@ -35,6 +35,20 @@ public:
 
     _return.__set_traceid(generateUuid(query.traceid, "rdde"));
     _return.__set_code(ResultCode::OK);
+
+    if (!query.forward.empty()) {
+      Peer peer(query.forward);
+      Query q;
+      q.__set_traceid(query.traceid);
+      q.__set_query(query.query);
+      TAsyncClient<ProxyClient> client(peer.host, peer.port);
+      client.setKeepAlive();
+      if (!client.connect() ||
+          !client.fetch(&ProxyClient::recv_run, _return,
+                        &ProxyClient::send_run, q)) {
+        _return.__set_code(ResultCode::E_BACKEND_FAILURE);
+      }
+    }
 
     RDDTLOG(INFO, query.traceid) << "query: \"" << query.query << "\""
       << " code=" << _return.code;
@@ -54,16 +68,16 @@ using namespace rdd;
 
 int main(int argc, char* argv[]) {
   google::SetVersionString(VERSION);
-  google::SetUsageMessage("Usage : ./empty");
+  google::SetUsageMessage("Usage : ./proxy");
   google::ParseCommandLineFlags(&argc, &argv, true);
 
   setupIgnoreSignal(SIGPIPE);
   setupShutdownSignal(SIGINT);
   setupShutdownSignal(SIGTERM);
 
-  std::shared_ptr<Service> empty(
-      new TAsyncServer<empty::EmptyHandler, empty::EmptyProcessor>());
-  Singleton<Actor>::get()->addService("Empty", empty);
+  std::shared_ptr<Service> proxy(
+      new TAsyncServer<proxy::ProxyHandler, proxy::ProxyProcessor>());
+  Singleton<Actor>::get()->addService("Proxy", proxy);
 
   config(FLAGS_conf.c_str(), {
          {configLogging, "logging"},

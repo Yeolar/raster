@@ -4,11 +4,11 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-#include "Empty.h"
+#include "Proxy.h"
 
-namespace rdd { namespace empty {
+namespace rdd { namespace proxy {
 
-uint32_t Empty_run_args::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t Proxy_run_args::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -48,9 +48,9 @@ uint32_t Empty_run_args::read(::apache::thrift::protocol::TProtocol* iprot) {
   return xfer;
 }
 
-uint32_t Empty_run_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t Proxy_run_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("Empty_run_args");
+  xfer += oprot->writeStructBegin("Proxy_run_args");
 
   xfer += oprot->writeFieldBegin("query", ::apache::thrift::protocol::T_STRUCT, 1);
   xfer += this->query.write(oprot);
@@ -61,9 +61,9 @@ uint32_t Empty_run_args::write(::apache::thrift::protocol::TProtocol* oprot) con
   return xfer;
 }
 
-uint32_t Empty_run_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t Proxy_run_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("Empty_run_pargs");
+  xfer += oprot->writeStructBegin("Proxy_run_pargs");
 
   xfer += oprot->writeFieldBegin("query", ::apache::thrift::protocol::T_STRUCT, 1);
   xfer += (*(this->query)).write(oprot);
@@ -74,7 +74,7 @@ uint32_t Empty_run_pargs::write(::apache::thrift::protocol::TProtocol* oprot) co
   return xfer;
 }
 
-uint32_t Empty_run_result::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t Proxy_run_result::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -114,11 +114,11 @@ uint32_t Empty_run_result::read(::apache::thrift::protocol::TProtocol* iprot) {
   return xfer;
 }
 
-uint32_t Empty_run_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t Proxy_run_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
 
   uint32_t xfer = 0;
 
-  xfer += oprot->writeStructBegin("Empty_run_result");
+  xfer += oprot->writeStructBegin("Proxy_run_result");
 
   if (this->__isset.success) {
     xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_STRUCT, 0);
@@ -130,7 +130,7 @@ uint32_t Empty_run_result::write(::apache::thrift::protocol::TProtocol* oprot) c
   return xfer;
 }
 
-uint32_t Empty_run_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t Proxy_run_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -170,18 +170,18 @@ uint32_t Empty_run_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
   return xfer;
 }
 
-void EmptyClient::run(Result& _return, const Query& query)
+void ProxyClient::run(Result& _return, const Query& query)
 {
   send_run(query);
   recv_run(_return);
 }
 
-void EmptyClient::send_run(const Query& query)
+void ProxyClient::send_run(const Query& query)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("run", ::apache::thrift::protocol::T_CALL, cseqid);
 
-  Empty_run_pargs args;
+  Proxy_run_pargs args;
   args.query = &query;
   args.write(oprot_);
 
@@ -190,7 +190,7 @@ void EmptyClient::send_run(const Query& query)
   oprot_->getTransport()->flush();
 }
 
-void EmptyClient::recv_run(Result& _return)
+void ProxyClient::recv_run(Result& _return)
 {
 
   int32_t rseqid = 0;
@@ -215,7 +215,7 @@ void EmptyClient::recv_run(Result& _return)
     iprot_->readMessageEnd();
     iprot_->getTransport()->readEnd();
   }
-  Empty_run_presult result;
+  Proxy_run_presult result;
   result.success = &_return;
   result.read(iprot_);
   iprot_->readMessageEnd();
@@ -228,7 +228,7 @@ void EmptyClient::recv_run(Result& _return)
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "run failed: unknown result");
 }
 
-bool EmptyProcessor::dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext) {
+bool ProxyProcessor::dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext) {
   ProcessMap::iterator pfn;
   pfn = processMap_.find(fname);
   if (pfn == processMap_.end()) {
@@ -247,34 +247,34 @@ bool EmptyProcessor::dispatchCall(::apache::thrift::protocol::TProtocol* iprot, 
   return true;
 }
 
-void EmptyProcessor::process_run(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
+void ProxyProcessor::process_run(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
 {
   void* ctx = NULL;
   if (this->eventHandler_.get() != NULL) {
-    ctx = this->eventHandler_->getContext("Empty.run", callContext);
+    ctx = this->eventHandler_->getContext("Proxy.run", callContext);
   }
-  ::apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "Empty.run");
+  ::apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "Proxy.run");
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preRead(ctx, "Empty.run");
+    this->eventHandler_->preRead(ctx, "Proxy.run");
   }
 
-  Empty_run_args args;
+  Proxy_run_args args;
   args.read(iprot);
   iprot->readMessageEnd();
   uint32_t bytes = iprot->getTransport()->readEnd();
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postRead(ctx, "Empty.run", bytes);
+    this->eventHandler_->postRead(ctx, "Proxy.run", bytes);
   }
 
-  Empty_run_result result;
+  Proxy_run_result result;
   try {
     iface_->run(result.success, args.query);
     result.__isset.success = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
-      this->eventHandler_->handlerError(ctx, "Empty.run");
+      this->eventHandler_->handlerError(ctx, "Proxy.run");
     }
 
     ::apache::thrift::TApplicationException x(e.what());
@@ -287,7 +287,7 @@ void EmptyProcessor::process_run(int32_t seqid, ::apache::thrift::protocol::TPro
   }
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preWrite(ctx, "Empty.run");
+    this->eventHandler_->preWrite(ctx, "Proxy.run");
   }
 
   oprot->writeMessageBegin("run", ::apache::thrift::protocol::T_REPLY, seqid);
@@ -297,14 +297,14 @@ void EmptyProcessor::process_run(int32_t seqid, ::apache::thrift::protocol::TPro
   oprot->getTransport()->flush();
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postWrite(ctx, "Empty.run", bytes);
+    this->eventHandler_->postWrite(ctx, "Proxy.run", bytes);
   }
 }
 
-::boost::shared_ptr< ::apache::thrift::TProcessor > EmptyProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {
-  ::apache::thrift::ReleaseHandler< EmptyIfFactory > cleanup(handlerFactory_);
-  ::boost::shared_ptr< EmptyIf > handler(handlerFactory_->getHandler(connInfo), cleanup);
-  ::boost::shared_ptr< ::apache::thrift::TProcessor > processor(new EmptyProcessor(handler));
+::boost::shared_ptr< ::apache::thrift::TProcessor > ProxyProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {
+  ::apache::thrift::ReleaseHandler< ProxyIfFactory > cleanup(handlerFactory_);
+  ::boost::shared_ptr< ProxyIf > handler(handlerFactory_->getHandler(connInfo), cleanup);
+  ::boost::shared_ptr< ::apache::thrift::TProcessor > processor(new ProxyProcessor(handler));
   return processor;
 }
 }} // namespace

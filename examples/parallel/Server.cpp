@@ -13,7 +13,7 @@
 #include "rddoc/util/ScopeGuard.h"
 #include "rddoc/util/Signal.h"
 #include "rddoc/util/Uuid.h"
-#include "gen-cpp/Empty.h"
+#include "gen-cpp/Parallel.h"
 
 static const char* VERSION = "1.0.0";
 
@@ -21,13 +21,14 @@ DEFINE_string(conf, "server.json", "Server config file");
 
 namespace rdd {
 
-class EmptyJobExecutor : public ReflectObject<JobExecutor, EmptyJobExecutor> {
+class ParallelJobExecutor
+  : public ReflectObject<JobExecutor, ParallelJobExecutor> {
 public:
   struct MyContext : public Context {
-    empty::Result* result;
+    parallel::Result* result;
   };
 
-  virtual ~EmptyJobExecutor() {}
+  virtual ~ParallelJobExecutor() {}
 
   void handle() {
     if (context_) {
@@ -38,14 +39,14 @@ public:
     }
   }
 };
-RDD_RF_REG(JobExecutor, EmptyJobExecutor);
+RDD_RF_REG(JobExecutor, ParallelJobExecutor);
 
-namespace empty {
+namespace parallel {
 
-class EmptyHandler : virtual public EmptyIf {
+class ParallelHandler : virtual public ParallelIf {
 public:
-  EmptyHandler() {
-    RDDLOG(DEBUG) << "EmptyHandler init";
+  ParallelHandler() {
+    RDDLOG(DEBUG) << "ParallelHandler init";
   }
 
   void run(Result& _return, const Query& query) {
@@ -58,21 +59,7 @@ public:
     _return.__set_traceid(generateUuid(query.traceid, "rdde"));
     _return.__set_code(ResultCode::OK);
 
-    if (!query.forward.empty()) {
-      Peer peer(query.forward);
-      Query q;
-      q.__set_traceid(query.traceid);
-      q.__set_query(query.query);
-      TAsyncClient<EmptyClient> client(peer.host, peer.port);
-      client.setKeepAlive();
-      if (!client.connect() ||
-          !client.fetch(&EmptyClient::recv_run, _return,
-                        &EmptyClient::send_run, q)) {
-        _return.__set_code(ResultCode::E_BACKEND_FAILURE);
-      }
-    }
-
-    auto jobctx = new EmptyJobExecutor::MyContext();
+    auto jobctx = new ParallelJobExecutor::MyContext();
     jobctx->result = &_return;
     make_unique<Scheduler>("graph1", JobExecutor::ContextPtr(jobctx))->run();
 
@@ -94,16 +81,17 @@ using namespace rdd;
 
 int main(int argc, char* argv[]) {
   google::SetVersionString(VERSION);
-  google::SetUsageMessage("Usage : ./empty");
+  google::SetUsageMessage("Usage : ./parallel");
   google::ParseCommandLineFlags(&argc, &argv, true);
 
   setupIgnoreSignal(SIGPIPE);
   setupShutdownSignal(SIGINT);
   setupShutdownSignal(SIGTERM);
 
-  std::shared_ptr<Service> empty(
-      new TAsyncServer<empty::EmptyHandler, empty::EmptyProcessor>());
-  Singleton<Actor>::get()->addService("Empty", empty);
+  std::shared_ptr<Service> parallel(
+      new TAsyncServer<parallel::ParallelHandler,
+                       parallel::ParallelProcessor>());
+  Singleton<Actor>::get()->addService("Parallel", parallel);
 
   config(FLAGS_conf.c_str(), {
          {configLogging, "logging"},

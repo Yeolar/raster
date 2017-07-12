@@ -4,13 +4,13 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-#include "Empty_constants.h"
+#include "Parallel_constants.h"
 
-namespace rdd { namespace empty {
+namespace rdd { namespace parallel {
 
-const EmptyConstants g_Empty_constants;
+const ParallelConstants g_Parallel_constants;
 
-EmptyConstants::EmptyConstants() {
+ParallelConstants::ParallelConstants() {
 }
 
 }} // namespace

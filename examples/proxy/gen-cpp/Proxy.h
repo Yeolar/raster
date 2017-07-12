@@ -4,84 +4,84 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-#ifndef Empty_H
-#define Empty_H
+#ifndef Proxy_H
+#define Proxy_H
 
 #include <thrift/TDispatchProcessor.h>
-#include "Empty_types.h"
+#include "Proxy_types.h"
 
-namespace rdd { namespace empty {
+namespace rdd { namespace proxy {
 
-class EmptyIf {
+class ProxyIf {
  public:
-  virtual ~EmptyIf() {}
+  virtual ~ProxyIf() {}
   virtual void run(Result& _return, const Query& query) = 0;
 };
 
-class EmptyIfFactory {
+class ProxyIfFactory {
  public:
-  typedef EmptyIf Handler;
+  typedef ProxyIf Handler;
 
-  virtual ~EmptyIfFactory() {}
+  virtual ~ProxyIfFactory() {}
 
-  virtual EmptyIf* getHandler(const ::apache::thrift::TConnectionInfo& connInfo) = 0;
-  virtual void releaseHandler(EmptyIf* /* handler */) = 0;
+  virtual ProxyIf* getHandler(const ::apache::thrift::TConnectionInfo& connInfo) = 0;
+  virtual void releaseHandler(ProxyIf* /* handler */) = 0;
 };
 
-class EmptyIfSingletonFactory : virtual public EmptyIfFactory {
+class ProxyIfSingletonFactory : virtual public ProxyIfFactory {
  public:
-  EmptyIfSingletonFactory(const boost::shared_ptr<EmptyIf>& iface) : iface_(iface) {}
-  virtual ~EmptyIfSingletonFactory() {}
+  ProxyIfSingletonFactory(const boost::shared_ptr<ProxyIf>& iface) : iface_(iface) {}
+  virtual ~ProxyIfSingletonFactory() {}
 
-  virtual EmptyIf* getHandler(const ::apache::thrift::TConnectionInfo&) {
+  virtual ProxyIf* getHandler(const ::apache::thrift::TConnectionInfo&) {
     return iface_.get();
   }
-  virtual void releaseHandler(EmptyIf* /* handler */) {}
+  virtual void releaseHandler(ProxyIf* /* handler */) {}
 
  protected:
-  boost::shared_ptr<EmptyIf> iface_;
+  boost::shared_ptr<ProxyIf> iface_;
 };
 
-class EmptyNull : virtual public EmptyIf {
+class ProxyNull : virtual public ProxyIf {
  public:
-  virtual ~EmptyNull() {}
+  virtual ~ProxyNull() {}
   void run(Result& /* _return */, const Query& /* query */) {
     return;
   }
 };
 
-typedef struct _Empty_run_args__isset {
-  _Empty_run_args__isset() : query(false) {}
+typedef struct _Proxy_run_args__isset {
+  _Proxy_run_args__isset() : query(false) {}
   bool query;
-} _Empty_run_args__isset;
+} _Proxy_run_args__isset;
 
-class Empty_run_args {
+class Proxy_run_args {
  public:
 
-  Empty_run_args() {
+  Proxy_run_args() {
   }
 
-  virtual ~Empty_run_args() throw() {}
+  virtual ~Proxy_run_args() throw() {}
 
   Query query;
 
-  _Empty_run_args__isset __isset;
+  _Proxy_run_args__isset __isset;
 
   void __set_query(const Query& val) {
     query = val;
   }
 
-  bool operator == (const Empty_run_args & rhs) const
+  bool operator == (const Proxy_run_args & rhs) const
   {
     if (!(query == rhs.query))
       return false;
     return true;
   }
-  bool operator != (const Empty_run_args &rhs) const {
+  bool operator != (const Proxy_run_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Empty_run_args & ) const;
+  bool operator < (const Proxy_run_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -89,11 +89,11 @@ class Empty_run_args {
 };
 
 
-class Empty_run_pargs {
+class Proxy_run_pargs {
  public:
 
 
-  virtual ~Empty_run_pargs() throw() {}
+  virtual ~Proxy_run_pargs() throw() {}
 
   const Query* query;
 
@@ -101,72 +101,72 @@ class Empty_run_pargs {
 
 };
 
-typedef struct _Empty_run_result__isset {
-  _Empty_run_result__isset() : success(false) {}
+typedef struct _Proxy_run_result__isset {
+  _Proxy_run_result__isset() : success(false) {}
   bool success;
-} _Empty_run_result__isset;
+} _Proxy_run_result__isset;
 
-class Empty_run_result {
+class Proxy_run_result {
  public:
 
-  Empty_run_result() {
+  Proxy_run_result() {
   }
 
-  virtual ~Empty_run_result() throw() {}
+  virtual ~Proxy_run_result() throw() {}
 
   Result success;
 
-  _Empty_run_result__isset __isset;
+  _Proxy_run_result__isset __isset;
 
   void __set_success(const Result& val) {
     success = val;
   }
 
-  bool operator == (const Empty_run_result & rhs) const
+  bool operator == (const Proxy_run_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
     return true;
   }
-  bool operator != (const Empty_run_result &rhs) const {
+  bool operator != (const Proxy_run_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Empty_run_result & ) const;
+  bool operator < (const Proxy_run_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Empty_run_presult__isset {
-  _Empty_run_presult__isset() : success(false) {}
+typedef struct _Proxy_run_presult__isset {
+  _Proxy_run_presult__isset() : success(false) {}
   bool success;
-} _Empty_run_presult__isset;
+} _Proxy_run_presult__isset;
 
-class Empty_run_presult {
+class Proxy_run_presult {
  public:
 
 
-  virtual ~Empty_run_presult() throw() {}
+  virtual ~Proxy_run_presult() throw() {}
 
   Result* success;
 
-  _Empty_run_presult__isset __isset;
+  _Proxy_run_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-class EmptyClient : virtual public EmptyIf {
+class ProxyClient : virtual public ProxyIf {
  public:
-  EmptyClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
+  ProxyClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
     piprot_(prot),
     poprot_(prot) {
     iprot_ = prot.get();
     oprot_ = prot.get();
   }
-  EmptyClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, boost::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) :
+  ProxyClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, boost::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) :
     piprot_(iprot),
     poprot_(oprot) {
     iprot_ = iprot.get();
@@ -188,44 +188,44 @@ class EmptyClient : virtual public EmptyIf {
   ::apache::thrift::protocol::TProtocol* oprot_;
 };
 
-class EmptyProcessor : public ::apache::thrift::TDispatchProcessor {
+class ProxyProcessor : public ::apache::thrift::TDispatchProcessor {
  protected:
-  boost::shared_ptr<EmptyIf> iface_;
+  boost::shared_ptr<ProxyIf> iface_;
   virtual bool dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext);
  private:
-  typedef  void (EmptyProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);
+  typedef  void (ProxyProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);
   typedef std::map<std::string, ProcessFunction> ProcessMap;
   ProcessMap processMap_;
   void process_run(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
-  EmptyProcessor(boost::shared_ptr<EmptyIf> iface) :
+  ProxyProcessor(boost::shared_ptr<ProxyIf> iface) :
     iface_(iface) {
-    processMap_["run"] = &EmptyProcessor::process_run;
+    processMap_["run"] = &ProxyProcessor::process_run;
   }
 
-  virtual ~EmptyProcessor() {}
+  virtual ~ProxyProcessor() {}
 };
 
-class EmptyProcessorFactory : public ::apache::thrift::TProcessorFactory {
+class ProxyProcessorFactory : public ::apache::thrift::TProcessorFactory {
  public:
-  EmptyProcessorFactory(const ::boost::shared_ptr< EmptyIfFactory >& handlerFactory) :
+  ProxyProcessorFactory(const ::boost::shared_ptr< ProxyIfFactory >& handlerFactory) :
       handlerFactory_(handlerFactory) {}
 
   ::boost::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
 
  protected:
-  ::boost::shared_ptr< EmptyIfFactory > handlerFactory_;
+  ::boost::shared_ptr< ProxyIfFactory > handlerFactory_;
 };
 
-class EmptyMultiface : virtual public EmptyIf {
+class ProxyMultiface : virtual public ProxyIf {
  public:
-  EmptyMultiface(std::vector<boost::shared_ptr<EmptyIf> >& ifaces) : ifaces_(ifaces) {
+  ProxyMultiface(std::vector<boost::shared_ptr<ProxyIf> >& ifaces) : ifaces_(ifaces) {
   }
-  virtual ~EmptyMultiface() {}
+  virtual ~ProxyMultiface() {}
  protected:
-  std::vector<boost::shared_ptr<EmptyIf> > ifaces_;
-  EmptyMultiface() {}
-  void add(boost::shared_ptr<EmptyIf> iface) {
+  std::vector<boost::shared_ptr<ProxyIf> > ifaces_;
+  ProxyMultiface() {}
+  void add(boost::shared_ptr<ProxyIf> iface) {
     ifaces_.push_back(iface);
   }
  public:

@@ -1,6 +1,6 @@
 // Copyright (C) 2017, Yeolar
 
-namespace cpp rdd.empty
+namespace cpp rdd.parallel
 
 struct Query {
     1: required string traceid;
@@ -22,6 +22,6 @@ struct Result {
     2: optional ResultCode code;
 }
 
-service Empty {
+service Parallel {
     Result run(1: Query query);
 }

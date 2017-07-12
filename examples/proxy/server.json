@@ -1,6 +1,6 @@
 {
   "logging": {
-    "logfile": "log/parallel.log",
+    "logfile": "log/proxy.log",
     "level": 1,
     "async": true
   },
@@ -14,7 +14,7 @@
   },
   "service": {
     "8000": {
-      "service": "Parallel",
+      "service": "Proxy",
       "conn_timeout": 100000,
       "recv_timeout": 300000,
       "send_timeout": 1000000
@@ -31,16 +31,10 @@
   },
   "monitor": {
     "open": false,
-    "prefix": "parallel"
+    "prefix": "proxy"
   },
   "job": {
     "graph": {
-      "graph1": [
-        {"name": "ParallelJobExecutor:1", "next": ["ParallelJobExecutor:3"]},
-        {"name": "ParallelJobExecutor:2", "next": ["ParallelJobExecutor:3"]},
-        {"name": "ParallelJobExecutor:3", "next": []},
-        {"name": "ParallelJobExecutor:4", "next": []}
-      ]
     }
   }
 }

@@ -4,8 +4,8 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-#ifndef Empty_TYPES_H
-#define Empty_TYPES_H
+#ifndef Proxy_TYPES_H
+#define Proxy_TYPES_H
 
 #include <thrift/Thrift.h>
 #include <thrift/TApplicationException.h>
@@ -15,7 +15,7 @@
 #include <thrift/cxxfunctional.h>
 
 
-namespace rdd { namespace empty {
+namespace rdd { namespace proxy {
 
 struct ResultCode {
   enum type {
@@ -28,23 +28,25 @@ struct ResultCode {
 extern const std::map<int, const char*> _ResultCode_VALUES_TO_NAMES;
 
 typedef struct _Query__isset {
-  _Query__isset() : query(false) {}
+  _Query__isset() : query(false), forward(false) {}
   bool query;
+  bool forward;
 } _Query__isset;
 
 class Query {
  public:
 
-  static const char* ascii_fingerprint; // = "5B708A954C550ECA9C1A49D3C5CAFAB9";
-  static const uint8_t binary_fingerprint[16]; // = {0x5B,0x70,0x8A,0x95,0x4C,0x55,0x0E,0xCA,0x9C,0x1A,0x49,0xD3,0xC5,0xCA,0xFA,0xB9};
+  static const char* ascii_fingerprint; // = "4BF81DD46A7371532E49811022D58D36";
+  static const uint8_t binary_fingerprint[16]; // = {0x4B,0xF8,0x1D,0xD4,0x6A,0x73,0x71,0x53,0x2E,0x49,0x81,0x10,0x22,0xD5,0x8D,0x36};
 
-  Query() : traceid(), query() {
+  Query() : traceid(), query(), forward() {
   }
 
   virtual ~Query() throw() {}
 
   std::string traceid;
   std::string query;
+  std::string forward;
 
   _Query__isset __isset;
 
@@ -57,6 +59,11 @@ class Query {
     __isset.query = true;
   }
 
+  void __set_forward(const std::string& val) {
+    forward = val;
+    __isset.forward = true;
+  }
+
   bool operator == (const Query & rhs) const
   {
     if (!(traceid == rhs.traceid))
@@ -64,6 +71,10 @@ class Query {
     if (__isset.query != rhs.__isset.query)
       return false;
     else if (__isset.query && !(query == rhs.query))
+      return false;
+    if (__isset.forward != rhs.__isset.forward)
+      return false;
+    else if (__isset.forward && !(forward == rhs.forward))
       return false;
     return true;
   }
