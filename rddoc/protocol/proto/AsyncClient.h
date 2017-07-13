@@ -4,12 +4,10 @@
 
 #pragma once
 
-#include <arpa/inet.h>
-#include <protocol/TBinaryProtocol.h>
-#include <transport/TBufferTransports.h>
 #include "rddoc/net/AsyncClient.h"
-#include "rddoc/protocol/thrift/Encoding.h"
-#include "rddoc/protocol/thrift/Protocol.h"
+#include "rddoc/protocol/proto/Protocol.h"
+#include "rddoc/protocol/proto/RpcChannel.h"
+#include "rddoc/protocol/proto/RpcController.h"
 
 /*
  * callback mode:
@@ -42,21 +40,12 @@ namespace rdd {
 
 template <class C>
 class TAsyncClient : public AsyncClient {
-protected:
-  boost::shared_ptr< ::apache::thrift::transport::TMemoryBuffer> pibuf_;
-  boost::shared_ptr< ::apache::thrift::transport::TMemoryBuffer> pobuf_;
-  boost::shared_ptr< ::apache::thrift::protocol::TBinaryProtocol> piprot_;
-  boost::shared_ptr< ::apache::thrift::protocol::TBinaryProtocol> poprot_;
-
 public:
   TAsyncClient(const ClientOption& option)
     : AsyncClient(option) {
-    pibuf_.reset(new apache::thrift::transport::TMemoryBuffer());
-    pobuf_.reset(new apache::thrift::transport::TMemoryBuffer());
-    piprot_.reset(new apache::thrift::protocol::TBinaryProtocol(pibuf_));
-    poprot_.reset(new apache::thrift::protocol::TBinaryProtocol(pobuf_));
-
-    client_ = std::make_shared<C>(piprot_, poprot_);
+    rpcChannel_.reset(new PBAsyncRpcChannel(this));
+    controller_.reset(new PBRpcController());
+    service_.reset(new C(rpcChannel_.get()));
     channel_ = makeChannel();
   }
   TAsyncClient(const std::string& host,
@@ -68,56 +57,48 @@ public:
   }
   virtual ~TAsyncClient() {}
 
-  template <class Res>
-  bool recv(void (C::*recvFunc)(Res&), Res& _return) {
+  bool recv() {
     if (!event_ || event_->type() == Event::FAIL) {
       return false;
     }
-    decodeData();
-    (client_.get()->*recvFunc)(_return);
+    std::string msg;
+    proto::decodeData(event_->rbuf(), &msg);
+    rpcChannel_->process(msg);
     return true;
   }
 
-  template <class Res>
-  bool recv(Res (C::*recvFunc)(void), Res& _return) {
-    if (!event_ || event_->type() == Event::FAIL) {
-      return false;
-    }
-    decodeData();
-    _return = (client_.get()->*recvFunc)();
-    return true;
-  }
-
-  template <class... Req>
-  bool send(void (C::*sendFunc)(const Req&...), const Req&... requests) {
+  template <class Res, class Req>
+  bool send(void (C::*func)(google::protobuf::RpcController*,
+                            const Req*, Res*,
+                            google::protobuf::Closure*),
+            Res& _return, const Req& request) {
     if (!event_) {
       return false;
     }
-    (client_.get()->*sendFunc)(requests...);
-    encodeData();
+    (service_.get()->*func)(controller_.get(),
+                            &request,
+                            &_return,
+                            google::protobuf::NewCallback(nullptr));
     return true;
   }
 
-  template <class Res, class... Req>
-  bool fetch(void (C::*recvFunc)(Res&), Res& _return,
-         void (C::*sendFunc)(const Req&...), const Req&... requests) {
-    return (send(sendFunc, requests...) &&
-            yieldTask() &&
-            recv(recvFunc, _return));
+  template <class Res, class Req>
+  bool fetch(void (C::*func)(google::protobuf::RpcController*,
+                             const Req*, Res*,
+                             google::protobuf::Closure*),
+             Res& _return, const Req& request) {
+    return (send(func, _return, request) &&
+            FiberManager::yield() &&
+            recv());
   }
 
-  template <class Res, class... Req>
-  bool fetch(Res (C::*recvFunc)(void), Res& _return,
-             void (C::*sendFunc)(const Req&...), const Req&... requests) {
-    return (send(sendFunc, requests...) &&
-            yieldTask() &&
-            recv(recvFunc, _return));
-  }
-
-  template <class... Req>
-  bool fetch(void (C::*sendFunc)(const Req&...), const Req&... requests) {
-    if (send(sendFunc, requests...)) {
-      Singleton<Actor>::get()->addClientTask((AsyncClient*)this);
+  template <class Res, class Req>
+  bool fetchNoWait(void (C::*func)(google::protobuf::RpcController*,
+                                   const Req*, Res*,
+                                   google::protobuf::Closure*),
+                   Res& _return, const Req& request) {
+    if (send(func, _return, request)) {
+      Singleton<Actor>::get()->execute((AsyncClient*)this);
       return true;
     }
     return false;
@@ -125,20 +106,14 @@ public:
 
 protected:
   virtual std::shared_ptr<Channel> makeChannel() {
-    std::shared_ptr<Protocol> protocol(new TFramedProtocol());
-    return std::make_shared<Channel>(peer_, timeout_opt_, protocol);
-  }
-
-  bool decodeData() {
-    return rdd::thrift::decodeData(event_->rbuf(), pibuf_.get());
-  }
-
-  bool encodeData() {
-    return rdd::thrift::encodeData(event_->wbuf(), pobuf_.get());
+    std::shared_ptr<Protocol> protocol(new PBBinaryProtocol());
+    return std::make_shared<Channel>(peer_, timeoutOpt_, protocol);
   }
 
 private:
-  std::shared_ptr<C> client_;
+  std::shared_ptr<PBAsyncRpcChannel> rpcChannel_;
+  std::shared_ptr<google::protobuf::RpcController> controller_;
+  std::shared_ptr<C> service_;
 };
 
 }

@@ -67,6 +67,13 @@ void PBRpcController::parseFrom(std::istream& in) {
   }
 }
 
+void PBRpcController::copyFrom(const PBRpcController& o) {
+  if (o.failed_) {
+    SetFailed(o.ErrorText());
+  }
+  canceled_ = o.canceled_;
+}
+
 void PBRpcController::setStartCancel(VoidFunc&& cancelFunc) {
   cancelFunc_ = std::move(cancelFunc);
 }

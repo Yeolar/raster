@@ -15,6 +15,7 @@ namespace rdd {
 class PBRpcController : public google::protobuf::RpcController {
 public:
   PBRpcController() {}
+  virtual ~PBRpcController() {}
 
   // Client-side
   virtual void Reset();
@@ -30,13 +31,14 @@ public:
   void serializeTo(std::ostream& out) const;
   void parseFrom(std::istream& in);
 
-  void setCanceled() { canceled_ = true; }
+  void copyFrom(const PBRpcController& o);
 
-private:
+  void setCanceled() { canceled_ = true; }
   void setStartCancel(VoidFunc&& cancelFunc);
 
   void complete();
 
+private:
   bool canceled_{false};
   bool failed_{false};
   std::string failedReason_;

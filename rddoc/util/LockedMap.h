@@ -58,6 +58,11 @@ public:
     return it == map_.end() ? V() : it->second;
   }
 
+  bool contains(const K& k) const {
+    std::lock_guard<std::mutex> guard(lock_);
+    return map_.find(k) != map_.end();
+  }
+
   size_t size() const {
     std::lock_guard<std::mutex> guard(lock_);
     return map_.size();

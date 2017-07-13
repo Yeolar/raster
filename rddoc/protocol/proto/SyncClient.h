@@ -4,52 +4,41 @@
 
 #pragma once
 
-#include <arpa/inet.h>
-#include <thrift/transport/TSocket.h>
-#include <thrift/transport/TTransport.h>
-#include <thrift/transport/TBufferTransports.h>
-#include <thrift/protocol/TBinaryProtocol.h>
+#include <google/protobuf/service.h>
 #include "rddoc/net/NetUtil.h"
+#include "rddoc/protocol/proto/RpcChannel.h"
+#include "rddoc/protocol/proto/RpcController.h"
 #include "rddoc/util/Logging.h"
 
 namespace rdd {
 
-template <
-  class C,
-  class TTransport = apache::thrift::transport::TFramedTransport,
-  class TProtocol = apache::thrift::protocol::TBinaryProtocol>
-class TSyncClient {
+template <class C>
+class PBSyncClient {
 public:
-  TSyncClient(const std::string& host,
-              int port,
-              uint64_t ctimeout = 100000,
-              uint64_t rtimeout = 1000000,
-              uint64_t wtimeout = 300000)
-    : peer_({host, port}) {
-    timeout_ = {ctimeout, rtimeout, wtimeout};
+  PBSyncClient(const std::string& host, int port)
+    : peer_(host, port) {
     init();
   }
-  TSyncClient(const ClientOption& option)
-    : peer_(option.peer)
-    , timeout_(option.timeout) {
+  PBSyncClient(const ClientOption& option)
+    : peer_(option.peer) {
     init();
   }
-  virtual ~TSyncClient() {
+  virtual ~PBSyncClient() {
     close();
   }
 
   void close() {
-    if (transport_->isOpen()) {
-      transport_->close();
+    if (rpcChannel_->isOpen()) {
+      rpcChannel_->close();
     }
   }
 
   bool connect() {
     try {
-      transport_->open();
+      rpcChannel_->open();
     }
-    catch (apache::thrift::TException& e) {
-      RDDLOG(ERROR) << "TSyncClient: connect " << peer_.str()
+    catch (std::exception& e) {
+      RDDLOG(ERROR) << "PBSyncClient: connect " << peer_.str()
         << " failed, " << e.what();
       return false;
     }
@@ -57,32 +46,23 @@ public:
     return true;
   }
 
-  bool connected() const { return transport_->isOpen(); }
+  bool connected() const { return rpcChannel_->isOpen(); }
 
-  template <class Res, class... Req>
-  bool fetch(void (C::*func)(Res&, const Req&...),
+  template <class Res, class Req>
+  bool fetch(void (C::*func)(google::protobuf::RpcController*,
+                             const Req*, Res*,
+                             google::protobuf::Closure*),
              Res& _return,
-             const Req&... requests) {
+             const Req& request) {
     try {
-      (client_.get()->*func)(_return, requests...);
+      (service_.get()->*func)(
+          controller_.get(),
+          &request,
+          &_return,
+          google::protobuf::NewCallback(nullptr));
     }
-    catch (apache::thrift::TException& e) {
-      RDDLOG(ERROR) << "TSyncClient: fetch " << peer_.str()
-        << " failed, " << e.what();
-      return false;
-    }
-    return true;
-  }
-
-  template <class Res, class... Req>
-  bool fetch(Res (C::*func)(const Req&...),
-             Res& _return,
-             const Req&... requests) {
-    try {
-      _return = (client_.get()->*func)(requests...);
-    }
-    catch (apache::thrift::TException& e) {
-      RDDLOG(ERROR) << "TSyncClient: fetch " << peer_.str()
+    catch (std::exception& e) {
+      RDDLOG(ERROR) << "PBSyncClient: fetch " << peer_.str()
         << " failed, " << e.what();
       return false;
     }
@@ -91,24 +71,16 @@ public:
 
 private:
   void init() {
-    using apache::thrift::transport::TSocket;
-    socket_.reset(new TSocket(peer_.host, peer_.port));
-    socket_->setConnTimeout(timeout_.ctimeout);
-    socket_->setRecvTimeout(timeout_.rtimeout);
-    socket_->setSendTimeout(timeout_.wtimeout);
-    transport_.reset(new TTransport(socket_));
-    protocol_.reset(new TProtocol(transport_));
-    client_ = std::make_shared<C>(protocol_);
-    RDDLOG(DEBUG) << "SyncClient: " << peer_.str()
-      << ", timeout=" << timeout_;
+    rpcChannel_.reset(new PBSyncRpcChannel(peer_));
+    controller_.reset(new PBRpcController());
+    service_.reset(new C(rpcChannel_.get()));
+    RDDLOG(DEBUG) << "SyncClient: " << peer_.str();
   }
 
   Peer peer_;
-  TimeoutOption timeout_;
-  std::shared_ptr<C> client_;
-  boost::shared_ptr<apache::thrift::transport::TSocket> socket_;
-  boost::shared_ptr<apache::thrift::transport::TTransport> transport_;
-  boost::shared_ptr<apache::thrift::protocol::TProtocol> protocol_;
+  std::shared_ptr<PBSyncRpcChannel> rpcChannel_;
+  std::shared_ptr<google::protobuf::RpcController> controller_;
+  std::shared_ptr<C> service_;
 };
 
 }
