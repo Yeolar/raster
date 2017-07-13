@@ -11,17 +11,15 @@
 
 /*
  * callback mode:
- * (if you have a thrift TClient, and want to do some custom work)
+ * (if you have a pb Stub, and want to do some custom work)
  *
- *  class MyAsyncClient : public TAsyncClient<TClient> {
+ *  class MyAsyncClient : public PBAsyncClient<Stub> {
  *  public:
  *    MyAsyncClient(const ClientOption& option)
- *      : TAsyncClient<TClient>(option, true) {}  // use callback mode
+ *      : PBAsyncClient<Stub>(option, true) {}  // use callback mode
  *
  *    virtual void callback() {
- *      Res res;
- *      recv(&TClient::recv_Func, res);
- *      doSomeWorkOnResult(res);  // do some custom work
+ *      recv();
  *    }
  *  };
  *
@@ -29,7 +27,7 @@
  *  if (!client->connect()) {
  *    delete client;
  *  }
- *  if (!client->fetch(send_func, req)) {
+ *  if (!client->fetch(func, res, req)) {
  *    delete client;
  *  }
  *
@@ -39,23 +37,23 @@
 namespace rdd {
 
 template <class C>
-class TAsyncClient : public AsyncClient {
+class PBAsyncClient : public AsyncClient {
 public:
-  TAsyncClient(const ClientOption& option)
+  PBAsyncClient(const ClientOption& option)
     : AsyncClient(option) {
     rpcChannel_.reset(new PBAsyncRpcChannel(this));
     controller_.reset(new PBRpcController());
     service_.reset(new C(rpcChannel_.get()));
     channel_ = makeChannel();
   }
-  TAsyncClient(const std::string& host,
+  PBAsyncClient(const std::string& host,
                int port,
                uint64_t ctimeout = 100000,
                uint64_t rtimeout = 1000000,
                uint64_t wtimeout = 300000)
-    : TAsyncClient({Peer(host, port), {ctimeout, rtimeout, wtimeout}}) {
+    : PBAsyncClient({Peer(host, port), {ctimeout, rtimeout, wtimeout}}) {
   }
-  virtual ~TAsyncClient() {}
+  virtual ~PBAsyncClient() {}
 
   bool recv() {
     if (!event_ || event_->type() == Event::FAIL) {

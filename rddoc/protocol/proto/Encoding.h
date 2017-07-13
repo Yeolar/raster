@@ -26,10 +26,10 @@ inline bool decodeData(IOBuf* buf, std::string* ibuf) {
   RDDLOG_ON(V4) {
     std::string hex;
     hexlify(range, hex);
-    RDDLOG(V4) << "decode thrift data: " << hex;
+    RDDLOG(V4) << "decode proto data: " << hex;
   }
   uint32_t header = *TypedIOBuf<uint32_t>(buf).data();
-  RDDLOG(V3) << "decode thrift size: " << ntohl(header);
+  RDDLOG(V3) << "decode proto size: " << ntohl(header);
   range.advance(sizeof(uint32_t));
   ibuf->assign((const char*)range.data(), range.size());
   return true;
@@ -39,7 +39,7 @@ inline bool decodeData(IOBuf* buf, std::string* ibuf) {
 inline bool encodeData(IOBuf* buf, std::string* obuf) {
   uint8_t* p = (uint8_t*)&(*obuf)[0];
   uint32_t n = obuf->size();
-  RDDLOG(V3) << "encode thrift size: " << n;
+  RDDLOG(V3) << "encode proto size: " << n;
   TypedIOBuf<uint32_t>(buf).push(htonl(n));
   rdd::io::Appender appender(buf, Protocol::CHUNK_SIZE);
   appender.pushAtMost(p, n);
@@ -47,7 +47,7 @@ inline bool encodeData(IOBuf* buf, std::string* obuf) {
     auto range = buf->coalesce();
     std::string hex;
     hexlify(range, hex);
-    RDDLOG(V4) << "encode thrift data: " << hex;
+    RDDLOG(V4) << "encode proto data: " << hex;
   }
   return true;
 }
