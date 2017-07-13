@@ -75,10 +75,7 @@ public:
     if (!event_) {
       return false;
     }
-    (service_.get()->*func)(controller_.get(),
-                            &request,
-                            &_return,
-                            google::protobuf::NewCallback(nullptr));
+    (service_.get()->*func)(controller_.get(), &request, &_return, nullptr);
     return true;
   }
 

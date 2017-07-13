@@ -55,11 +55,7 @@ public:
              Res& _return,
              const Req& request) {
     try {
-      (service_.get()->*func)(
-          controller_.get(),
-          &request,
-          &_return,
-          google::protobuf::NewCallback(nullptr));
+      (service_.get()->*func)(controller_.get(), &request, &_return, nullptr);
     }
     catch (std::exception& e) {
       RDDLOG(ERROR) << "PBSyncClient: fetch " << peer_.str()

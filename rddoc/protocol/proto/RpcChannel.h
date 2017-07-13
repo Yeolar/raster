@@ -58,7 +58,7 @@ private:
 
 class PBSyncRpcChannel : public PBRpcChannel {
 public:
-  PBSyncRpcChannel(const Peer& peer) : peer_(peer) {}
+  PBSyncRpcChannel(const Peer& peer) : peer_(peer), socket_(0) {}
 
   virtual ~PBSyncRpcChannel() {}
 
@@ -78,11 +78,14 @@ private:
   virtual void send(
       const std::string& msg,
       std::function<void(bool, const std::string&)> resultCb) {
+    uint32_t h = htonl(msg.size());
+    socket_.send(&h, sizeof(uint32_t));
     socket_.send((char*)&msg[0], msg.size());
     resultCb(true, "");
+
     uint32_t n;
-    socket_.recv(&n, sizeof(uint32_t));
     std::string data;
+    socket_.recv(&n, sizeof(uint32_t));
     data.resize(ntohl(n));
     socket_.recv(&data[0], data.size());
     process(data);
