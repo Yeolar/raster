@@ -6,7 +6,6 @@
 #include "rddoc/framework/Config.h"
 #include "rddoc/net/Actor.h"
 #include "rddoc/parallel/Scheduler.h"
-#include "rddoc/protocol/thrift/AsyncClient.h"
 #include "rddoc/protocol/thrift/AsyncServer.h"
 #include "rddoc/util/Logging.h"
 #include "rddoc/util/ReflectObject.h"

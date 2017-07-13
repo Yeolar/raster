@@ -5,7 +5,6 @@
 #include <gflags/gflags.h>
 #include "rddoc/framework/Config.h"
 #include "rddoc/net/Actor.h"
-#include "rddoc/protocol/thrift/AsyncClient.h"
 #include "rddoc/protocol/thrift/AsyncServer.h"
 #include "rddoc/util/Logging.h"
 #include "rddoc/util/ScopeGuard.h"

@@ -28,7 +28,8 @@
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 
-namespace rdd_pb {
+namespace rdd {
+namespace pbrpc {
 
 // Internal implementation detail -- do not call these.
 void  protobuf_AddDesc_Empty_2eproto();
@@ -136,7 +137,7 @@ class Query : public ::google::protobuf::Message {
   inline ::std::string* release_query();
   inline void set_allocated_query(::std::string* query);
 
-  // @@protoc_insertion_point(class_scope:rdd_pb.Query)
+  // @@protoc_insertion_point(class_scope:rdd.pbrpc.Query)
  private:
   inline void set_has_traceid();
   inline void clear_has_traceid();
@@ -223,14 +224,14 @@ class Result : public ::google::protobuf::Message {
   inline ::std::string* release_traceid();
   inline void set_allocated_traceid(::std::string* traceid);
 
-  // optional .rdd_pb.ResultCode code = 2;
+  // optional .rdd.pbrpc.ResultCode code = 2;
   inline bool has_code() const;
   inline void clear_code();
   static const int kCodeFieldNumber = 2;
-  inline ::rdd_pb::ResultCode code() const;
-  inline void set_code(::rdd_pb::ResultCode value);
+  inline ::rdd::pbrpc::ResultCode code() const;
+  inline void set_code(::rdd::pbrpc::ResultCode value);
 
-  // @@protoc_insertion_point(class_scope:rdd_pb.Result)
+  // @@protoc_insertion_point(class_scope:rdd.pbrpc.Result)
  private:
   inline void set_has_traceid();
   inline void clear_has_traceid();
@@ -252,22 +253,22 @@ class Result : public ::google::protobuf::Message {
 };
 // ===================================================================
 
-class Empty_Stub;
+class EmptyService_Stub;
 
-class Empty : public ::google::protobuf::Service {
+class EmptyService : public ::google::protobuf::Service {
  protected:
   // This class should be treated as an abstract interface.
-  inline Empty() {};
+  inline EmptyService() {};
  public:
-  virtual ~Empty();
+  virtual ~EmptyService();
 
-  typedef Empty_Stub Stub;
+  typedef EmptyService_Stub Stub;
 
   static const ::google::protobuf::ServiceDescriptor* descriptor();
 
   virtual void run(::google::protobuf::RpcController* controller,
-                       const ::rdd_pb::Query* request,
-                       ::rdd_pb::Result* response,
+                       const ::rdd::pbrpc::Query* request,
+                       ::rdd::pbrpc::Result* response,
                        ::google::protobuf::Closure* done);
 
   // implements Service ----------------------------------------------
@@ -284,28 +285,28 @@ class Empty : public ::google::protobuf::Service {
     const ::google::protobuf::MethodDescriptor* method) const;
 
  private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(Empty);
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(EmptyService);
 };
 
-class Empty_Stub : public Empty {
+class EmptyService_Stub : public EmptyService {
  public:
-  Empty_Stub(::google::protobuf::RpcChannel* channel);
-  Empty_Stub(::google::protobuf::RpcChannel* channel,
+  EmptyService_Stub(::google::protobuf::RpcChannel* channel);
+  EmptyService_Stub(::google::protobuf::RpcChannel* channel,
                    ::google::protobuf::Service::ChannelOwnership ownership);
-  ~Empty_Stub();
+  ~EmptyService_Stub();
 
   inline ::google::protobuf::RpcChannel* channel() { return channel_; }
 
-  // implements Empty ------------------------------------------
+  // implements EmptyService ------------------------------------------
 
   void run(::google::protobuf::RpcController* controller,
-                       const ::rdd_pb::Query* request,
-                       ::rdd_pb::Result* response,
+                       const ::rdd::pbrpc::Query* request,
+                       ::rdd::pbrpc::Result* response,
                        ::google::protobuf::Closure* done);
  private:
   ::google::protobuf::RpcChannel* channel_;
   bool owns_channel_;
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(Empty_Stub);
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(EmptyService_Stub);
 };
 
 
@@ -333,7 +334,7 @@ inline void Query::clear_traceid() {
   clear_has_traceid();
 }
 inline const ::std::string& Query::traceid() const {
-  // @@protoc_insertion_point(field_get:rdd_pb.Query.traceid)
+  // @@protoc_insertion_point(field_get:rdd.pbrpc.Query.traceid)
   return *traceid_;
 }
 inline void Query::set_traceid(const ::std::string& value) {
@@ -342,7 +343,7 @@ inline void Query::set_traceid(const ::std::string& value) {
     traceid_ = new ::std::string;
   }
   traceid_->assign(value);
-  // @@protoc_insertion_point(field_set:rdd_pb.Query.traceid)
+  // @@protoc_insertion_point(field_set:rdd.pbrpc.Query.traceid)
 }
 inline void Query::set_traceid(const char* value) {
   set_has_traceid();
@@ -350,7 +351,7 @@ inline void Query::set_traceid(const char* value) {
     traceid_ = new ::std::string;
   }
   traceid_->assign(value);
-  // @@protoc_insertion_point(field_set_char:rdd_pb.Query.traceid)
+  // @@protoc_insertion_point(field_set_char:rdd.pbrpc.Query.traceid)
 }
 inline void Query::set_traceid(const char* value, size_t size) {
   set_has_traceid();
@@ -358,14 +359,14 @@ inline void Query::set_traceid(const char* value, size_t size) {
     traceid_ = new ::std::string;
   }
   traceid_->assign(reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_set_pointer:rdd_pb.Query.traceid)
+  // @@protoc_insertion_point(field_set_pointer:rdd.pbrpc.Query.traceid)
 }
 inline ::std::string* Query::mutable_traceid() {
   set_has_traceid();
   if (traceid_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     traceid_ = new ::std::string;
   }
-  // @@protoc_insertion_point(field_mutable:rdd_pb.Query.traceid)
+  // @@protoc_insertion_point(field_mutable:rdd.pbrpc.Query.traceid)
   return traceid_;
 }
 inline ::std::string* Query::release_traceid() {
@@ -389,7 +390,7 @@ inline void Query::set_allocated_traceid(::std::string* traceid) {
     clear_has_traceid();
     traceid_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
-  // @@protoc_insertion_point(field_set_allocated:rdd_pb.Query.traceid)
+  // @@protoc_insertion_point(field_set_allocated:rdd.pbrpc.Query.traceid)
 }
 
 // optional string query = 2;
@@ -409,7 +410,7 @@ inline void Query::clear_query() {
   clear_has_query();
 }
 inline const ::std::string& Query::query() const {
-  // @@protoc_insertion_point(field_get:rdd_pb.Query.query)
+  // @@protoc_insertion_point(field_get:rdd.pbrpc.Query.query)
   return *query_;
 }
 inline void Query::set_query(const ::std::string& value) {
@@ -418,7 +419,7 @@ inline void Query::set_query(const ::std::string& value) {
     query_ = new ::std::string;
   }
   query_->assign(value);
-  // @@protoc_insertion_point(field_set:rdd_pb.Query.query)
+  // @@protoc_insertion_point(field_set:rdd.pbrpc.Query.query)
 }
 inline void Query::set_query(const char* value) {
   set_has_query();
@@ -426,7 +427,7 @@ inline void Query::set_query(const char* value) {
     query_ = new ::std::string;
   }
   query_->assign(value);
-  // @@protoc_insertion_point(field_set_char:rdd_pb.Query.query)
+  // @@protoc_insertion_point(field_set_char:rdd.pbrpc.Query.query)
 }
 inline void Query::set_query(const char* value, size_t size) {
   set_has_query();
@@ -434,14 +435,14 @@ inline void Query::set_query(const char* value, size_t size) {
     query_ = new ::std::string;
   }
   query_->assign(reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_set_pointer:rdd_pb.Query.query)
+  // @@protoc_insertion_point(field_set_pointer:rdd.pbrpc.Query.query)
 }
 inline ::std::string* Query::mutable_query() {
   set_has_query();
   if (query_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     query_ = new ::std::string;
   }
-  // @@protoc_insertion_point(field_mutable:rdd_pb.Query.query)
+  // @@protoc_insertion_point(field_mutable:rdd.pbrpc.Query.query)
   return query_;
 }
 inline ::std::string* Query::release_query() {
@@ -465,7 +466,7 @@ inline void Query::set_allocated_query(::std::string* query) {
     clear_has_query();
     query_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
-  // @@protoc_insertion_point(field_set_allocated:rdd_pb.Query.query)
+  // @@protoc_insertion_point(field_set_allocated:rdd.pbrpc.Query.query)
 }
 
 // -------------------------------------------------------------------
@@ -489,7 +490,7 @@ inline void Result::clear_traceid() {
   clear_has_traceid();
 }
 inline const ::std::string& Result::traceid() const {
-  // @@protoc_insertion_point(field_get:rdd_pb.Result.traceid)
+  // @@protoc_insertion_point(field_get:rdd.pbrpc.Result.traceid)
   return *traceid_;
 }
 inline void Result::set_traceid(const ::std::string& value) {
@@ -498,7 +499,7 @@ inline void Result::set_traceid(const ::std::string& value) {
     traceid_ = new ::std::string;
   }
   traceid_->assign(value);
-  // @@protoc_insertion_point(field_set:rdd_pb.Result.traceid)
+  // @@protoc_insertion_point(field_set:rdd.pbrpc.Result.traceid)
 }
 inline void Result::set_traceid(const char* value) {
   set_has_traceid();
@@ -506,7 +507,7 @@ inline void Result::set_traceid(const char* value) {
     traceid_ = new ::std::string;
   }
   traceid_->assign(value);
-  // @@protoc_insertion_point(field_set_char:rdd_pb.Result.traceid)
+  // @@protoc_insertion_point(field_set_char:rdd.pbrpc.Result.traceid)
 }
 inline void Result::set_traceid(const char* value, size_t size) {
   set_has_traceid();
@@ -514,14 +515,14 @@ inline void Result::set_traceid(const char* value, size_t size) {
     traceid_ = new ::std::string;
   }
   traceid_->assign(reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_set_pointer:rdd_pb.Result.traceid)
+  // @@protoc_insertion_point(field_set_pointer:rdd.pbrpc.Result.traceid)
 }
 inline ::std::string* Result::mutable_traceid() {
   set_has_traceid();
   if (traceid_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     traceid_ = new ::std::string;
   }
-  // @@protoc_insertion_point(field_mutable:rdd_pb.Result.traceid)
+  // @@protoc_insertion_point(field_mutable:rdd.pbrpc.Result.traceid)
   return traceid_;
 }
 inline ::std::string* Result::release_traceid() {
@@ -545,10 +546,10 @@ inline void Result::set_allocated_traceid(::std::string* traceid) {
     clear_has_traceid();
     traceid_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
-  // @@protoc_insertion_point(field_set_allocated:rdd_pb.Result.traceid)
+  // @@protoc_insertion_point(field_set_allocated:rdd.pbrpc.Result.traceid)
 }
 
-// optional .rdd_pb.ResultCode code = 2;
+// optional .rdd.pbrpc.ResultCode code = 2;
 inline bool Result::has_code() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
@@ -562,30 +563,31 @@ inline void Result::clear_code() {
   code_ = 0;
   clear_has_code();
 }
-inline ::rdd_pb::ResultCode Result::code() const {
-  // @@protoc_insertion_point(field_get:rdd_pb.Result.code)
-  return static_cast< ::rdd_pb::ResultCode >(code_);
+inline ::rdd::pbrpc::ResultCode Result::code() const {
+  // @@protoc_insertion_point(field_get:rdd.pbrpc.Result.code)
+  return static_cast< ::rdd::pbrpc::ResultCode >(code_);
 }
-inline void Result::set_code(::rdd_pb::ResultCode value) {
-  assert(::rdd_pb::ResultCode_IsValid(value));
+inline void Result::set_code(::rdd::pbrpc::ResultCode value) {
+  assert(::rdd::pbrpc::ResultCode_IsValid(value));
   set_has_code();
   code_ = value;
-  // @@protoc_insertion_point(field_set:rdd_pb.Result.code)
+  // @@protoc_insertion_point(field_set:rdd.pbrpc.Result.code)
 }
 
 
 // @@protoc_insertion_point(namespace_scope)
 
-}  // namespace rdd_pb
+}  // namespace pbrpc
+}  // namespace rdd
 
 #ifndef SWIG
 namespace google {
 namespace protobuf {
 
-template <> struct is_proto_enum< ::rdd_pb::ResultCode> : ::google::protobuf::internal::true_type {};
+template <> struct is_proto_enum< ::rdd::pbrpc::ResultCode> : ::google::protobuf::internal::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::rdd_pb::ResultCode>() {
-  return ::rdd_pb::ResultCode_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::rdd::pbrpc::ResultCode>() {
+  return ::rdd::pbrpc::ResultCode_descriptor();
 }
 
 }  // namespace google

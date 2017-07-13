@@ -27,6 +27,7 @@ find_package(LevelDB REQUIRED)
 find_package(Libmemcached REQUIRED)
 find_package(MySQL REQUIRED)
 find_package(OpenSSL REQUIRED)
+find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 
 # Optional packages
@@ -47,7 +48,7 @@ link_libraries(
     ${ICU_LIBRARIES}
     ${ICU_I18N_LIBRARIES}
     ${LevelDB_LIBRARIES}
-    ${LIBEVENT_LIB}
+    #${LIBEVENT_LIB}
     ${LIBMEMCACHED_LIBRARY}
     ${MYSQL_CLIENT_LIBS}
     ${OPENSSL_LIBRARIES}
@@ -87,6 +88,7 @@ add_subdirectory(rddoc/plugins/leveldb)
 add_subdirectory(rddoc/plugins/memcached)
 add_subdirectory(rddoc/plugins/monitor)
 add_subdirectory(rddoc/plugins/mysql)
+add_subdirectory(rddoc/protocol/proto)
 add_subdirectory(rddoc/util)
 
 add_subdirectory(rddoc/3rd/double-conversion)
@@ -106,6 +108,7 @@ add_library(rdd_static STATIC
     $<TARGET_OBJECTS:rdd_plugins_memcached>
     $<TARGET_OBJECTS:rdd_plugins_monitor>
     $<TARGET_OBJECTS:rdd_plugins_mysql>
+    $<TARGET_OBJECTS:rdd_protocol_proto>
     $<TARGET_OBJECTS:rdd_util>
     $<TARGET_OBJECTS:double-conversion>
     $<TARGET_OBJECTS:httpparser>
@@ -125,6 +128,7 @@ add_library(rdd_shared SHARED
     $<TARGET_OBJECTS:rdd_plugins_memcached>
     $<TARGET_OBJECTS:rdd_plugins_monitor>
     $<TARGET_OBJECTS:rdd_plugins_mysql>
+    $<TARGET_OBJECTS:rdd_protocol_proto>
     $<TARGET_OBJECTS:rdd_util>
     $<TARGET_OBJECTS:double-conversion>
     $<TARGET_OBJECTS:httpparser>
@@ -149,6 +153,8 @@ install(TARGETS rdd_shared
 # Binary
 add_subdirectory(examples/empty)
 add_subdirectory(examples/parallel)
+add_subdirectory(examples/pbrpc)
+add_subdirectory(examples/proxy)
 
 # Test
 if(GTEST_FOUND AND GMOCK_FOUND)

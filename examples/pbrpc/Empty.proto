@@ -2,7 +2,7 @@
 
 option cc_generic_services = true;
 
-package rdd_pb;
+package rdd.pbrpc;
 
 message Query {
   required string traceid = 1;
@@ -23,6 +23,6 @@ message Result {
   optional ResultCode code = 2;
 }
 
-service Empty {
+service EmptyService {
   rpc run(Query) returns(Result);
 }

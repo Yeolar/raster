@@ -16,7 +16,8 @@
 #include <google/protobuf/wire_format.h>
 // @@protoc_insertion_point(includes)
 
-namespace rdd_pb {
+namespace rdd {
+namespace pbrpc {
 
 namespace {
 
@@ -27,7 +28,7 @@ const ::google::protobuf::Descriptor* Result_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   Result_reflection_ = NULL;
 const ::google::protobuf::EnumDescriptor* ResultCode_descriptor_ = NULL;
-const ::google::protobuf::ServiceDescriptor* Empty_descriptor_ = NULL;
+const ::google::protobuf::ServiceDescriptor* EmptyService_descriptor_ = NULL;
 
 }  // namespace
 
@@ -71,7 +72,7 @@ void protobuf_AssignDesc_Empty_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(Result));
   ResultCode_descriptor_ = file->enum_type(0);
-  Empty_descriptor_ = file->service(0);
+  EmptyService_descriptor_ = file->service(0);
 }
 
 namespace {
@@ -106,12 +107,13 @@ void protobuf_AddDesc_Empty_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\013Empty.proto\022\006rdd_pb\"\'\n\005Query\022\017\n\007tracei"
-    "d\030\001 \002(\t\022\r\n\005query\030\002 \001(\t\";\n\006Result\022\017\n\007trac"
-    "eid\030\001 \002(\t\022 \n\004code\030\002 \001(\0162\022.rdd_pb.ResultC"
-    "ode*.\n\nResultCode\022\006\n\002OK\020\000\022\030\n\023E_SOURCE__U"
-    "NTRUSTED\020\351\0072-\n\005Empty\022$\n\003run\022\r.rdd_pb.Que"
-    "ry\032\016.rdd_pb.ResultB\003\200\001\001", 223);
+    "\n\013Empty.proto\022\trdd.pbrpc\"\'\n\005Query\022\017\n\007tra"
+    "ceid\030\001 \002(\t\022\r\n\005query\030\002 \001(\t\">\n\006Result\022\017\n\007t"
+    "raceid\030\001 \002(\t\022#\n\004code\030\002 \001(\0162\025.rdd.pbrpc.R"
+    "esultCode*.\n\nResultCode\022\006\n\002OK\020\000\022\030\n\023E_SOU"
+    "RCE__UNTRUSTED\020\351\0072:\n\014EmptyService\022*\n\003run"
+    "\022\020.rdd.pbrpc.Query\032\021.rdd.pbrpc.ResultB\003\200"
+    "\001\001", 242);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "Empty.proto", &protobuf_RegisterTypes);
   Query::default_instance_ = new Query();
@@ -152,7 +154,7 @@ const int Query::kQueryFieldNumber;
 Query::Query()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:rdd_pb.Query)
+  // @@protoc_insertion_point(constructor:rdd.pbrpc.Query)
 }
 
 void Query::InitAsDefaultInstance() {
@@ -162,7 +164,7 @@ Query::Query(const Query& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:rdd_pb.Query)
+  // @@protoc_insertion_point(copy_constructor:rdd.pbrpc.Query)
 }
 
 void Query::SharedCtor() {
@@ -174,7 +176,7 @@ void Query::SharedCtor() {
 }
 
 Query::~Query() {
-  // @@protoc_insertion_point(destructor:rdd_pb.Query)
+  // @@protoc_insertion_point(destructor:rdd.pbrpc.Query)
   SharedDtor();
 }
 
@@ -231,7 +233,7 @@ bool Query::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:rdd_pb.Query)
+  // @@protoc_insertion_point(parse_start:rdd.pbrpc.Query)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
     tag = p.first;
@@ -284,17 +286,17 @@ bool Query::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:rdd_pb.Query)
+  // @@protoc_insertion_point(parse_success:rdd.pbrpc.Query)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:rdd_pb.Query)
+  // @@protoc_insertion_point(parse_failure:rdd.pbrpc.Query)
   return false;
 #undef DO_
 }
 
 void Query::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:rdd_pb.Query)
+  // @@protoc_insertion_point(serialize_start:rdd.pbrpc.Query)
   // required string traceid = 1;
   if (has_traceid()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
@@ -319,12 +321,12 @@ void Query::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:rdd_pb.Query)
+  // @@protoc_insertion_point(serialize_end:rdd.pbrpc.Query)
 }
 
 ::google::protobuf::uint8* Query::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:rdd_pb.Query)
+  // @@protoc_insertion_point(serialize_to_array_start:rdd.pbrpc.Query)
   // required string traceid = 1;
   if (has_traceid()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
@@ -351,7 +353,7 @@ void Query::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:rdd_pb.Query)
+  // @@protoc_insertion_point(serialize_to_array_end:rdd.pbrpc.Query)
   return target;
 }
 
@@ -457,7 +459,7 @@ const int Result::kCodeFieldNumber;
 Result::Result()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:rdd_pb.Result)
+  // @@protoc_insertion_point(constructor:rdd.pbrpc.Result)
 }
 
 void Result::InitAsDefaultInstance() {
@@ -467,7 +469,7 @@ Result::Result(const Result& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:rdd_pb.Result)
+  // @@protoc_insertion_point(copy_constructor:rdd.pbrpc.Result)
 }
 
 void Result::SharedCtor() {
@@ -479,7 +481,7 @@ void Result::SharedCtor() {
 }
 
 Result::~Result() {
-  // @@protoc_insertion_point(destructor:rdd_pb.Result)
+  // @@protoc_insertion_point(destructor:rdd.pbrpc.Result)
   SharedDtor();
 }
 
@@ -529,7 +531,7 @@ bool Result::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:rdd_pb.Result)
+  // @@protoc_insertion_point(parse_start:rdd.pbrpc.Result)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
     tag = p.first;
@@ -551,7 +553,7 @@ bool Result::MergePartialFromCodedStream(
         break;
       }
 
-      // optional .rdd_pb.ResultCode code = 2;
+      // optional .rdd.pbrpc.ResultCode code = 2;
       case 2: {
         if (tag == 16) {
          parse_code:
@@ -559,8 +561,8 @@ bool Result::MergePartialFromCodedStream(
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
                  input, &value)));
-          if (::rdd_pb::ResultCode_IsValid(value)) {
-            set_code(static_cast< ::rdd_pb::ResultCode >(value));
+          if (::rdd::pbrpc::ResultCode_IsValid(value)) {
+            set_code(static_cast< ::rdd::pbrpc::ResultCode >(value));
           } else {
             mutable_unknown_fields()->AddVarint(2, value);
           }
@@ -585,17 +587,17 @@ bool Result::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:rdd_pb.Result)
+  // @@protoc_insertion_point(parse_success:rdd.pbrpc.Result)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:rdd_pb.Result)
+  // @@protoc_insertion_point(parse_failure:rdd.pbrpc.Result)
   return false;
 #undef DO_
 }
 
 void Result::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:rdd_pb.Result)
+  // @@protoc_insertion_point(serialize_start:rdd.pbrpc.Result)
   // required string traceid = 1;
   if (has_traceid()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
@@ -606,7 +608,7 @@ void Result::SerializeWithCachedSizes(
       1, this->traceid(), output);
   }
 
-  // optional .rdd_pb.ResultCode code = 2;
+  // optional .rdd.pbrpc.ResultCode code = 2;
   if (has_code()) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
       2, this->code(), output);
@@ -616,12 +618,12 @@ void Result::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:rdd_pb.Result)
+  // @@protoc_insertion_point(serialize_end:rdd.pbrpc.Result)
 }
 
 ::google::protobuf::uint8* Result::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:rdd_pb.Result)
+  // @@protoc_insertion_point(serialize_to_array_start:rdd.pbrpc.Result)
   // required string traceid = 1;
   if (has_traceid()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
@@ -633,7 +635,7 @@ void Result::SerializeWithCachedSizes(
         1, this->traceid(), target);
   }
 
-  // optional .rdd_pb.ResultCode code = 2;
+  // optional .rdd.pbrpc.ResultCode code = 2;
   if (has_code()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
       2, this->code(), target);
@@ -643,7 +645,7 @@ void Result::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:rdd_pb.Result)
+  // @@protoc_insertion_point(serialize_to_array_end:rdd.pbrpc.Result)
   return target;
 }
 
@@ -658,7 +660,7 @@ int Result::ByteSize() const {
           this->traceid());
     }
 
-    // optional .rdd_pb.ResultCode code = 2;
+    // optional .rdd.pbrpc.ResultCode code = 2;
     if (has_code()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::EnumSize(this->code());
@@ -740,37 +742,37 @@ void Result::Swap(Result* other) {
 
 // ===================================================================
 
-Empty::~Empty() {}
+EmptyService::~EmptyService() {}
 
-const ::google::protobuf::ServiceDescriptor* Empty::descriptor() {
+const ::google::protobuf::ServiceDescriptor* EmptyService::descriptor() {
   protobuf_AssignDescriptorsOnce();
-  return Empty_descriptor_;
+  return EmptyService_descriptor_;
 }
 
-const ::google::protobuf::ServiceDescriptor* Empty::GetDescriptor() {
+const ::google::protobuf::ServiceDescriptor* EmptyService::GetDescriptor() {
   protobuf_AssignDescriptorsOnce();
-  return Empty_descriptor_;
+  return EmptyService_descriptor_;
 }
 
-void Empty::run(::google::protobuf::RpcController* controller,
-                         const ::rdd_pb::Query*,
-                         ::rdd_pb::Result*,
+void EmptyService::run(::google::protobuf::RpcController* controller,
+                         const ::rdd::pbrpc::Query*,
+                         ::rdd::pbrpc::Result*,
                          ::google::protobuf::Closure* done) {
   controller->SetFailed("Method run() not implemented.");
   done->Run();
 }
 
-void Empty::CallMethod(const ::google::protobuf::MethodDescriptor* method,
+void EmptyService::CallMethod(const ::google::protobuf::MethodDescriptor* method,
                              ::google::protobuf::RpcController* controller,
                              const ::google::protobuf::Message* request,
                              ::google::protobuf::Message* response,
                              ::google::protobuf::Closure* done) {
-  GOOGLE_DCHECK_EQ(method->service(), Empty_descriptor_);
+  GOOGLE_DCHECK_EQ(method->service(), EmptyService_descriptor_);
   switch(method->index()) {
     case 0:
       run(controller,
-             ::google::protobuf::down_cast<const ::rdd_pb::Query*>(request),
-             ::google::protobuf::down_cast< ::rdd_pb::Result*>(response),
+             ::google::protobuf::down_cast<const ::rdd::pbrpc::Query*>(request),
+             ::google::protobuf::down_cast< ::rdd::pbrpc::Result*>(response),
              done);
       break;
     default:
@@ -779,44 +781,44 @@ void Empty::CallMethod(const ::google::protobuf::MethodDescriptor* method,
   }
 }
 
-const ::google::protobuf::Message& Empty::GetRequestPrototype(
+const ::google::protobuf::Message& EmptyService::GetRequestPrototype(
     const ::google::protobuf::MethodDescriptor* method) const {
   GOOGLE_DCHECK_EQ(method->service(), descriptor());
   switch(method->index()) {
     case 0:
-      return ::rdd_pb::Query::default_instance();
+      return ::rdd::pbrpc::Query::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
   }
 }
 
-const ::google::protobuf::Message& Empty::GetResponsePrototype(
+const ::google::protobuf::Message& EmptyService::GetResponsePrototype(
     const ::google::protobuf::MethodDescriptor* method) const {
   GOOGLE_DCHECK_EQ(method->service(), descriptor());
   switch(method->index()) {
     case 0:
-      return ::rdd_pb::Result::default_instance();
+      return ::rdd::pbrpc::Result::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
   }
 }
 
-Empty_Stub::Empty_Stub(::google::protobuf::RpcChannel* channel)
+EmptyService_Stub::EmptyService_Stub(::google::protobuf::RpcChannel* channel)
   : channel_(channel), owns_channel_(false) {}
-Empty_Stub::Empty_Stub(
+EmptyService_Stub::EmptyService_Stub(
     ::google::protobuf::RpcChannel* channel,
     ::google::protobuf::Service::ChannelOwnership ownership)
   : channel_(channel),
     owns_channel_(ownership == ::google::protobuf::Service::STUB_OWNS_CHANNEL) {}
-Empty_Stub::~Empty_Stub() {
+EmptyService_Stub::~EmptyService_Stub() {
   if (owns_channel_) delete channel_;
 }
 
-void Empty_Stub::run(::google::protobuf::RpcController* controller,
-                              const ::rdd_pb::Query* request,
-                              ::rdd_pb::Result* response,
+void EmptyService_Stub::run(::google::protobuf::RpcController* controller,
+                              const ::rdd::pbrpc::Query* request,
+                              ::rdd::pbrpc::Result* response,
                               ::google::protobuf::Closure* done) {
   channel_->CallMethod(descriptor()->method(0),
                        controller, request, response, done);
@@ -824,6 +826,7 @@ void Empty_Stub::run(::google::protobuf::RpcController* controller,
 
 // @@protoc_insertion_point(namespace_scope)
 
-}  // namespace rdd_pb
+}  // namespace pbrpc
+}  // namespace rdd
 
 // @@protoc_insertion_point(global_scope)

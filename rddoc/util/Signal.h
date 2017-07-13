@@ -5,6 +5,7 @@
 #pragma once
 
 #include <vector>
+#include <signal.h>
 #include "rddoc/util/Function.h"
 
 namespace rdd {

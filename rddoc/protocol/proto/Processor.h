@@ -4,44 +4,53 @@
 
 #pragma once
 
-#include <arpa/inet.h>
-#include <boost/shared_ptr.hpp>
-#include <thrift/TProcessor.h>
-#include <thrift/protocol/TBinaryProtocol.h>
-#include <thrift/transport/TBufferTransports.h>
-#include <thrift/transport/TTransportException.h>
-#include "rddoc/net/Event.h"
+#include <sstream>
+#include <google/protobuf/service.h>
+#include "rddoc/io/event/Event.h"
 #include "rddoc/net/Processor.h"
-#include "rddoc/protocol/thrift/Encoding.h"
+#include "rddoc/protocol/proto/AsyncServer.h"
+#include "rddoc/protocol/proto/Encoding.h"
+#include "rddoc/protocol/proto/Message.h"
 
 namespace rdd {
 
-class ThriftProcessor : public Processor {
+class PBProcessor : public Processor {
 public:
-  ThriftProcessor(
-      const std::shared_ptr< ::apache::thrift::TProcessor>& processor)
-    : processor_(processor) {
-    pibuf_.reset(new apache::thrift::transport::TMemoryBuffer());
-    pobuf_.reset(new apache::thrift::transport::TMemoryBuffer());
-    piprot_.reset(new apache::thrift::protocol::TBinaryProtocol(pibuf_));
-    poprot_.reset(new apache::thrift::protocol::TBinaryProtocol(pobuf_));
-  }
+  PBProcessor(PBAsyncServer* server) : server_(server) {}
 
-  virtual ~ThriftProcessor() {}
+  virtual ~PBProcessor() {}
 
   virtual bool decodeData(Event* event) {
-    return rdd::thrift::decodeData(event->rbuf(), pibuf_.get());
+    return rdd::proto::decodeData(event->rbuf(), &ibuf_);
   }
 
   virtual bool encodeData(Event* event) {
-    return rdd::thrift::encodeData(event->wbuf(), pobuf_.get());
+    return rdd::proto::encodeData(event->wbuf(), &obuf_);
   }
 
   virtual bool run() {
     try {
-      return processor_->process(piprot_, poprot_, nullptr);
-    } catch (apache::thrift::protocol::TProtocolException& e) {
-      RDDLOG(WARN) << "catch exception: " << e.what();
+      std::istringstream in(ibuf_);
+      int type = proto::readInt(in);
+      switch (type) {
+        case proto::REQUEST_MSG:
+        {
+          std::string callId;
+          std::shared_ptr<google::protobuf::Message> request;
+          const google::protobuf::MethodDescriptor* descriptor = nullptr;
+          proto::parseRequestFrom(in, callId, descriptor, request);
+          process(callId, descriptor, request);
+        }
+          break;
+        case proto::CANCEL_MSG:
+        {
+          std::string callId;
+          proto::parseCancelFrom(in, callId);
+          cancel(callId);
+        }
+          break;
+      }
+      return true;
     } catch (std::exception& e) {
       RDDLOG(WARN) << "catch exception: " << e.what();
     } catch (...) {
@@ -50,48 +59,80 @@ public:
     return false;
   }
 
-protected:
-  std::shared_ptr< ::apache::thrift::TProcessor> processor_;
-  boost::shared_ptr< ::apache::thrift::transport::TMemoryBuffer> pibuf_;
-  boost::shared_ptr< ::apache::thrift::transport::TMemoryBuffer> pobuf_;
-  boost::shared_ptr< ::apache::thrift::protocol::TBinaryProtocol> piprot_;
-  boost::shared_ptr< ::apache::thrift::protocol::TBinaryProtocol> poprot_;
-};
-
-class ThriftZlibProcessor : public ThriftProcessor {
-public:
-  ThriftZlibProcessor(
-      const std::shared_ptr< ::apache::thrift::TProcessor>& processor)
-    : ThriftProcessor(processor) {}
-
-  virtual ~ThriftZlibProcessor() {}
-
-  virtual bool decodeData(Event* event) {
-    return rdd::thrift::decodeZlibData(event->rbuf(), pibuf_.get());
+private:
+  void process(const std::string& callId,
+               const google::protobuf::MethodDescriptor* method,
+               const std::shared_ptr<google::protobuf::Message>& request) {
+    google::protobuf::Service* service = server_->getService(method);
+    if (service) {
+      std::shared_ptr<PBRpcController> controller(new PBRpcController());
+      std::shared_ptr<google::protobuf::Message>
+        response(service->GetResponsePrototype(method).New());
+      std::shared_ptr<PBAsyncServer::Handle>
+        handle(new PBAsyncServer::Handle(
+                callId, controller, request, response));
+      server_->addHandle(handle);
+      service->CallMethod(method,
+                          controller.get(),
+                          request.get(),
+                          response.get(),
+                          google::protobuf::NewCallback(
+                              this, &PBProcessor::finish, handle));
+    } else {
+      PBRpcController controller;
+      controller.SetFailed("failed to find service");
+      sendResponse(callId, &controller, nullptr);
+    }
   }
 
-  virtual bool encodeData(Event* event) {
-    return rdd::thrift::encodeZlibData(event->wbuf(), pobuf_.get());
+  void cancel(const std::string& callId) {
+    std::shared_ptr<PBAsyncServer::Handle> handle =
+      server_->removeHandle(callId);
+    if (handle) {
+      PBRpcController controller;
+      controller.setCanceled();
+      sendResponse(callId, &controller, nullptr);
+    } else {
+      //
+    }
   }
+
+  void finish(std::shared_ptr<PBAsyncServer::Handle> handle) {
+    if (handle) {
+      if (server_->removeHandle(handle->callId) == handle) {
+        sendResponse(handle->callId,
+                     handle->controller.get(),
+                     handle->response.get());
+      } else {
+        //
+      }
+    }
+  }
+
+  void sendResponse(const std::string& callId,
+                    PBRpcController* controller,
+                    google::protobuf::Message* response) {
+    std::ostringstream out;
+    proto::serializeResponse(callId, *controller, response, out);
+    obuf_ = out.str();
+  }
+
+  PBAsyncServer* server_;
+  std::string ibuf_;
+  std::string obuf_;
 };
 
-template <class P, class If, class ProcessorType>
-class ThriftProcessorFactory : public ProcessorFactory {
+class PBProcessorFactory : public ProcessorFactory {
 public:
-  ThriftProcessorFactory() : handler_(new If()) {}
-  virtual ~ThriftProcessorFactory() {}
+  PBProcessorFactory(PBAsyncServer* server) : server_(server) {}
+  virtual ~PBProcessorFactory() {}
 
   virtual std::shared_ptr<Processor> create() {
-    return std::shared_ptr<Processor>(
-      new ProcessorType(
-        std::shared_ptr< ::apache::thrift::TProcessor>(
-          new P(handler_))));
+    return std::shared_ptr<Processor>(new PBProcessor(server_));
   }
 
-  If* handler() { return handler_.get(); }
-
 private:
-  boost::shared_ptr<If> handler_;
+  PBAsyncServer* server_;
 };
 
 }

@@ -4,50 +4,60 @@
 
 #pragma once
 
+#include <map>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/service.h>
 #include "rddoc/net/Service.h"
-#include "rddoc/protocol/thrift/Processor.h"
-#include "rddoc/protocol/thrift/Protocol.h"
+#include "rddoc/protocol/proto/Protocol.h"
+#include "rddoc/protocol/proto/RpcController.h"
+#include "rddoc/util/LockedMap.h"
 
 namespace rdd {
 
-template <class If, class P>
-class TAsyncServer : public Service {
+class PBAsyncServer : public Service {
 public:
-  If* handler() {
-    auto pf = channel_->processorFactory();
-    return ((ThriftProcessorFactory<P, If, ThriftProcessor>*)(pf.get()))
-      ->handler();
+  virtual void makeChannel(int port, const TimeoutOption& timeout_opt);
+
+  void addService(
+      const std::shared_ptr<google::protobuf::Service>& service) {
+    if (service) {
+      services_[service->GetDescriptor()] = service;
+    }
   }
 
-  virtual void makeChannel(int port, const TimeoutOption& timeout_opt) {
-    std::shared_ptr<Protocol> protocol(
-      new TFramedProtocol());
-    std::shared_ptr<ProcessorFactory> processor_factory(
-      new ThriftProcessorFactory<P, If, ThriftProcessor>());
-    Peer peer = {"", port};
-    channel_ = std::make_shared<Channel>(
-      peer, timeout_opt, protocol, processor_factory);
-  }
-};
-
-template <class If, class P>
-class TZlibAsyncServer : public Service {
-public:
-  If* handler() {
-    auto pf = channel_->processorFactory();
-    return ((ThriftProcessorFactory<P, If, ThriftZlibProcessor>*)(pf.get()))
-      ->handler();
+  google::protobuf::Service* getService(
+      const google::protobuf::MethodDescriptor* method) {
+    return services_[method->service()].get();
   }
 
-  virtual void makeChannel(int port, const TimeoutOption& timeout_opt) {
-    std::shared_ptr<Protocol> protocol(
-      new TZlibProtocol());
-    std::shared_ptr<ProcessorFactory> processor_factory(
-      new ThriftProcessorFactory<P, If, ThriftZlibProcessor>());
-    Peer peer = {"", port};
-    channel_ = std::make_shared<Channel>(
-      peer, timeout_opt, protocol, processor_factory);
+  struct Handle {
+    Handle(const std::string& callId_,
+           const std::shared_ptr<PBRpcController>& controller_,
+           const std::shared_ptr<google::protobuf::Message>& request_,
+           const std::shared_ptr<google::protobuf::Message>& response_)
+      : callId(callId_),
+        controller(controller_),
+        request(request_),
+        response(response_) {}
+
+    std::string callId;
+    std::shared_ptr<PBRpcController> controller;
+    std::shared_ptr<google::protobuf::Message> request;
+    std::shared_ptr<google::protobuf::Message> response;
+  };
+
+  void addHandle(std::shared_ptr<Handle>& handle) {
+    handles_.insert(handle->callId, handle);
   }
+
+  std::shared_ptr<Handle> removeHandle(const std::string& callId) {
+    return handles_.erase(callId);
+  }
+
+private:
+  std::map<const google::protobuf::ServiceDescriptor*,
+           std::shared_ptr<google::protobuf::Service>> services_;
+  LockedMap<std::string, std::shared_ptr<Handle>> handles_;
 };
 
 }
