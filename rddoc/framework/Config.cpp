@@ -102,7 +102,6 @@ void configMonitor(const dynamic& j) {
   RDDLOG(INFO) << "config monitor";
   if (json::get(j, "open", false)) {
     Singleton<Monitor>::get()->setPrefix(json::get(j, "prefix", "rdd"));
-    Singleton<Monitor>::get()->start();
   }
 }
 

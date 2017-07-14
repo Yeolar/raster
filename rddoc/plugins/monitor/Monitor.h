@@ -69,17 +69,20 @@ private:
 
 class Monitor {
 public:
-  Monitor() {}
+  Monitor()
+    : handle_(std::thread(&Monitor::run, this)) {
+    setThreadName(handle_.native_handle(), "MonitorThread");
+  }
+
+  virtual ~Monitor() {
+    handle_.join();
+  }
+
+  void run();
 
   void setPrefix(const std::string& prefix) {
     prefix_ = prefix;
   }
-
-  void start() {
-    std::thread(&Monitor::run, this).detach();
-  }
-
-  void run();
 
   void addToMonitor(const std::string& name, int type, int value = 0);
 
@@ -89,6 +92,7 @@ private:
   std::string prefix_;
   std::map<std::string, MonitorValue> mvalues_;
   std::mutex lock_;
+  std::thread handle_;
 };
 
 }

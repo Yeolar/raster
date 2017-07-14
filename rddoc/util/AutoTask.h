@@ -28,10 +28,13 @@ private:
 
 class AutoTaskManager {
 public:
-  AutoTaskManager() {}
+  AutoTaskManager()
+    : handle_(std::thread(&AutoTaskManager::run, this)) {
+    setThreadName(handle_.native_handle(), "AutoTaskThread");
+  }
 
-  void start() {
-    std::thread(&AutoTaskManager::run, this).detach();
+  virtual ~AutoTaskManager() {
+    handle_.join();
   }
 
   void run() {
@@ -70,6 +73,7 @@ private:
   uint64_t timestamp_{0};
   std::map<AutoTask*, uint64_t> tasks_;
   std::mutex lock_;
+  std::thread handle_;
 };
 
 }

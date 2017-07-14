@@ -112,7 +112,8 @@ public:
   void setAsync(bool async) {
     async_ = async;
     if (async_) {
-      handle_ = std::thread(std::bind(&BaseLogger::run, this));
+      handle_ = std::thread(&BaseLogger::run, this);
+      setThreadName(handle_.native_handle(), "LogThread");
     }
   }
 
