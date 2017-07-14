@@ -31,10 +31,7 @@ public:
   AutoTaskManager()
     : handle_(std::thread(&AutoTaskManager::run, this)) {
     setThreadName(handle_.native_handle(), "AutoTaskThread");
-  }
-
-  virtual ~AutoTaskManager() {
-    handle_.join();
+    handle_.detach();
   }
 
   void run() {

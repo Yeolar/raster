@@ -72,10 +72,7 @@ public:
   Monitor()
     : handle_(std::thread(&Monitor::run, this)) {
     setThreadName(handle_.native_handle(), "MonitorThread");
-  }
-
-  virtual ~Monitor() {
-    handle_.join();
+    handle_.detach();
   }
 
   void run();
