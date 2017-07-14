@@ -69,8 +69,10 @@ private:
 
 class Monitor {
 public:
-  Monitor()
-    : handle_(std::thread(&Monitor::run, this)) {
+  Monitor() {}
+
+  void start() {
+    handle_ = std::thread(&Monitor::run, this);
     setThreadName(handle_.native_handle(), "MonitorThread");
     handle_.detach();
   }
@@ -90,6 +92,7 @@ private:
   std::map<std::string, MonitorValue> mvalues_;
   std::mutex lock_;
   std::thread handle_;
+  std::atomic<bool> open_{false};
 };
 
 }

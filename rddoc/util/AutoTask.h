@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <map>
 #include <mutex>
 #include <thread>
@@ -28,13 +29,16 @@ private:
 
 class AutoTaskManager {
 public:
-  AutoTaskManager()
-    : handle_(std::thread(&AutoTaskManager::run, this)) {
+  AutoTaskManager() {}
+
+  void start() {
+    handle_ = std::thread(&AutoTaskManager::run, this);
     setThreadName(handle_.native_handle(), "AutoTaskThread");
     handle_.detach();
   }
 
   void run() {
+    open_ = true;
     initStamp();
     while (true) {
       runTasks();
@@ -71,6 +75,7 @@ private:
   std::map<AutoTask*, uint64_t> tasks_;
   std::mutex lock_;
   std::thread handle_;
+  std::atomic<bool> open_{false};
 };
 
 }

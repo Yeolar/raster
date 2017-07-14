@@ -11,6 +11,7 @@
 namespace rdd {
 
 void Monitor::run() {
+  open_ = true;
   FalconClient falcon;
   CycleTimer timer(60000000); // 60s
   while (true) {
@@ -24,6 +25,9 @@ void Monitor::run() {
 }
 
 void Monitor::addToMonitor(const std::string& name, int type, int value) {
+  if (!open_) {
+    return;
+  }
   auto key = prefix_.empty() ? name : prefix_ + '.' + name;
   std::lock_guard<std::mutex> guard(lock_);
   if (!contain(mvalues_, key)) {
