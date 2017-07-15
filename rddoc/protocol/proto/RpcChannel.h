@@ -62,6 +62,12 @@ public:
 
   virtual ~PBSyncRpcChannel() {}
 
+  void setTimeout(const TimeoutOption& opt) {
+    socket_.setConnTimeout(opt.ctimeout);
+    socket_.setRecvTimeout(opt.rtimeout);
+    socket_.setSendTimeout(opt.wtimeout);
+  }
+
   void open() {
     socket_.connect(peer_);
   }

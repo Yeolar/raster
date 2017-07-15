@@ -5,12 +5,13 @@
 #include <gflags/gflags.h>
 #include "rddoc/framework/Config.h"
 #include "rddoc/net/Actor.h"
+#include "rddoc/protocol/proto/AsyncClient.h"
 #include "rddoc/protocol/proto/AsyncServer.h"
 #include "rddoc/util/Logging.h"
 #include "rddoc/util/ScopeGuard.h"
 #include "rddoc/util/Signal.h"
 #include "rddoc/util/Uuid.h"
-#include "Empty.pb.h"
+#include "Proxy.pb.h"
 
 static const char* VERSION = "1.0.0";
 
@@ -19,8 +20,12 @@ DEFINE_string(conf, "server.json", "Server config file");
 namespace rdd {
 namespace pbrpc {
 
-class EmptyServiceImpl : public EmptyService {
+class ProxyServiceImpl : public ProxyService {
 public:
+  ProxyServiceImpl() {
+    RDDLOG(DEBUG) << "ProxyService init";
+  }
+
   void run(::google::protobuf::RpcController* controller,
            const Query* request,
            Result* response,
@@ -43,6 +48,19 @@ public:
     response->set_traceid(generateUuid(request->traceid(), "rdde"));
     response->set_code(ResultCode::OK);
 
+    if (!request->forward().empty()) {
+      Peer peer(request->forward());
+      Query q;
+      q.set_traceid(request->traceid());
+      q.set_query(request->query());
+      Result r;
+      PBAsyncClient<ProxyService::Stub> client(peer.host, peer.port);
+      if (!client.connect() ||
+          !client.fetch(&ProxyService::Stub::run, r, q)) {
+        response->set_code(ResultCode::E_BACKEND_FAILURE);
+      }
+    }
+
     RDDTLOG(INFO, request->traceid()) << "query: \"" << request->query() << "\""
       << " code=" << response->code();
     if (!checkOK(response)) return;
@@ -63,7 +81,7 @@ using namespace rdd;
 
 int main(int argc, char* argv[]) {
   google::SetVersionString(VERSION);
-  google::SetUsageMessage("Usage : ./empty");
+  google::SetUsageMessage("Usage : ./pbrpc");
   google::ParseCommandLineFlags(&argc, &argv, true);
 
   setupIgnoreSignal(SIGPIPE);
@@ -71,9 +89,9 @@ int main(int argc, char* argv[]) {
   setupShutdownSignal(SIGTERM);
 
   auto service = new PBAsyncServer();
-  service->addService(std::make_shared<pbrpc::EmptyServiceImpl>());
+  service->addService(std::make_shared<pbrpc::ProxyServiceImpl>());
   Singleton<Actor>::get()->addService(
-      "Empty", std::shared_ptr<Service>(service));
+      "Proxy", std::shared_ptr<Service>(service));
 
   config(FLAGS_conf.c_str(), {
          {configLogging, "logging"},

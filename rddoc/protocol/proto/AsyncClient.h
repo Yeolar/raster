@@ -41,7 +41,7 @@ class PBAsyncClient : public AsyncClient {
 public:
   PBAsyncClient(const ClientOption& option)
     : AsyncClient(option) {
-    rpcChannel_.reset(new PBAsyncRpcChannel(this));
+    rpcChannel_.reset(new PBAsyncRpcChannel(event()));
     controller_.reset(new PBRpcController());
     service_.reset(new C(rpcChannel_.get()));
     channel_ = makeChannel();

@@ -7,6 +7,7 @@ package rdd.pbrpc;
 message Query {
   required string traceid = 1;
   optional string query = 2;
+  optional string forward = 3;
 }
 
 enum ResultCode {
@@ -16,6 +17,7 @@ enum ResultCode {
 
   // ERROR        >1000
   E_SOURCE__UNTRUSTED = 1001;
+  E_BACKEND_FAILURE = 1002;
 }
 
 message Result {
@@ -23,6 +25,6 @@ message Result {
   optional ResultCode code = 2;
 }
 
-service EmptyService {
+service ProxyService {
   rpc run(Query) returns(Result);
 }

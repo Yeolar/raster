@@ -15,12 +15,18 @@ namespace rdd {
 template <class C>
 class PBSyncClient {
 public:
-  PBSyncClient(const std::string& host, int port)
+  PBSyncClient(const std::string& host,
+               int port,
+               uint64_t ctimeout = 100000,
+               uint64_t rtimeout = 1000000,
+               uint64_t wtimeout = 300000)
     : peer_(host, port) {
+    timeout_ = {ctimeout, rtimeout, wtimeout};
     init();
   }
   PBSyncClient(const ClientOption& option)
-    : peer_(option.peer) {
+    : peer_(option.peer)
+    , timeout_(option.timeout) {
     init();
   }
   virtual ~PBSyncClient() {
@@ -68,12 +74,15 @@ public:
 private:
   void init() {
     rpcChannel_.reset(new PBSyncRpcChannel(peer_));
+    rpcChannel_->setTimeout(timeout_);
     controller_.reset(new PBRpcController());
     service_.reset(new C(rpcChannel_.get()));
-    RDDLOG(DEBUG) << "SyncClient: " << peer_.str();
+    RDDLOG(DEBUG) << "SyncClient: " << peer_.str()
+      << ", timeout=" << timeout_;
   }
 
   Peer peer_;
+  TimeoutOption timeout_;
   std::shared_ptr<PBSyncRpcChannel> rpcChannel_;
   std::shared_ptr<google::protobuf::RpcController> controller_;
   std::shared_ptr<C> service_;

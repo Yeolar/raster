@@ -8,11 +8,12 @@
 #include "rddoc/protocol/proto/SyncClient.h"
 #include "rddoc/util/Algorithm.h"
 #include "rddoc/util/Logging.h"
-#include "Empty.pb.h"
+#include "Proxy.pb.h"
 
 static const char* VERSION = "1.0.0";
 
 DEFINE_string(addr, "127.0.0.1:8000", "HOST:PORT");
+DEFINE_string(forward, "", "HOST:PORT");
 DEFINE_int32(threads, 8, "concurrent threads");
 DEFINE_int32(count, 100, "request count");
 
@@ -23,14 +24,15 @@ bool request(const ClientOption& opt) {
   Query req;
   req.set_traceid("rddt");
   req.set_query("query");
+  req.set_forward(FLAGS_forward);
   Result res;
 
-  PBSyncClient<EmptyService::Stub> client(opt);
+  PBSyncClient<ProxyService::Stub> client(opt);
   if (!client.connect()) {
     return false;
   }
   try {
-    client.fetch(&EmptyService::Stub::run, res, req);
+    client.fetch(&ProxyService::Stub::run, res, req);
     if (res.code() != 0) {
       return false;
     }
