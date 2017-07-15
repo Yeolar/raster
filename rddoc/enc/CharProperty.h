@@ -81,46 +81,46 @@ public:
     if (!CharProperty::open(filename)) {
       return false;
     }
-    space_       = getCharInfo("SPACE");
-    alpha_lower_ = getCharInfo("ALPHA_LOWER");
-    alpha_upper_ = getCharInfo("ALPHA_UPPER");
-    ascii_digit_ = getCharInfo("ASCII_DIGIT");
-    ascii_punc_  = getCharInfo("ASCII_PUNC");
-    hanzi_char_  = getCharInfo("HANZI_CHAR");
-    hanzi_digit_ = getCharInfo("HANZI_DIGIT");
-    hanzi_time_  = getCharInfo("HANZI_TIME");
-    full_width_  = getCharInfo("FULL_WIDTH");
-    stop_punc_   = getCharInfo("STOP_PUNC");
-    alpha_       = alpha_lower_ | alpha_upper_;
-    alnum_       = alpha_ | ascii_digit_;
+    space_      = getCharInfo("SPACE");
+    alphaLower_ = getCharInfo("ALPHA_LOWER");
+    alphaUpper_ = getCharInfo("ALPHA_UPPER");
+    asciiDigit_ = getCharInfo("ASCII_DIGIT");
+    asciiPunc_  = getCharInfo("ASCII_PUNC");
+    hanziChar_  = getCharInfo("HANZI_CHAR");
+    hanziDigit_ = getCharInfo("HANZI_DIGIT");
+    hanziTime_  = getCharInfo("HANZI_TIME");
+    fullWidth_  = getCharInfo("FULL_WIDTH");
+    stopPunc_   = getCharInfo("STOP_PUNC");
+    alpha_      = alphaLower_ | alphaUpper_;
+    alnum_      = alpha_ | asciiDigit_;
     return true;
   }
 
   bool isSpace     (char16_t c) const { return map_[c].isKindOf(space_); }
-  bool isAlphaLower(char16_t c) const { return map_[c].isKindOf(alpha_lower_); }
-  bool isAlphaUpper(char16_t c) const { return map_[c].isKindOf(alpha_upper_); }
-  bool isAsciiDigit(char16_t c) const { return map_[c].isKindOf(ascii_digit_); }
-  bool isAsciiPunc (char16_t c) const { return map_[c].isKindOf(ascii_punc_); }
-  bool isHanziChar (char16_t c) const { return map_[c].isKindOf(hanzi_char_); }
-  bool isHanziDigit(char16_t c) const { return map_[c].isKindOf(hanzi_digit_); }
-  bool isHanziTime (char16_t c) const { return map_[c].isKindOf(hanzi_time_); }
-  bool isFullWidth (char16_t c) const { return map_[c].isKindOf(full_width_); }
-  bool isStopPunc  (char16_t c) const { return map_[c].isKindOf(stop_punc_); }
+  bool isAlphaLower(char16_t c) const { return map_[c].isKindOf(alphaLower_); }
+  bool isAlphaUpper(char16_t c) const { return map_[c].isKindOf(alphaUpper_); }
+  bool isAsciiDigit(char16_t c) const { return map_[c].isKindOf(asciiDigit_); }
+  bool isAsciiPunc (char16_t c) const { return map_[c].isKindOf(asciiPunc_); }
+  bool isHanziChar (char16_t c) const { return map_[c].isKindOf(hanziChar_); }
+  bool isHanziDigit(char16_t c) const { return map_[c].isKindOf(hanziDigit_); }
+  bool isHanziTime (char16_t c) const { return map_[c].isKindOf(hanziTime_); }
+  bool isFullWidth (char16_t c) const { return map_[c].isKindOf(fullWidth_); }
+  bool isStopPunc  (char16_t c) const { return map_[c].isKindOf(stopPunc_); }
   bool isAlpha     (char16_t c) const { return map_[c].isKindOf(alpha_); }
   bool isAlnum     (char16_t c) const { return map_[c].isKindOf(alnum_); }
 
 private:
   // single
   CharInfo space_;        // 空格
-  CharInfo alpha_lower_;  // 小写英文字母
-  CharInfo alpha_upper_;  // 大写英文字母
-  CharInfo ascii_digit_;  // ascii数字
-  CharInfo ascii_punc_;   // ascii标点符号
-  CharInfo hanzi_char_;   // 中文汉字
-  CharInfo hanzi_digit_;  // 中文数字
-  CharInfo hanzi_time_;   // 中文时间
-  CharInfo full_width_;   // 全角字符
-  CharInfo stop_punc_;    // 分词切句标点
+  CharInfo alphaLower_;   // 小写英文字母
+  CharInfo alphaUpper_;   // 大写英文字母
+  CharInfo asciiDigit_;   // ascii数字
+  CharInfo asciiPunc_;    // ascii标点符号
+  CharInfo hanziChar_;    // 中文汉字
+  CharInfo hanziDigit_;   // 中文数字
+  CharInfo hanziTime_;    // 中文时间
+  CharInfo fullWidth_;    // 全角字符
+  CharInfo stopPunc_;     // 分词切句标点
   // combined
   CharInfo alpha_;        // 英文字母
   CharInfo alnum_;        // 数字或英文字母

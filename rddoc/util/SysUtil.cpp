@@ -43,8 +43,8 @@ static unsigned long extractNumeric(char* p) {
 void Resource::initMemory() {
   struct sysinfo si;
   sysinfo(&si);
-  mem_t = si.totalram;
-  mem_f = si.freeram;
+  tMemory = si.totalram;
+  fMemory = si.freeram;
 }
 
 void Resource::initProcMemory() {
@@ -52,10 +52,10 @@ void Resource::initProcMemory() {
   char line[128];
   while (fgets(line, 128, file) != nullptr) {
     if (strncmp(line, "VmRSS:", 6) == 0) {
-      mem_proc_r = extractNumeric(line);
+      rProcMemory = extractNumeric(line);
     }
     if (strncmp(line, "VmSize:", 7) == 0) {
-      mem_proc_t = extractNumeric(line);
+      tProcMemory = extractNumeric(line);
     }
   }
   fclose(file);

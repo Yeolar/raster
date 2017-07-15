@@ -17,14 +17,14 @@ typename std::enable_if<
   std::is_arithmetic<typename Container::value_type>::value,
   typename Container::value_type>::type
 min(const Container& container) {
-  typename Container::value_type max_value =
+  typename Container::value_type maxValue =
     std::numeric_limits<typename Container::value_type>::max();
   for (auto& i : container) {
-    if (max_value > i) {
-      max_value = i;
+    if (maxValue > i) {
+      maxValue = i;
     }
   }
-  return max_value;
+  return maxValue;
 }
 
 template <class Container>
@@ -32,14 +32,14 @@ typename std::enable_if<
   std::is_arithmetic<typename Container::value_type>::value,
   typename Container::value_type>::type
 max(const Container& container) {
-  typename Container::value_type max_value =
+  typename Container::value_type maxValue =
     std::numeric_limits<typename Container::value_type>::lowest();
   for (auto& i : container) {
-    if (max_value < i) {
-      max_value = i;
+    if (maxValue < i) {
+      maxValue = i;
     }
   }
-  return max_value;
+  return maxValue;
 }
 
 template <class Container>
@@ -47,11 +47,11 @@ typename std::enable_if<
   std::is_arithmetic<typename Container::value_type>::value,
   typename Container::value_type>::type
 sum(const Container& container) {
-  typename Container::value_type sum_value = 0;
+  typename Container::value_type sumValue = 0;
   for (auto& i : container) {
-    sum_value += i;
+    sumValue += i;
   }
-  return sum_value;
+  return sumValue;
 }
 
 namespace detail {

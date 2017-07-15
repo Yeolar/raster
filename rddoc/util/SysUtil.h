@@ -22,16 +22,16 @@ bool setCpuAffinity(int cpu, pid_t pid = 0);
 int getCpuAffinity(pid_t pid = 0);
 
 struct Resource {
-  unsigned long mem_t;        // total memory
-  unsigned long mem_f;        // free memory
-  unsigned long mem_proc_t;   // process memory VM size
-  unsigned long mem_proc_r;   // process memory VM RSS
+  unsigned long tMemory;      // total memory
+  unsigned long fMemory;      // free memory
+  unsigned long tProcMemory;  // process memory VM size
+  unsigned long rProcMemory;  // process memory VM RSS
 
   Resource()
-    : mem_t(0)
-    , mem_f(0)
-    , mem_proc_t(0)
-    , mem_proc_r(0) {
+    : tMemory(0)
+    , fMemory(0)
+    , tProcMemory(0)
+    , rProcMemory(0) {
     initMemory();
     initProcMemory();
   }

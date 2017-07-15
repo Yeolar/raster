@@ -4,47 +4,38 @@
 
 #pragma once
 
-#include <pthread.h>
+#include <condition_variable>
+#include <mutex>
 #include "rddoc/util/noncopyable.h"
 
 namespace rdd {
 
 class Waiter : noncopyable {
 public:
-  Waiter() : signal_(false) {
-    pthread_mutex_init(&lock_, nullptr);
-    pthread_cond_init(&cond_, nullptr);
-  }
-  ~Waiter() {
-    pthread_mutex_destroy(&lock_);
-    pthread_cond_destroy(&cond_);
-  }
-
   void wait() const {
-    pthread_mutex_lock(&lock_);
+    std::unique_lock<std::mutex> lock(mtx_);
     while (!signal_) {
-      pthread_cond_wait(&cond_, &lock_);
+      cond_.wait(lock);
     }
     signal_ = false;
-    pthread_mutex_unlock(&lock_);
   }
+
   void signal() const {
-    pthread_mutex_lock(&lock_);
+    std::unique_lock<std::mutex> lock(mtx_);
     signal_ = true;
-    pthread_cond_signal(&cond_);
-    pthread_mutex_unlock(&lock_);
+    cond_.notify_one();
   }
+
   void broadcast() const {
-    pthread_mutex_lock(&lock_);
+    std::unique_lock<std::mutex> lock(mtx_);
     signal_ = true;
-    pthread_cond_broadcast(&cond_);
-    pthread_mutex_unlock(&lock_);
+    cond_.notify_all();
   }
 
 private:
-  mutable pthread_mutex_t lock_;
-  mutable pthread_cond_t cond_;
-  mutable bool signal_;
+  mutable std::mutex mtx_;
+  mutable std::condition_variable cond_;
+  mutable bool signal_{false};
 };
 
 }

@@ -10,8 +10,8 @@
 #include "rddoc/util/ThreadUtil.h"
 
 #define RDD_DEBUG_LINE_(...) do { \
-  std::mutex _dl_lock; \
-  std::lock_guard<std::mutex> _dl_guard(_dl_lock); \
+  std::mutex _dlLock; \
+  std::lock_guard<std::mutex> _dlGuard(_dlLock); \
   printf("%d %s:%s:%d %s\n", \
          ::rdd::localThreadId(), __FILE__, __func__, __LINE__, \
          ::rdd::to<std::string>(__VA_ARGS__).c_str()); \
