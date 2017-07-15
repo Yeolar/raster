@@ -5,9 +5,9 @@
 #pragma once
 
 #include <limits>
-#include <map>
 #include <memory>
 #include <queue>
+#include <unordered_map>
 #include "rddoc/util/MapUtil.h"
 #include "rddoc/util/Time.h"
 
@@ -52,7 +52,7 @@ public:
   }
 
 private:
-  std::map<T*, Timeout<T>> map_;
+  std::unordered_map<T*, Timeout<T>> map_;
   std::priority_queue<
     Timeout<T>, std::vector<Timeout<T>>, std::greater<Timeout<T>>> heap_;
 };

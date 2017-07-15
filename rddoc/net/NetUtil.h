@@ -6,6 +6,7 @@
 
 #include <string>
 #include <boost/operators.hpp>
+#include "rddoc/util/Hash.h"
 #include "rddoc/util/String.h"
 
 namespace rdd {
@@ -61,6 +62,17 @@ std::string getNodeName(bool trimSuffix = false);
 std::string getNodeIp();
 
 std::string ipv4ToHost(const std::string& ip, bool trimSuffix = false);
+
+}
+
+namespace std {
+
+template <>
+struct hash<rdd::Peer> {
+  size_t operator()(const rdd::Peer& p) const {
+    return rdd::hash::hash_combine(p.host, p.port);
+  }
+};
 
 }
 

@@ -5,9 +5,9 @@
 #pragma once
 
 #include <deque>
-#include <map>
 #include <memory>
 #include <mutex>
+#include <unordered_map>
 #include "rddoc/io/event/Event.h"
 #include "rddoc/net/NetUtil.h"
 
@@ -24,7 +24,7 @@ public:
   size_t count() const;
 
 private:
-  std::map<Peer, std::deque<std::shared_ptr<Event>>> pool_;
+  std::unordered_map<Peer, std::deque<std::shared_ptr<Event>>> pool_;
   mutable std::mutex lock_;
 };
 
@@ -41,7 +41,7 @@ public:
   }
 
 private:
-  std::map<int, std::shared_ptr<EventPool>> pool_;
+  std::unordered_map<int, std::shared_ptr<EventPool>> pool_;
   mutable std::mutex lock_;
 };
 

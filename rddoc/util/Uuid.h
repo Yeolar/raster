@@ -43,7 +43,8 @@ std::string uuidGenerateTime();
 
 inline std::string generateUuid(const std::string& upstreamUuid,
                                 const std::string& prefix) {
-  return upstreamUuid.empty() ? prefix + ':' + uuidGenerateTime() : upstreamUuid;
+  return upstreamUuid.empty() ? prefix + ':' + uuidGenerateTime()
+                              : upstreamUuid;
 }
 
 }
