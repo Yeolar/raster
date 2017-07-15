@@ -93,7 +93,6 @@ add_subdirectory(rddoc/util)
 
 add_subdirectory(rddoc/3rd/double-conversion)
 add_subdirectory(rddoc/3rd/http_parser)
-add_subdirectory(rddoc/3rd/srilm)
 add_subdirectory(rddoc/3rd/thrift)
 
 add_library(rdd_static STATIC
@@ -112,7 +111,6 @@ add_library(rdd_static STATIC
     $<TARGET_OBJECTS:rdd_util>
     $<TARGET_OBJECTS:double-conversion>
     $<TARGET_OBJECTS:httpparser>
-    $<TARGET_OBJECTS:srilm>
     $<TARGET_OBJECTS:thrift>
 )
 set_target_properties(rdd_static PROPERTIES OUTPUT_NAME rdd)
@@ -132,7 +130,6 @@ add_library(rdd_shared SHARED
     $<TARGET_OBJECTS:rdd_util>
     $<TARGET_OBJECTS:double-conversion>
     $<TARGET_OBJECTS:httpparser>
-    $<TARGET_OBJECTS:srilm>
     $<TARGET_OBJECTS:thrift>
 )
 set_target_properties(rdd_shared PROPERTIES OUTPUT_NAME rdd)
