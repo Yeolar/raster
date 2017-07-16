@@ -3,6 +3,7 @@
  */
 
 #include <gflags/gflags.h>
+#include "rddoc/coroutine/GenericExecutor.h"
 #include "rddoc/framework/Config.h"
 #include "rddoc/net/Actor.h"
 #include "rddoc/parallel/Scheduler.h"
@@ -19,6 +20,10 @@ static const char* VERSION = "1.0.0";
 DEFINE_string(conf, "server.json", "Server config file");
 
 namespace rdd {
+
+void parallelFunc(int id) {
+  RDDLOG(INFO) << "handle in parallelFunc " << id;
+}
 
 class ParallelJobExecutor
   : public ReflectObject<JobExecutor, ParallelJobExecutor> {
@@ -58,6 +63,14 @@ public:
     _return.__set_traceid(generateUuid(query.traceid, "rdde"));
     _return.__set_code(ResultCode::OK);
 
+    // function style parallel executing
+    auto scheduler = make_unique<Scheduler>();
+    for (size_t i = 1; i <= 4; i++) {
+      scheduler->add(std::bind(parallelFunc, i), "", {});
+    }
+    scheduler->run();
+
+    // config job style parallel executing
     auto jobctx = new ParallelJobExecutor::MyContext();
     jobctx->result = &_return;
     make_unique<Scheduler>("graph1", JobExecutor::ContextPtr(jobctx))->run();

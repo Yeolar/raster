@@ -7,6 +7,7 @@
 #include <map>
 #include <vector>
 #include "rddoc/coroutine/FiberManager.h"
+#include "rddoc/coroutine/GenericExecutor.h"
 #include "rddoc/net/Actor.h"
 #include "rddoc/parallel/DAG.h"
 #include "rddoc/parallel/Graph.h"
@@ -40,6 +41,12 @@ public:
            const std::vector<std::string>& next) {
     map_[name] = dag_.add(executor);
     graph_.add(name, next);
+  }
+
+  void add(VoidFunc&& executor,
+           const std::string& name,
+           const std::vector<std::string>& next) {
+    add(ExecutorPtr(new FunctionExecutor(std::move(executor))), name, next);
   }
 
   void add(JobExecutor* executor,
