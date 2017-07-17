@@ -1,6 +1,6 @@
 {
   "logging": {
-    "logfile": "log/pbrpc.log",
+    "logfile": "log/binary.log",
     "level": 1,
     "async": true
   },
@@ -31,7 +31,7 @@
   },
   "monitor": {
     "open": false,
-    "prefix": "pbrpc"
+    "prefix": "binary"
   },
   "job": {
     "graph": {

@@ -10,4 +10,7 @@ cd $ROOT/proxy && thrift --gen cpp -out gen-cpp Proxy.thrift
 cd $ROOT/parallel && thrift --gen cpp -out gen-cpp Parallel.thrift
 
 # pbrpc
-cd $ROOT/pbrpc && protoc --cpp_out=. Empty.proto
+cd $ROOT/pbrpc && protoc --cpp_out=. Proxy.proto
+
+# flatbuffers
+cd $ROOT/flatbuffers && flatc --cpp table.fbs
