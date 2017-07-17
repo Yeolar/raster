@@ -9,7 +9,7 @@ rddoc-framewok是一个完整的高性能C++协程服务框架。
 
 - 支持异步，协程
 - 支持多个后端并发请求
-- 支持thrift、pbrpc协议
+- 支持binary、thrift、pbrpc协议
 - 支持并行计算
 - 支持监控统计、存储、数据库等扩展功能
 
