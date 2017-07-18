@@ -25,7 +25,7 @@ public:
   }
   virtual ~BinaryAsyncClient() {}
 
-  template <class Res = std::vector<uint8_t>>
+  template <class Res = ByteRange>
   bool recv(Res& _return) {
     if (!event_ || event_->type() == Event::FAIL) {
       return false;
@@ -34,7 +34,7 @@ public:
     return true;
   }
 
-  template <class Req = std::vector<uint8_t>>
+  template <class Req = ByteRange>
   bool send(const Req& request) {
     if (!event_) {
       return false;
@@ -43,15 +43,14 @@ public:
     return true;
   }
 
-  template <class Req = std::vector<uint8_t>,
-            class Res = std::vector<uint8_t>>
+  template <class Req = ByteRange, class Res = ByteRange>
   bool fetch(Res& _return, const Req& request) {
     return (send(request) &&
             FiberManager::yield() &&
             recv(_return));
   }
 
-  template <class Req = std::vector<uint8_t>>
+  template <class Req = ByteRange>
   bool fetchNoWait(const Req& request) {
     if (send(request)) {
       Singleton<Actor>::get()->execute((AsyncClient*)this);

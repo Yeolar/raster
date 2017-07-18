@@ -45,8 +45,7 @@ public:
 
   bool connected() const { return transport_->isOpen(); }
 
-  template <class Req = std::vector<uint8_t>,
-            class Res = std::vector<uint8_t>>
+  template <class Req = ByteRange, class Res = ByteRange>
   bool fetch(Res& _return, const Req& request) {
     try {
       transport_->send(request);

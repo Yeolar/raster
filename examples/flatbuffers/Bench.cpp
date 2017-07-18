@@ -34,9 +34,9 @@ bool request(const ClientOption& opt) {
     return false;
   }
   try {
-    std::vector<uint8_t> data;
+    ByteRange data;
     client.fetch(data, req);
-    auto res = ::flatbuffers::GetRoot<Result>(&data[0]);
+    auto res = ::flatbuffers::GetRoot<Result>(data.data());
     if (res->code() != 0) {
       return false;
     }

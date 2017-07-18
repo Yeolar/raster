@@ -11,8 +11,7 @@
 
 namespace rdd {
 
-template <class Req = std::vector<uint8_t>,
-          class Res = std::vector<uint8_t>>
+template <class Req = ByteRange, class Res = ByteRange>
 class BinaryProcessor : public Processor {
 public:
   BinaryProcessor() {}

@@ -21,7 +21,7 @@ DEFINE_string(conf, "server.json", "Server config file");
 namespace rdd {
 namespace fbs {
 
-class Proxy : public BinaryProcessor<std::vector<uint8_t>,
+class Proxy : public BinaryProcessor<ByteRange,
                                      ::flatbuffers::FlatBufferBuilder> {
 public:
   Proxy() {
@@ -29,8 +29,8 @@ public:
   }
 
   bool process(::flatbuffers::FlatBufferBuilder& response,
-               const std::vector<uint8_t>& request) {
-    auto query = ::flatbuffers::GetRoot<Query>(&request[0]);
+               const ByteRange& request) {
+    auto query = ::flatbuffers::GetRoot<Query>(request.data());
     if (!StringPiece(query->traceid()->str()).startsWith("rdd")) {
       RDDLOG(INFO) << "untrusted request: [" << query->traceid() << "]";
       response.Finish(
@@ -50,7 +50,7 @@ public:
                       q.CreateString(query->query()),
                       0));
       BinaryAsyncClient client(peer.host, peer.port);
-      std::vector<uint8_t> r;
+      ByteRange r;
       if (!client.connect() || !client.fetch(r, q)) {
         code = ResultCode_E_BACKEND_FAILURE;
       }

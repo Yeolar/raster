@@ -14,7 +14,7 @@ namespace rdd {
 namespace binary {
 
 // buf -> ibuf
-inline bool decodeData(IOBuf* buf, std::vector<uint8_t>* ibuf) {
+inline bool decodeData(IOBuf* buf, ByteRange* ibuf) {
   auto range = buf->coalesce();
   RDDLOG_ON(V4) {
     std::string hex;
@@ -24,13 +24,13 @@ inline bool decodeData(IOBuf* buf, std::vector<uint8_t>* ibuf) {
   uint32_t header = *TypedIOBuf<uint32_t>(buf).data();
   RDDLOG(V3) << "decode binary size: " << ntohl(header);
   range.advance(sizeof(uint32_t));
-  ibuf->assign(range.begin(), range.end());
+  *ibuf = range;
   return true;
 }
 
 // obuf -> buf
-inline bool encodeData(IOBuf* buf, std::vector<uint8_t>* obuf) {
-  uint8_t* p = (uint8_t*)&(*obuf)[0];
+inline bool encodeData(IOBuf* buf, ByteRange* obuf) {
+  uint8_t* p = (uint8_t*)obuf->data();
   uint32_t n = obuf->size();
   RDDLOG(V3) << "encode binary size: " << n;
   TypedIOBuf<uint32_t>(buf).push(htonl(n));
