@@ -26,6 +26,8 @@ public:
   virtual ~BinaryTransport() {}
 
   void open() {
+    socket_.setReuseAddr();
+    socket_.setTCPNoDelay();
     socket_.connect(peer_);
   }
 
