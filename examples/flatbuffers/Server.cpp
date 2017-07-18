@@ -3,7 +3,6 @@
  */
 
 #include <gflags/gflags.h>
-#include "Encoding.h"
 #include "rddoc/framework/Config.h"
 #include "rddoc/net/Actor.h"
 #include "rddoc/protocol/binary/AsyncClient.h"
@@ -21,20 +20,19 @@ DEFINE_string(conf, "server.json", "Server config file");
 namespace rdd {
 namespace fbs {
 
-class Proxy : public BinaryProcessor<ByteRange,
-                                     ::flatbuffers::FlatBufferBuilder> {
+class Proxy : public BinaryProcessor<> {
 public:
   Proxy() {
     RDDLOG(DEBUG) << "Proxy init";
   }
 
-  bool process(::flatbuffers::FlatBufferBuilder& response,
-               const ByteRange& request) {
+  bool process(ByteRange& response, const ByteRange& request) {
     auto query = ::flatbuffers::GetRoot<Query>(request.data());
     if (!StringPiece(query->traceid()->str()).startsWith("rdd")) {
       RDDLOG(INFO) << "untrusted request: [" << query->traceid() << "]";
-      response.Finish(
-          CreateResult(response, 0, ResultCode_E_SOURCE__UNTRUSTED));
+      ::flatbuffers::FlatBufferBuilder fbb;
+      fbb.Finish(CreateResult(fbb, 0, ResultCode_E_SOURCE__UNTRUSTED));
+      response.reset(fbb.GetBufferPointer(), fbb.GetSize());
       return true;
     }
 
@@ -43,13 +41,14 @@ public:
 
     if (query->forward()->Length() != 0) {
       Peer peer(query->forward()->str());
-      ::flatbuffers::FlatBufferBuilder q;
-      q.Finish(
-          CreateQuery(q,
-                      q.CreateString(query->traceid()),
-                      q.CreateString(query->query()),
-                      0));
       BinaryAsyncClient client(peer.host, peer.port);
+      ::flatbuffers::FlatBufferBuilder fbb;
+      fbb.Finish(
+          CreateQuery(fbb,
+                      fbb.CreateString(query->traceid()),
+                      fbb.CreateString(query->query()),
+                      0));
+      ByteRange q(fbb.GetBufferPointer(), fbb.GetSize());
       ByteRange r;
       if (!client.connect() || !client.fetch(r, q)) {
         code = ResultCode_E_BACKEND_FAILURE;
@@ -58,8 +57,9 @@ public:
 
     RDDTLOG(INFO, traceid) << "query: \"" << query->query()->str() << "\""
       << " code=" << code;
-    response.Finish(
-        CreateResult(response, response.CreateString(traceid), code));
+    ::flatbuffers::FlatBufferBuilder fbb;
+    fbb.Finish(CreateResult(fbb, fbb.CreateString(traceid), code));
+    response.reset(fbb.GetBufferPointer(), fbb.GetSize());
     return true;
   }
 };

@@ -3,7 +3,6 @@
  */
 
 #include <gflags/gflags.h>
-#include "Encoding.h"
 #include "rddoc/concurrency/CPUThreadPool.h"
 #include "rddoc/net/NetUtil.h"
 #include "rddoc/protocol/binary/SyncClient.h"
@@ -22,18 +21,19 @@ namespace rdd {
 namespace fbs {
 
 bool request(const ClientOption& opt) {
-  ::flatbuffers::FlatBufferBuilder req;
-  req.Finish(
-      CreateQuery(req,
-                  req.CreateString("rddt"),
-                  req.CreateString("query"),
-                  req.CreateString(FLAGS_forward)));
+  ::flatbuffers::FlatBufferBuilder fbb;
+  fbb.Finish(
+      CreateQuery(fbb,
+                  fbb.CreateString("rddt"),
+                  fbb.CreateString("query"),
+                  fbb.CreateString(FLAGS_forward)));
 
   BinarySyncClient client(opt);
   if (!client.connect()) {
     return false;
   }
   try {
+    ByteRange req(fbb.GetBufferPointer(), fbb.GetSize());
     ByteRange data;
     client.fetch(data, req);
     auto res = ::flatbuffers::GetRoot<Result>(data.data());
