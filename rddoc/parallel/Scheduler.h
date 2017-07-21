@@ -37,15 +37,15 @@ public:
   }
 
   void add(const ExecutorPtr& executor,
-           const std::string& name,
-           const std::vector<std::string>& next) {
+           const std::string& name = "",
+           const std::vector<std::string>& next = {}) {
     map_[name] = dag_.add(executor);
     graph_.add(name, next);
   }
 
   void add(VoidFunc&& executor,
-           const std::string& name,
-           const std::vector<std::string>& next) {
+           const std::string& name = "",
+           const std::vector<std::string>& next = {}) {
     add(ExecutorPtr(new FunctionExecutor(std::move(executor))), name, next);
   }
 

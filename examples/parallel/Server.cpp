@@ -66,7 +66,7 @@ public:
     // function style parallel executing
     auto scheduler = make_unique<Scheduler>();
     for (size_t i = 1; i <= 4; i++) {
-      scheduler->add(std::bind(parallelFunc, i), "", {});
+      scheduler->add(std::bind(parallelFunc, i));
     }
     scheduler->run();
 

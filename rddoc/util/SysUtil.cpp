@@ -34,28 +34,21 @@ int getCpuAffinity(pid_t pid) {
   return -1;
 }
 
-static unsigned long extractNumeric(char* p) {
-  p[strlen(p) - 3] = '\0';
-  while (*p < '0' || *p > '9') p++;
-  return atol(p) * 1024;
-}
+void ProcessInfo::initMemory() {
+  auto extractNumeric = [](char* p) -> size_t {
+    p[strlen(p) - 3] = '\0';
+    while (*p < '0' || *p > '9') p++;
+    return atol(p) * 1024;
+  };
 
-void Resource::initMemory() {
-  struct sysinfo si;
-  sysinfo(&si);
-  tMemory = si.totalram;
-  fMemory = si.freeram;
-}
-
-void Resource::initProcMemory() {
   FILE* file = fopen("/proc/self/status", "r");
   char line[128];
   while (fgets(line, 128, file) != nullptr) {
     if (strncmp(line, "VmRSS:", 6) == 0) {
-      rProcMemory = extractNumeric(line);
+      memRSS = extractNumeric(line);
     }
     if (strncmp(line, "VmSize:", 7) == 0) {
-      tProcMemory = extractNumeric(line);
+      memTotal = extractNumeric(line);
     }
   }
   fclose(file);
