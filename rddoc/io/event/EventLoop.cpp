@@ -33,7 +33,7 @@ void EventLoop::listen(const std::shared_ptr<Channel>& channel, int backlog) {
   if (!event) {
     throw std::runtime_error("create listening event failed");
   }
-  listenFDs_.emplace_back(socket->fd());
+  listenFds_.emplace_back(socket->fd());
   event->setType(Event::LISTEN);
   dispatchEvent(event);
   RDD_EVLOG(INFO, event) << "listen on port=" << port;
@@ -100,7 +100,7 @@ void EventLoop::loopBody(bool once) {
 
 void EventLoop::stop() {
   poll_.remove(waker_.fd());
-  for (auto& fd : listenFDs_) {
+  for (auto& fd : listenFds_) {
     poll_.remove(fd);
   }
   stop_ = true;

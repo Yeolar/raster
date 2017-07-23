@@ -23,7 +23,7 @@ void FlumeClient::sendInBatch(const std::vector<LogEntry>& entries) {
 
 void FlumeClient::writeToDisk(const std::vector<LogEntry>& entries) {
   std::string path = to<std::string>(
-    logdir_, "/", category_, ".flume.", timeNowPrintf("%Y%m%d"));
+    logDir_, "/", category_, ".flume.", timeNowPrintf("%Y%m%d"));
   std::ofstream file(path.c_str(), std::ofstream::app);
   if (file.is_open()) {
     for (auto& entry : entries) {

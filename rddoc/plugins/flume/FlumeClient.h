@@ -20,8 +20,8 @@ class FlumeClient {
 public:
   FlumeClient(const ClientOption& option,
          const std::string& category,
-         const std::string& logdir = "/opt/logs/logs/flume_delay")
-    : category_(category), logdir_(logdir), queue_(10240) {
+         const std::string& logDir = "/opt/logs/logs/flume_delay")
+    : category_(category), logDir_(logDir), queue_(10240) {
     client_ = std::make_shared<TSyncClient<ScribeClient>>(option);
     if (!client_->connect()) {
       RDDLOG(ERROR) << "connect flume client failed";
@@ -58,7 +58,7 @@ private:
   void writeToDisk(const std::vector<LogEntry>& entries);
 
   std::string category_;
-  std::string logdir_;
+  std::string logDir_;
   ProducerConsumerQueue<LogEntry> queue_;
   std::shared_ptr<TSyncClient<ScribeClient>> client_;
 };

@@ -70,7 +70,7 @@ private:
   std::atomic<bool> stop_;
   std::atomic<pthread_t> loopThread_;
 
-  std::vector<int> listenFDs_;
+  std::vector<int> listenFds_;
   Waker waker_;
   EventHandler handler_;
 

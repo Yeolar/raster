@@ -14,7 +14,7 @@ namespace rdd {
 class Waker : public Descriptor {
 public:
   Waker() {
-    if (pipe2(pipefd_, O_CLOEXEC | O_NONBLOCK) == -1) {
+    if (pipe2(pipeFds_, O_CLOEXEC | O_NONBLOCK) == -1) {
       RDDPLOG(ERROR) << "pipe2 failed";
     }
   }
@@ -23,29 +23,29 @@ public:
     close();
   }
 
-  virtual int fd() const { return pipefd_[0]; }
+  virtual int fd() const { return pipeFds_[0]; }
   virtual int role() const { return -1; }
   virtual char roleLabel() const { return 'W'; }
   virtual std::string str() { return "waker"; }
 
   void wake() {
-    write(pipefd_[1], (void*)"x", 1);
+    write(pipeFds_[1], (void*)"x", 1);
     RDDLOG(V2) << "waker wake";
   }
 
   void consume() {
     char c;
-    while (read(pipefd_[0], &c, 1) > 0) {}
+    while (read(pipeFds_[0], &c, 1) > 0) {}
     RDDLOG(V2) << "waker consume";
   }
 
 private:
   void close() {
-    ::close(pipefd_[0]);
-    ::close(pipefd_[1]);
+    ::close(pipeFds_[0]);
+    ::close(pipeFds_[1]);
   }
 
-  int pipefd_[2];
+  int pipeFds_[2];
 };
 
 }

@@ -70,6 +70,8 @@ public:
 
 #define RDDLOG_IF(severity, condition) \
   (!(condition)) ? (void)0 : RDDLOG(severity)
+#define RDDPLOG_IF(severity, condition) \
+  (!(condition)) ? (void)0 : RDDPLOG(severity)
 
 #define RDDCHECK(condition) \
   (condition) ? (void)0 : RDDLOG(FATAL) << "Check " #condition " failed. "
@@ -79,6 +81,9 @@ public:
 #define RDDCHECK_GE(a, b) RDDCHECK((a) >= (b))
 #define RDDCHECK_EQ(a, b) RDDCHECK((a) == (b))
 #define RDDCHECK_NE(a, b) RDDCHECK((a) != (b))
+
+#define RDDPCHECK(condition) \
+  RDDCHECK(condition) << ::rdd::errnoStr(errno) << ", "
 
 #ifndef NDEBUG
 #define DCHECK(condition) RDDCHECK(condition)

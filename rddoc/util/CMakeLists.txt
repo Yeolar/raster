@@ -8,6 +8,7 @@ set(RDD_UTIL_SRCS
     dynamic.cpp
     Futex.cpp
     json.cpp
+    MemoryMapping.cpp
     #MemTrace.cpp
     Range.cpp
     Sha.cpp
