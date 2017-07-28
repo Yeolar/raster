@@ -55,7 +55,7 @@ public:
   const V& get(const K& k) const {
     std::lock_guard<std::mutex> guard(lock_);
     iterator it = map_.find(k);
-    return it == map_.end() ? V() : it->second;
+    return it != map_.end() ? it->second : V();
   }
 
   bool contains(const K& k) const {

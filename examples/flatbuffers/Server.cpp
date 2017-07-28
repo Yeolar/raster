@@ -11,6 +11,7 @@
 #include "rddoc/util/ScopeGuard.h"
 #include "rddoc/util/Signal.h"
 #include "rddoc/util/Uuid.h"
+#include "Helper.h"
 #include "table_generated.h"
 
 static const char* VERSION = "1.0.0";
@@ -28,6 +29,8 @@ public:
 
   bool process(ByteRange& response, const ByteRange& request) {
     auto query = ::flatbuffers::GetRoot<Query>(request.data());
+    DCHECK(verifyFlatbuffer(query, request));
+
     if (!StringPiece(query->traceid()->str()).startsWith("rdd")) {
       RDDLOG(INFO) << "untrusted request: [" << query->traceid() << "]";
       ::flatbuffers::FlatBufferBuilder fbb;

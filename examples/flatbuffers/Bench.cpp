@@ -8,6 +8,7 @@
 #include "rddoc/protocol/binary/SyncClient.h"
 #include "rddoc/util/Algorithm.h"
 #include "rddoc/util/Logging.h"
+#include "Helper.h"
 #include "table_generated.h"
 
 static const char* VERSION = "1.0.0";
@@ -37,6 +38,7 @@ bool request(const ClientOption& opt) {
     ByteRange data;
     client.fetch(data, req);
     auto res = ::flatbuffers::GetRoot<Result>(data.data());
+    DCHECK(verifyFlatbuffer(res, data));
     if (res->code() != 0) {
       return false;
     }

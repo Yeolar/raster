@@ -58,5 +58,19 @@ typename Map::mapped_type* get_ptr(
   return (pos != map.end() ? &pos->second : nullptr);
 }
 
+template <class Map>
+const typename Map::mapped_type::element_type* get_deref_smart_ptr(
+    const Map& map, const typename Map::key_type& key) {
+  auto pos = map.find(key);
+  return (pos != map.end() ? pos->second.get() : nullptr);
+}
+
+template <class Map>
+typename Map::mapped_type::element_type* get_deref_smart_ptr(
+    Map& map, const typename Map::key_type& key) {
+  auto pos = map.find(key);
+  return (pos != map.end() ? pos->second.get() : nullptr);
+}
+
 }
 
