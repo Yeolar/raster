@@ -54,4 +54,4 @@ void ProcessInfo::initMemory() {
   fclose(file);
 }
 
-}
+} // namespace rdd

@@ -679,4 +679,4 @@ std::string cutText(const std::string& text,
   return ((p != b ? "..." : "") + utf8Piece(p, q).str() + (q != e ? "..." : ""));
 }
 
-}
+} // namespace rdd

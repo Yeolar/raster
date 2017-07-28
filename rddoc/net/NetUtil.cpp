@@ -115,5 +115,4 @@ std::string ipv4ToHost(const std::string& ip, bool trimSuffix) {
   return trimSuffix && p ? std::string(s, p - s) : s;
 }
 
-}
-
+} // namespace rdd

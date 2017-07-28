@@ -102,5 +102,4 @@ int Event::writeData() {
   return channel_->protocol()->writeData(this);
 }
 
-}
-
+} // namespace rdd

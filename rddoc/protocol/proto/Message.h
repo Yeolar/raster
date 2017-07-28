@@ -49,5 +49,5 @@ void serializeCancel(const std::string& callId, std::ostream& out);
 
 void parseCancelFrom(std::istream& in, std::string& callId);
 
-}
-}
+} // namespace proto
+} // namespace rdd

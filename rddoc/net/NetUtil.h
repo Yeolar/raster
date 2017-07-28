@@ -63,7 +63,7 @@ std::string getNodeIp();
 
 std::string ipv4ToHost(const std::string& ip, bool trimSuffix = false);
 
-}
+} // namespace rdd
 
 namespace std {
 
@@ -74,5 +74,4 @@ struct hash<rdd::Peer> {
   }
 };
 
-}
-
+} // namespace std

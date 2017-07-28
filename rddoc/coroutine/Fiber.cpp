@@ -8,5 +8,4 @@ namespace rdd {
 
 std::atomic<size_t> Fiber::count_(0);
 
-}
-
+} // namespace rdd

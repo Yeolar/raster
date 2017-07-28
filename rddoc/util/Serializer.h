@@ -19,10 +19,8 @@ namespace rdd {
 namespace thrift {
 
 namespace {
-
 RDD_CREATE_HAS_MEMBER_FN_TRAITS(has_read_traits, read);
 RDD_CREATE_HAS_MEMBER_FN_TRAITS(has_write_traits, write);
-
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -171,7 +169,6 @@ typename std::enable_if<
 unserializeFromJSON(const std::string& json, T& r) {
 }
 
-}
+} // namespace thrift
 
-}
-
+} // namespace rdd

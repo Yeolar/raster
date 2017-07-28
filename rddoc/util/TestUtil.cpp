@@ -32,7 +32,7 @@ fs::path generateUniquePath(fs::path path, StringPiece namePrefix) {
   return path;
 }
 
-}  // namespace
+} // namespace
 
 TemporaryFile::TemporaryFile(StringPiece namePrefix,
                              fs::path dir,
@@ -108,5 +108,5 @@ ChangeToTempDir::~ChangeToTempDir() {
   ::chdir(p.c_str());
 }
 
-}  // namespace test
-}  // namespace rdd
+} // namespace test
+} // namespace rdd

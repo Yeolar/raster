@@ -71,4 +71,4 @@ struct Futex : std::atomic<uint32_t>, noncopyable {
                             uint32_t waitMask);
 };
 
-}
+} // namespace rdd

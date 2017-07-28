@@ -169,6 +169,5 @@ inline void writeMessage(
   msg.SerializeToOstream(&out);
 }
 
-}
-}
-
+} // namespace proto
+} // namespace rdd

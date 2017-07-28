@@ -90,4 +90,4 @@ private:
   std::mutex loopsLock_;
 };
 
-}
+} // namespace rdd

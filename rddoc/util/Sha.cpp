@@ -18,6 +18,4 @@ void sha256(const uint8_t* key, size_t keyLen,
   SHA256_Final(output, &hash_ctx);
 }
 
-}
-
-
+} // namespace rdd

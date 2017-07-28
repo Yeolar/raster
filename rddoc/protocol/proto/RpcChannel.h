@@ -120,5 +120,4 @@ private:
   Event* event_;
 };
 
-}
-
+} // namespace rdd

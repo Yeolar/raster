@@ -48,5 +48,4 @@ private:
   int pipeFds_[2];
 };
 
-}
-
+} // namespace rdd

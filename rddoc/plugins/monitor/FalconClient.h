@@ -25,5 +25,4 @@ private:
   std::string url_;
 };
 
-}
-
+} // namespace rdd

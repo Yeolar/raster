@@ -357,5 +357,4 @@ template<class V> bool operator> (const V& other, const Optional<V>&) = delete;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-}
-
+} // namespace rdd

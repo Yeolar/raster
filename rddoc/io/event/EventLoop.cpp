@@ -203,5 +203,4 @@ void EventLoop::checkTimeoutEvent() {
   }
 }
 
-}
-
+} // namespace rdd

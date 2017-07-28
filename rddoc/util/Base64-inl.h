@@ -100,5 +100,4 @@ bool base64Decode(const InputString& input,
   return bits == 0;
 }
 
-}
-
+} // namespace rdd

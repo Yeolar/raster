@@ -68,5 +68,4 @@ bool FalconClient::post(const std::string& data) {
   return res == CURLE_OK;
 }
 
-}
-
+} // namespace rdd

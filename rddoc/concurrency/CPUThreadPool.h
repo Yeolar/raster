@@ -50,4 +50,4 @@ private:
   std::atomic<ssize_t> threadsToStop_{0};
 };
 
-}
+} // namespace rdd

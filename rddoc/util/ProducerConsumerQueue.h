@@ -159,4 +159,4 @@ private:
   std::atomic<unsigned int> writeIndex_;
 };
 
-}
+} // namespace rdd

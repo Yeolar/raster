@@ -58,4 +58,4 @@ private:
   std::map<std::string, Graph> graphs_;
 };
 
-}
+} // namespace rdd

@@ -17,8 +17,8 @@ public:
   RDDLogger() : BaseLogger("rdd") {}
 };
 
-}
-}
+} // namespace logging
+} // namespace rdd
 
 // printf interface macro helper; do not use directly
 
@@ -125,5 +125,4 @@ private:
   const char* msg_;
 };
 
-}
-
+} // namespace rdd

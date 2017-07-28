@@ -452,4 +452,4 @@ void Query::unpack(Arg&& arg, Args&&... args) {
   unpack(std::forward<Args>(args)...);
 }
 
-}
+} // namespace rdd

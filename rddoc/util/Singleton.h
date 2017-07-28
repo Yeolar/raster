@@ -85,7 +85,7 @@ private:
   T* instance_ptr_{nullptr};
 };
 
-}
+} // namespace detail
 
 template <typename T, typename Tag = detail::DefaultTag>
 class Singleton {
@@ -100,4 +100,4 @@ private:
   }
 };
 
-}
+} // namespace rdd

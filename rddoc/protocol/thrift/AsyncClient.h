@@ -156,5 +156,4 @@ private:
   std::shared_ptr<C> client_;
 };
 
-}
-
+} // namespace rdd

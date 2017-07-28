@@ -192,5 +192,4 @@ private:
   ContextWrapper userCtx_;
 };
 
-}
-
+} // namespace rdd

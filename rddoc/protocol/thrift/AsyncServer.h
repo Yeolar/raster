@@ -50,5 +50,4 @@ public:
   }
 };
 
-}
-
+} // namespace rdd

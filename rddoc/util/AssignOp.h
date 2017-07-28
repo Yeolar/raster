@@ -36,5 +36,4 @@ inline void assignOp(const T& lhs, AssignOp op, T* rhs) {
   }
 }
 
-}
-
+} // namespace rdd

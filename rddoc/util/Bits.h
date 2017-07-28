@@ -226,7 +226,7 @@ struct EndianInt : public detail::EndianIntBase<T> {
 # error Your machine uses a weird endianness!
 #endif  /* __BYTE_ORDER__ */
 
-}  // namespace detail
+} // namespace detail
 
 // big* convert between native and big-endian representations
 // little* convert between native and little-endian representations
@@ -316,5 +316,4 @@ inline void storeUnaligned(void* p, T value) {
   new (p) Unaligned<T>(value);
 }
 
-}
-
+} // namespace rdd

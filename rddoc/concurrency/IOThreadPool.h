@@ -63,4 +63,4 @@ private:
   EventLoopManager* eventLoopManager_;
 };
 
-}
+} // namespace rdd

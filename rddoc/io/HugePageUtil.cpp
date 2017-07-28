@@ -32,7 +32,7 @@ void list() {
   }
 }
 
-}
+} // namespace
 
 int main(int argc, char *argv[]) {
   std::string usage =

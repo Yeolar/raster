@@ -66,5 +66,4 @@ protected:
   }
 };
 
-}
-
+} // namespace rdd

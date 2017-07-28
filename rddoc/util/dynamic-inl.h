@@ -22,7 +22,7 @@ struct hash< ::rdd::dynamic> {
   }
 };
 
-}
+} // namespace std
 
 //////////////////////////////////////////////////////////////////////
 
@@ -101,7 +101,7 @@ namespace detail {
     return Op<int64_t>()(a.asInt(), b.asInt());
   }
 
-}
+} // namespace detail
 
 //////////////////////////////////////////////////////////////////////
 
@@ -765,6 +765,6 @@ inline std::ostream& operator<<(std::ostream& out, dynamic const& d) {
   return out;
 }
 
-}  // namespaces
+} // namespace rdd
 
 #undef RDD_DYNAMIC_APPLY

@@ -608,6 +608,5 @@ bool is_gbk_n(const char *src, int length) {
   return true;
 }
 
-}
-}
-
+} // namespace uconv
+} // namespace rdd

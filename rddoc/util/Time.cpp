@@ -49,5 +49,4 @@ bool isSameDay(time_t t1, time_t t2) {
   return (y1 == y2 && d1 == d2);
 }
 
-}
-
+} // namespace rdd

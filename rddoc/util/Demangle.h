@@ -14,4 +14,4 @@ inline std::string demangle(const std::type_info& type) {
   return demangle(type.name());
 }
 
-}
+} // namespace rdd

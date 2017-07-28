@@ -194,5 +194,4 @@ class TypedIOBuf {
   IOBuf* buf_;
 };
 
-}
-
+} // namespace rdd

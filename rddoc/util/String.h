@@ -288,6 +288,6 @@ void toLowerAscii(String& s) {
   }
 }
 
-}  // namespace rdd
+} // namespace rdd
 
 #include "String-inl.h"

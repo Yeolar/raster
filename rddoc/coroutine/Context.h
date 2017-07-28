@@ -40,5 +40,4 @@ private:
   ucontext_t mainContext_;
 };
 
-}
-
+} // namespace rdd

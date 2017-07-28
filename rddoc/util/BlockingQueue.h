@@ -52,4 +52,4 @@ private:
   std::queue<T> queue_;
 };
 
-}
+} // namespace rdd

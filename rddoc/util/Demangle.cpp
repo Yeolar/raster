@@ -20,4 +20,4 @@ std::string demangle(const char* name) {
   return std::string(demangled, strlen(demangled));
 }
 
-}
+} // namespace rdd

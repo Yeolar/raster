@@ -98,4 +98,4 @@ std::unique_ptr<IOBuf> ZlibStreamDecompressor::decompress(const IOBuf* in) {
   return out;
 }
 
-}
+} // namespace rdd

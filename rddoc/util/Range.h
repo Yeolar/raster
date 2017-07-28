@@ -1060,7 +1060,7 @@ struct hasher<rdd::Range<T*>,
   }
 };
 
-}  // !namespace rdd
+} // namespace rdd
 
 #pragma GCC diagnostic pop
 

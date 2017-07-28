@@ -61,4 +61,4 @@ const HugePageSize* getHugePageSize(size_t size = 0);
  */
 const HugePageSize* getHugePageSizeForDevice(dev_t device);
 
-}
+} // namespace rdd

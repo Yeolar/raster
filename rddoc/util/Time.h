@@ -104,5 +104,4 @@ private:
   uint64_t cycle_;
 };
 
-}
-
+} // namespace rdd

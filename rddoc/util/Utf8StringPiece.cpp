@@ -8,5 +8,4 @@ namespace rdd {
 
 const Utf8StringPiece::size_type Utf8StringPiece::npos = std::string::npos;
 
-}
-
+} // namespace rdd

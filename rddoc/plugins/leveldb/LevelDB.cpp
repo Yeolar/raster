@@ -90,5 +90,4 @@ LevelDB::Status LevelDB::Write(Batch* batch, bool sync) {
   return s;
 }
 
-}
-
+} // namespace rdd

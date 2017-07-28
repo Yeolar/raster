@@ -597,4 +597,4 @@ StringPiece MultiQuery::renderQuery(MYSQL* conn) {
   return StringPiece(rendered_multi_query_);
 }
 
-}
+} // namespace rdd

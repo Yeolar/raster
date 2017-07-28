@@ -97,5 +97,4 @@ private:
   bool setup_{false};
 };
 
-}
-
+} // namespace rdd

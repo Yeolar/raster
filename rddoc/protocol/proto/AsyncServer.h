@@ -60,5 +60,4 @@ private:
   LockedMap<std::string, std::shared_ptr<Handle>> handles_;
 };
 
-}
-
+} // namespace rdd

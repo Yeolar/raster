@@ -6,7 +6,6 @@
 #include "rddoc/util/Conv.h"
 
 namespace rdd {
-
 namespace detail {
 
 extern const char digit1[101] =

@@ -25,4 +25,4 @@ EventLoopManager* EventLoopManager::get() {
 
 }
 
-}
+} // namespace rdd

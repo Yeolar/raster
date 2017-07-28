@@ -478,5 +478,4 @@ class EvictingCacheMap : private boost::noncopyable {
   std::size_t clearSize_;
 };
 
-}
-
+} // namespace rdd

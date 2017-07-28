@@ -45,5 +45,5 @@ inline bool encodeData(IOBuf* buf, ByteRange* obuf) {
   return true;
 }
 
-}
-}
+} // namespace binary
+} // namespace rdd

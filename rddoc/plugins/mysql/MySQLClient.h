@@ -91,5 +91,4 @@ private:
   Option option_;
 };
 
-}
-
+} // namespace rdd

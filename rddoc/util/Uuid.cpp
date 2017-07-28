@@ -314,4 +314,4 @@ std::string uuidGenerateTime() {
   return out;
 }
 
-}
+} // namespace rdd

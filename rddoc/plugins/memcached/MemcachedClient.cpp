@@ -49,5 +49,4 @@ void MemcachedClient::close() {
   }
 }
 
-}
-
+} // namespace rdd

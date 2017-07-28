@@ -58,5 +58,4 @@ struct ContextWrapper {
   DeleterBase* deleter{nullptr};
 };
 
-}
-
+} // namespace rdd

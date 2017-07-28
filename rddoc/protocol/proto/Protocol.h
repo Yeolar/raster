@@ -19,4 +19,4 @@ public:
   }
 };
 
-}
+} // namespace rdd

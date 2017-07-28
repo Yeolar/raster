@@ -358,5 +358,5 @@ void SpookyHashV2::Final(uint64_t *hash1, uint64_t *hash2)
     *hash2 = h1;
 }
 
-}  // namespace hash
-}  // namespace rdd
+} // namespace hash
+} // namespace rdd

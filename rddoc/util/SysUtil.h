@@ -58,4 +58,4 @@ private:
   void initMemory();
 };
 
-}
+} // namespace rdd

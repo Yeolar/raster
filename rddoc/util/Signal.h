@@ -34,5 +34,4 @@ private:
   std::vector<VoidFunc> callbacks_;
 };
 
-}
-
+} // namespace rdd

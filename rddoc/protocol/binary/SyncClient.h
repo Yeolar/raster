@@ -69,5 +69,4 @@ private:
   std::shared_ptr<BinaryTransport> transport_;
 };
 
-}
-
+} // namespace rdd

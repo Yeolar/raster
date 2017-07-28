@@ -134,4 +134,4 @@ void ThreadPool::runTask(const ThreadPtr& thread, Task&& task) {
   thread->taskStatsSubject->on(std::move(task.stats_));
 }
 
-}
+} // namespace rdd

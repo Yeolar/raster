@@ -136,4 +136,4 @@ std::unique_ptr<IOBuf> ZlibStreamCompressor::compress(const IOBuf* in,
   return out;
 }
 
-}
+} // namespace rdd

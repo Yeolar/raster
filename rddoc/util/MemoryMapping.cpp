@@ -61,7 +61,7 @@ void getDeviceOptions(dev_t device, off_t& pageSize, bool& autoExtend) {
   }
 }
 
-}
+} // namespace
 
 void MemoryMapping::init(off_t offset, off_t length) {
   const bool grow = options_.grow;
@@ -208,7 +208,7 @@ bool memOpInChunks(std::function<int(void*, size_t)> op,
   return true;
 }
 
-}
+} // namespace
 
 bool MemoryMapping::mlock(LockMode lock) {
   size_t amountSucceeded = 0;
@@ -349,4 +349,4 @@ void mmapFileCopy(const char* src, const char* dest, mode_t mode) {
                        srcMap.range().size());
 }
 
-}
+} // namespace rdd

@@ -53,7 +53,7 @@ class FastByteSet {
   uint8_t dense_[256];
 };
 
-}  // namespace
+} // namespace
 
 namespace detail {
 
@@ -87,5 +87,5 @@ size_t qfind_first_byte_of_nosse(const StringPiece haystack,
   return qfind_first_of(haystack, needles, asciiCaseSensitive);
 }
 
-}  // namespace detail
-}  // namespace rdd
+} // namespace detail
+} // namespace rdd

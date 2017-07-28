@@ -22,4 +22,4 @@ public:
   virtual std::shared_ptr<Processor> create() = 0;
 };
 
-}
+} // namespace rdd

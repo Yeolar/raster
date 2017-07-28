@@ -40,5 +40,4 @@ public:
   std::string str() { return StreamBuf::str(); }
 };
 
-}
-
+} // namespace rdd

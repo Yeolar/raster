@@ -64,5 +64,4 @@ private:
   std::string sql_;
 };
 
-}
-
+} // namespace rdd

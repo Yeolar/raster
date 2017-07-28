@@ -54,5 +54,4 @@ void Poll::control(int op, int fd, uint32_t events, void* ptr) {
   }
 }
 
-}
-
+} // namespace rdd

@@ -61,4 +61,4 @@ void throwOnFail(V&& value, Args&&... args) {
 #define CHECK_THROW(cond, E) \
   ::rdd::throwOnFail<E>((cond), "Check failed: " #cond)
 
-}
+} // namespace rdd

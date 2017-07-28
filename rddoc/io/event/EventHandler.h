@@ -32,5 +32,4 @@ private:
   EventLoop* loop_;
 };
 
-}
-
+} // namespace rdd

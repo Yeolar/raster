@@ -31,5 +31,4 @@ private:
   std::string key_;
 };
 
-}
-
+} // namespace rdd

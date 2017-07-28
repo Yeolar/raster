@@ -38,5 +38,4 @@ size_t EventPool::count() const {
   return n;
 }
 
-}
-
+} // namespace rdd

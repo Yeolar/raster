@@ -63,4 +63,4 @@ private:
   std::shared_ptr<TSyncClient<ScribeClient>> client_;
 };
 
-}
+} // namespace rdd

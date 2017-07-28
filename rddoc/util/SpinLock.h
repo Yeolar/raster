@@ -63,7 +63,7 @@ public:
   }
 };
 
-}
+} // namespace detail
 
 /*
  * A really, *really* small spinlock for fine-grained locking of lots
@@ -161,4 +161,4 @@ private:
 
 typedef SpinLockGuardImpl<SpinLock> SpinLockGuard;
 
-}
+} // namespace rdd

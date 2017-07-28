@@ -102,4 +102,4 @@ private:
 
 inline void swap(File& a, File& b) { a.swap(b); }
 
-}
+} // namespace rdd

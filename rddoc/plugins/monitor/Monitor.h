@@ -95,7 +95,7 @@ private:
   std::atomic<bool> open_{false};
 };
 
-}
+} // namespace rdd
 
 #define RDDMON(name, type, value) \
   ::rdd::Singleton< ::rdd::Monitor>::get()->addToMonitor( \

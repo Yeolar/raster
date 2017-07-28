@@ -116,4 +116,4 @@ private:
   MainContext mainContext_;
 };
 
-}
+} // namespace rdd

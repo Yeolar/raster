@@ -71,5 +71,4 @@ std::shared_ptr<R> makeSharedReflectObject(const std::string& name) {
   template <>               \
   rdd::ReflectInfoT<r, name> rdd::ReflectObject<r, name>::ri_(#name)
 
-}
-
+} // namespace rdd

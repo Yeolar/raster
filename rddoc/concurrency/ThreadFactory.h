@@ -32,4 +32,4 @@ private:
   std::atomic<uint64_t> suffix_{0};
 };
 
-}
+} // namespace rdd

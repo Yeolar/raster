@@ -72,5 +72,4 @@ typename Map::mapped_type::element_type* get_deref_smart_ptr(
   return (pos != map.end() ? pos->second.get() : nullptr);
 }
 
-}
-
+} // namespace rdd

@@ -48,5 +48,4 @@ private:
   std::shared_ptr<ProcessorFactory> processorFactory_;
 };
 
-}
-
+} // namespace rdd

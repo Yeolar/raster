@@ -32,5 +32,4 @@ private:
   mutable sem_t sem_;
 };
 
-}
-
+} // namespace rdd

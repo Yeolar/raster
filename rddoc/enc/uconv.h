@@ -148,6 +148,5 @@ int is_utf8(const char *str, unsigned int len, bool check_last_char);
 bool is_gbk(const char *src);
 bool is_gbk_n(const char *src, int length);
 
-}
-}
-
+} // namespace uconv
+} // namespace rdd

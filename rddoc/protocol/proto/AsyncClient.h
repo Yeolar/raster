@@ -111,5 +111,4 @@ private:
   std::shared_ptr<C> service_;
 };
 
-}
-
+} // namespace rdd

@@ -212,4 +212,4 @@ struct Subject : public Observable<T>, public Observer<T> {
 template <class T> using ObservablePtr = std::shared_ptr<Observable<T>>;
 template <class T> using SubjectPtr = std::shared_ptr<Subject<T>>;
 
-}
+} // namespace rdd

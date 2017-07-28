@@ -41,5 +41,4 @@ private:
 
 typedef std::shared_ptr<Executor> ExecutorPtr;
 
-}
-
+} // namespace rdd

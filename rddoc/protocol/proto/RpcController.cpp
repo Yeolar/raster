@@ -89,4 +89,4 @@ void PBRpcController::complete() {
   }
 }
 
-}
+} // namespace rdd

@@ -96,5 +96,4 @@ MySQLQuery& MySQLQuery::LIMIT(size_t n) {
   return *this;
 }
 
-}
-
+} // namespace rdd

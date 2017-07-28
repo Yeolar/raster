@@ -170,5 +170,4 @@ bool CharProperty::compile(const std::string& cfile,
   return true;
 }
 
-}
-
+} // namespace rdd

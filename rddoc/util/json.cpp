@@ -17,6 +17,7 @@ namespace rdd {
 //////////////////////////////////////////////////////////////////////
 
 namespace json {
+
 namespace {
 
 char32_t decodeUtf8(
@@ -658,7 +659,7 @@ dynamic parseValue(Input& in) {
          in.error("expected json value");
 }
 
-}
+} // namespace
 
 //////////////////////////////////////////////////////////////////////
 
@@ -803,7 +804,7 @@ std::string stripComments(StringPiece jsonC) {
   return result;
 }
 
-}
+} // namespace json
 
 //////////////////////////////////////////////////////////////////////
 
@@ -858,4 +859,4 @@ void PrintTo(const dynamic& dyn, std::ostream* os) {
 
 //////////////////////////////////////////////////////////////////////
 
-}
+} // namespace rdd

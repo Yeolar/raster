@@ -43,4 +43,4 @@ struct FunctionObserver : public Observer<T> {
 
 template <class T> using ObserverPtr = std::shared_ptr<Observer<T>>;
 
-}
+} // namespace rdd

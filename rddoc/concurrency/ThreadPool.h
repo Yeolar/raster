@@ -154,4 +154,4 @@ protected:
   std::vector<std::shared_ptr<Observer>> observers_;
 };
 
-}
+} // namespace rdd

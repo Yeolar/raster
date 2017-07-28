@@ -26,5 +26,4 @@ protected:
   std::shared_ptr<Channel> channel_;
 };
 
-}
-
+} // namespace rdd

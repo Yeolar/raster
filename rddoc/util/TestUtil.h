@@ -104,6 +104,5 @@ private:
   TemporaryDirectory dir_;
 };
 
-}  // namespace test
-}  // namespace rdd
-
+} // namespace test
+} // namespace rdd

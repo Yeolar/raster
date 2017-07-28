@@ -118,4 +118,4 @@ private:
   ThreadLocalPtr<Arena> arena_;
 };
 
-}  // namespace rdd
+} // namespace rdd

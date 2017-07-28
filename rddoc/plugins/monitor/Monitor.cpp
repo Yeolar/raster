@@ -52,5 +52,4 @@ void Monitor::dump(std::map<std::string, int>& data) {
   }
 }
 
-}
-
+} // namespace rdd

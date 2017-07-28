@@ -304,5 +304,4 @@ operator>=(const T& lhs, const U& rhs) {
   return Utf8StringPiece(lhs) >= Utf8StringPiece(rhs);
 }
 
-}
-
+} // namespace rdd

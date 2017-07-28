@@ -67,4 +67,4 @@ private:
   mutable RWLock lock_;
 };
 
-}
+} // namespace rdd

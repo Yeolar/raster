@@ -57,5 +57,4 @@ private:
     Timeout<T>, std::vector<Timeout<T>>, std::greater<Timeout<T>>> heap_;
 };
 
-}
-
+} // namespace rdd

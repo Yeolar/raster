@@ -248,7 +248,8 @@ splitFixed(const Delim& delimiter, StringPiece input,
   }
   return false;
 }
-}
+
+} // namespace detail
 
 //////////////////////////////////////////////////////////////////////
 
@@ -375,7 +376,7 @@ void internalMapJoinAppend(Delim delimiter, Delim pairDelimiter, Iterator begin,
   }
 }
 
-}  // namespace detail
+} // namespace detail
 
 template <class Delim, class Iterator>
 void join(const Delim& delimiter, Iterator begin, Iterator end,
@@ -393,4 +394,4 @@ void joinMap(const Delim& delimiter, const Delim& pairDelimiter, Iterator begin,
   detail::internalMapJoinAppend(delimiter, pairDelimiter, begin, end, output);
 }
 
-}  // namespace rdd
+} // namespace rdd

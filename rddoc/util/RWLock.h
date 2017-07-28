@@ -55,5 +55,4 @@ private:
 typedef RWLockGuardImpl<false> RLockGuard;
 typedef RWLockGuardImpl<true> WLockGuard;
 
-}
-
+} // namespace rdd

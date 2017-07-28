@@ -38,5 +38,4 @@ private:
   mutable bool signal_{false};
 };
 
-}
-
+} // namespace rdd

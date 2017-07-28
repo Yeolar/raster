@@ -97,5 +97,4 @@ private:
   mutable std::mutex lock_;
 };
 
-}
-
+} // namespace rdd

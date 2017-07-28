@@ -94,5 +94,4 @@ private:
   boost::shared_ptr<If> handler_;
 };
 
-}
-
+} // namespace rdd

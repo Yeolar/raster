@@ -16,5 +16,4 @@ public:
   virtual std::string str() = 0;
 };
 
-}
-
+} // namespace rdd

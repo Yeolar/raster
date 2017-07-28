@@ -168,7 +168,7 @@ HugePageSizeVec readHugePageSizes() {
   return sizeVec;
 }
 
-}  // namespace
+} // namespace
 
 const HugePageSizeVec& getHugePageSizes() {
   static HugePageSizeVec sizes = readHugePageSizes();
@@ -201,4 +201,4 @@ const HugePageSize* getHugePageSizeForDevice(dev_t device) {
   return nullptr;
 }
 
-}
+} // namespace rdd

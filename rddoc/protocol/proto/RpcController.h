@@ -47,4 +47,4 @@ private:
   VoidFunc cancelFunc_;
 };
 
-}
+} // namespace rdd

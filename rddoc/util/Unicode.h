@@ -587,5 +587,4 @@ std::string cutText(const std::string& text,
                     size_t prefixLen,
                     size_t len);
 
-}
-
+} // namespace rdd

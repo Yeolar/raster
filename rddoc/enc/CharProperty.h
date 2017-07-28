@@ -126,5 +126,4 @@ private:
   CharInfo alnum_;        // 数字或英文字母
 };
 
-}
-
+} // namespace rdd

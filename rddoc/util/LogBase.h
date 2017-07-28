@@ -218,6 +218,5 @@ private:
   int errno_;
 };
 
-}
-}
-
+} // namespace logging
+} // namespace rdd

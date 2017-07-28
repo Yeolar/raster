@@ -66,5 +66,4 @@ bool MySQLClient::fetch(const std::string& sql, std::vector<Column>& table) {
   return true;
 }
 
-}
-
+} // namespace rdd

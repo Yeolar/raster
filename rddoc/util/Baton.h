@@ -270,5 +270,4 @@ struct Baton : noncopyable {
   Futex state_;
 };
 
-}
-
+} // namespace rdd

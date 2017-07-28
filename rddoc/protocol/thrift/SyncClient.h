@@ -111,5 +111,4 @@ private:
   boost::shared_ptr<apache::thrift::protocol::TProtocol> protocol_;
 };
 
-}
-
+} // namespace rdd

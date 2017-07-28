@@ -460,7 +460,7 @@ estimateSpaceNeeded(Src value) {
 namespace detail {
 const int kConvMaxDecimalInShortestLow = -6;
 const int kConvMaxDecimalInShortestHigh = 21;
-} // rdd::detail
+}
 
 /** Wrapper around DoubleToStringConverter **/
 template <class Tgt, class Src>
@@ -632,8 +632,8 @@ toAppendDelimStrImpl(const Delimiter& delim, const T& v, const Ts&... vs) {
   toAppend(delim, detail::getLastElement(vs...));
   toAppendDelimStrImpl(delim, vs...);
 }
-} // rdd::detail
 
+} // namespace detail
 
 /**
  * Variadic conversion to string. Appends each element in turn.
@@ -1016,7 +1016,7 @@ RDD_ALIGNED(16) const uint16_t shift1000[] = {
 
   bool str_to_bool(StringPiece * src);
 
-}                                 // namespace detail
+} // namespace detail
 
 /**
  * String represented as a pair of pointers to char to unsigned
@@ -1144,7 +1144,7 @@ inline void enforceWhitespace(const char* b, const char* e) {
   }
 }
 
-}  // namespace detail
+} // namespace detail
 
 /**
  * String or StringPiece to integrals. Accepts leading and trailing

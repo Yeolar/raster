@@ -115,5 +115,4 @@ private:
   std::vector<Timestamp> timestamps_;
 };
 
-}
-
+} // namespace rdd

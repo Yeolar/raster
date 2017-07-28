@@ -69,5 +69,5 @@ void parseCancelFrom(std::istream& in, std::string& callId) {
   callId = proto::readString(in);
 }
 
-}
-}
+} // namespace proto
+} // namespace rdd

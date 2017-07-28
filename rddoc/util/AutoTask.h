@@ -78,5 +78,4 @@ private:
   std::atomic<bool> open_{false};
 };
 
-}
-
+} // namespace rdd

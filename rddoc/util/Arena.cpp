@@ -24,4 +24,4 @@ void* Arena::allocateSlow(size_t size) {
   return start;
 }
 
-}  // namespace rdd
+} // namespace rdd

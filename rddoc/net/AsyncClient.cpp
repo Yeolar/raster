@@ -73,5 +73,4 @@ void AsyncClient::freeConnection() {
   event_ = nullptr;
 }
 
-}
-
+} // namespace rdd

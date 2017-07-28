@@ -65,5 +65,4 @@ private:
   std::array<AtomicBlockType, N> data_;
 };
 
-}
-
+} // namespace rdd

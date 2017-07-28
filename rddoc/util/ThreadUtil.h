@@ -85,4 +85,4 @@ private:
   mutable ThreadLocalPtr<T> tlp_;
 };
 
-}
+} // namespace rdd

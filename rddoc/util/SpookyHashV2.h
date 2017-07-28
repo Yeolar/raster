@@ -292,6 +292,5 @@ private:
     uint8_t  m_remainder;          // length of unhashed data stashed in m_data
 };
 
-}  // namespace hash
-}  // namespace rdd
-
+} // namespace hash
+} // namespace rdd

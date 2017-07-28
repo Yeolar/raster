@@ -30,5 +30,4 @@ protected:
   ContextPtr context_;
 };
 
-}
-
+} // namespace rdd

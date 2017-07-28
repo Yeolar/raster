@@ -245,5 +245,4 @@ Range<size_t> findRange(const SArray<V>& arr, V lower, V upper) {
   return Range<size_t>(lb - arr.begin(), ub - arr.begin());
 }
 
-}
-
+} // namespace rdd

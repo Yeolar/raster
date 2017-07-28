@@ -146,4 +146,4 @@ private:
   std::atomic<int32_t> bits_;
 };
 
-}
+} // namespace rdd

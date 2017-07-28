@@ -64,7 +64,7 @@ ssize_t wrapFull(F f, int fd, void* buf, size_t count, Offset... offset) {
   return totalBytes;
 }
 
-}
+} // namespace detail
 
 inline int openNoInt(const char* name, int flags, mode_t mode = 0666) {
   return int(detail::wrapNoInt(open, name, flags, mode));
@@ -161,4 +161,4 @@ bool writeFile(const Container& data, const char* filename,
   return closeNoInt(fd) == 0 && ok;
 }
 
-}
+} // namespace rdd

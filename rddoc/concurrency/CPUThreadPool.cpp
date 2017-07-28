@@ -70,4 +70,4 @@ size_t CPUThreadPool::getPendingTaskCount() {
   return taskQueue_.size();
 }
 
-}
+} // namespace rdd

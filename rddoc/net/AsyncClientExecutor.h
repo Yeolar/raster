@@ -29,5 +29,4 @@ private:
   std::shared_ptr<AsyncClient> client_;
 };
 
-}
-
+} // namespace rdd

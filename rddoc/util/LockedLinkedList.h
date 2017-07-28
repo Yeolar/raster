@@ -94,5 +94,4 @@ private:
   }
 };
 
-}
-
+} // namespace rdd

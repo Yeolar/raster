@@ -233,5 +233,4 @@ void EventHandler::closePeer(Event* event) {
   }
 }
 
-}
-
+} // namespace rdd

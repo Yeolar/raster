@@ -145,5 +145,4 @@ void config(const char* name, std::initializer_list<ConfigTask> confs) {
   }
 }
 
-}
-
+} // namespace rdd

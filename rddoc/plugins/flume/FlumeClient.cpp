@@ -33,5 +33,4 @@ void FlumeClient::writeToDisk(const std::vector<LogEntry>& entries) {
   }
 }
 
-}
-
+} // namespace rdd

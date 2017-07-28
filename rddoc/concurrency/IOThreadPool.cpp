@@ -116,4 +116,4 @@ size_t IOThreadPool::getPendingTaskCount() {
   return count;
 }
 
-}
+} // namespace rdd

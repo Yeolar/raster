@@ -144,5 +144,4 @@ void Actor::monitoring() const {
                */
 }
 
-}
-
+} // namespace rdd

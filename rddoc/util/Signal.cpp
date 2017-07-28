@@ -37,5 +37,4 @@ void setupShutdownSignal(int signo) {
   setupSignal(signo, shutdownSignalHandler);
 }
 
-}
-
+} // namespace rdd

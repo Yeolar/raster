@@ -49,5 +49,4 @@ private:
   epoll_event* events_;
 };
 
-}
-
+} // namespace rdd

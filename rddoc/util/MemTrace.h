@@ -11,9 +11,11 @@
 
 namespace rdd {
 
+extern bool new_verbose_flag;   // default to false: no verbose information
+
 bool checkLeaks();
 
-}
+} // namespace rdd
 
 void* operator new(size_t size, const char* file, int line);
 void* operator new[](size_t size, const char* file, int line);
@@ -33,10 +35,4 @@ void operator delete[](void* pointer, const char* file, int line);
 #define malloc(s) ((void*)(rdd_debug_new char[s]))
 #define free(p) delete[] (char*)(p)
 #endif
-
-namespace rdd {
-
-extern bool new_verbose_flag;   // default to false: no verbose information
-
-}
 

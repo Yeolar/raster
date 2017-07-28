@@ -135,5 +135,4 @@ private:
   PBAsyncServer* server_;
 };
 
-}
-
+} // namespace rdd

@@ -253,4 +253,4 @@ std::string Socket::str() {
   return to<std::string>(fd_, "[", peer().str(), "]");
 }
 
-}
+} // namespace rdd

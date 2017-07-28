@@ -68,5 +68,4 @@ inline ExecutorPtr getCurrentExecutor() {
   return fiber ? fiber->executor() : nullptr;
 }
 
-}
-
+} // namespace rdd

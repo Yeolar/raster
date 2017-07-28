@@ -60,5 +60,4 @@ private:
   leveldb::DB* db_;
 };
 
-}
-
+} // namespace rdd

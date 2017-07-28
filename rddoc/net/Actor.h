@@ -126,5 +126,4 @@ private:
   std::vector<ForwardTarget> forwards_;
 };
 
-}
-
+} // namespace rdd

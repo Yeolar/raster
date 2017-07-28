@@ -74,7 +74,7 @@ FutexResult nativeFutexWaitImpl(void* addr,
   }
 }
 
-} // anon namespace
+} // namespace
 
 int Futex::futexWake(int count, uint32_t wakeMask) {
   return nativeFutexWake(this, count, wakeMask);
@@ -86,4 +86,4 @@ FutexResult Futex::futexWaitImpl(uint32_t expected,
   return nativeFutexWaitImpl(this, expected, timeout, waitMask);
 }
 
-}
+} // namespace rdd

@@ -49,7 +49,7 @@ inline int UncaughtExceptionCounter::getUncaughtExceptionCount() noexcept {
       static_cast<void*>(__cxxabiv1::__cxa_get_globals())) + sizeof(void*)));
 }
 
-}
+} // namespace detail
 
 class ScopeGuardImplBase {
  public:
@@ -182,7 +182,7 @@ operator+(detail::ScopeGuardOnExit, FunctionType&& fn) {
 
 } // namespace detail
 
-} // rdd
+} // namespace rdd
 
 #define SCOPE_EXIT \
   auto RDD_ANONYMOUS_VARIABLE(SCOPE_EXIT_STATE) \

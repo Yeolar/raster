@@ -35,5 +35,4 @@ private:
   VoidFunc func_;
 };
 
-}
-
+} // namespace rdd

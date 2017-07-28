@@ -62,6 +62,6 @@ inline int32_t getSeqId(::apache::thrift::transport::TMemoryBuffer* buf) {
   }
 }
 
-}
+} // namespace thrift
 
-}
+} // namespace rdd

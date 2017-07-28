@@ -17,4 +17,4 @@ void PBAsyncServer::makeChannel(int port, const TimeoutOption& timeout_opt) {
     peer, timeout_opt, protocol, processor_factory);
 }
 
-}
+} // namespace rdd

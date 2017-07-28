@@ -87,5 +87,4 @@ int Protocol::writeData(Event* event) {
   return 0;
 }
 
-}
-
+} // namespace rdd

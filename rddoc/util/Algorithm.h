@@ -85,5 +85,4 @@ subrange(Container& container, size_t begin, size_t end) {
   container.erase(container.begin(), container.begin() + b);
 }
 
-}
-
+} // namespace rdd

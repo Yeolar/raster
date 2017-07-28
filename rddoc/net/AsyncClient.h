@@ -179,5 +179,4 @@ inline bool yieldMultiTask(std::initializer_list<AsyncClient*> clients) {
   return false;
 }
 
-}
-
+} // namespace rdd

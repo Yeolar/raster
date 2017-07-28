@@ -29,7 +29,8 @@ RDD_HAS_TRUE_XXX(IsTriviallyCopyable)
 RDD_HAS_TRUE_XXX(IsZeroInitializable)
 
 #undef RDD_HAS_TRUE_XXX
-}
+
+} // namespace traits_detail
 
 template <class T> struct IsTriviallyCopyable
   : std::integral_constant<bool,
@@ -50,7 +51,7 @@ template <class T> struct IsZeroInitializable
       traits_detail::has_true_IsZeroInitializable<T>::value
     > {};
 
-}
+} // namespace rdd
 
 #define RDD_CREATE_HAS_MEMBER_TYPE_TRAITS(classname, type_name) \
   template <typename T> \

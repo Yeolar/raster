@@ -8,5 +8,4 @@ namespace rdd {
 
 __thread Fiber* FiberManager::fiber_ = nullptr;
 
-}
-
+} // namespace rdd

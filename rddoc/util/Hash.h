@@ -130,17 +130,19 @@ inline uint64_t fnv64(const std::string& str,
   return fnv64_buf(str.data(), str.size(), hash);
 }
 
-}
-}
+} // namespace hash
+} // namespace rdd
 
 namespace std {
-  // Hash function for pairs. Requires default hash functions for both
-  // items in the pair.
-  template <typename T1, typename T2>
-  struct hash<std::pair<T1, T2>> {
-  public:
-    size_t operator()(const std::pair<T1, T2>& x) const {
-      return rdd::hash::hash_combine(x.first, x.second);
-    }
-  };
-}
+
+// Hash function for pairs. Requires default hash functions for both
+// items in the pair.
+template <typename T1, typename T2>
+struct hash<std::pair<T1, T2>> {
+public:
+  size_t operator()(const std::pair<T1, T2>& x) const {
+    return rdd::hash::hash_combine(x.first, x.second);
+  }
+};
+
+} // namespace std

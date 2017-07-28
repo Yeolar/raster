@@ -60,7 +60,7 @@ bool checkLeaks() {
   return leaked;
 }
 
-}
+} // namespace rdd
 
 void* operator new(size_t size, const char* file, int line) {
   size_t s = size + sizeof(rdd::NewPtrNode);

@@ -15,4 +15,4 @@ inline uint32_t crc32(const std::string& data) {
   return crc32((const uint8_t*)data.data(), data.size());
 }
 
-}
+} // namespace rdd

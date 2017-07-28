@@ -30,6 +30,4 @@ std::string sha256Hex(const KeyString& key, const SaltString& salt) {
   return hex;
 }
 
-}
-
-
+} // namespace rdd

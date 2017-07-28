@@ -43,4 +43,4 @@ class ZlibStreamDecompressor {
   int status_{-1};
 };
 
-}
+} // namespace rdd

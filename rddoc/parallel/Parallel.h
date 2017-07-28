@@ -74,7 +74,7 @@ void parallelOrderedMatch(
   }
 }
 
-}
+} // namespace detail
 
 /**
  * Parallel sort.
@@ -125,5 +125,4 @@ size_t parallelOrderedMatch(
   return n;
 }
 
-}
-
+} // namespace rdd

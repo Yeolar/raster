@@ -287,4 +287,4 @@ void dynamic::destroy() noexcept {
   u_.nul = nullptr;
 }
 
-}
+} // namespace rdd

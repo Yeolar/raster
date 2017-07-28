@@ -112,5 +112,4 @@ struct CacheLocality {
 /// it doesn't have false sharing with anything at a smaller memory address.
 #define RDD_ALIGN_TO_AVOID_FALSE_SHARING RDD_ALIGNED(128)
 
-}
-
+} // namespace rdd

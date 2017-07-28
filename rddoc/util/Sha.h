@@ -30,7 +30,7 @@ std::string sha256Hex(const KeyString& key) {
   return sha256Hex(key, ByteRange());
 }
 
-}
+} // namespace rdd
 
 #include "Sha-inl.h"
 

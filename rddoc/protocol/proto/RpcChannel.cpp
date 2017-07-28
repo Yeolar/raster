@@ -102,5 +102,4 @@ void PBRpcChannel::process(const std::string& msg) {
   }
 }
 
-}
-
+} // namespace rdd

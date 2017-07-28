@@ -24,5 +24,4 @@ public:
   }
 };
 
-}
-
+} // namespace rdd

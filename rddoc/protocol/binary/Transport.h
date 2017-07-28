@@ -67,5 +67,4 @@ private:
   std::unique_ptr<IOBuf> wbuf_;
 };
 
-}
-
+} // namespace rdd

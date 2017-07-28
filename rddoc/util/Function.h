@@ -11,5 +11,4 @@ namespace rdd {
 typedef std::function<void(void)> VoidFunc;
 typedef std::function<void(void*)> PtrFunc;
 
-}
-
+} // namespace rdd

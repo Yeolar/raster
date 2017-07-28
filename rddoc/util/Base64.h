@@ -23,6 +23,6 @@ bool base64Decode(const InputString& input,
                   std::string& output,
                   Base64EncodeMode mode = Base64EncodeMode::COMMON);
 
-}
+} // namespace rdd
 
 #include "Base64-inl.h"

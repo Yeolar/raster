@@ -132,5 +132,4 @@ private:
   std::vector<Node> nodes_;
 };
 
-}
-
+} // namespace rdd

@@ -80,5 +80,4 @@ private:
   Peer peer_;
 };
 
-}
-
+} // namespace rdd

@@ -42,5 +42,4 @@ private:
   mutable RWSpinLock lock_;
 };
 
-}
-
+} // namespace rdd

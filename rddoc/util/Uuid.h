@@ -47,4 +47,4 @@ inline std::string generateUuid(const std::string& upstreamUuid,
                               : upstreamUuid;
 }
 
-}
+} // namespace rdd

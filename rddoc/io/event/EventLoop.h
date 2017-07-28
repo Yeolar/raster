@@ -82,5 +82,4 @@ private:
   TimedHeap<Event> deadlineHeap_;
 };
 
-}
-
+} // namespace rdd

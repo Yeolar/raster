@@ -15,5 +15,4 @@ inline path canonical_parent(const path& p,
   return canonical(p.parent_path(), base) / p.filename();
 }
 
-}
-
+} // namespace fs

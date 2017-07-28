@@ -97,6 +97,5 @@ inline bool encodeZlibData(IOBuf* buf,
   return true;
 }
 
-}
-}
-
+} // namespace thrift
+} // namespace rdd
