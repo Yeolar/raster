@@ -77,6 +77,10 @@ check_cxx_source_compiles("
     RDD_HAVE_XSI_STRERROR_R)
 
 # Work on all sub directories
+add_subdirectory(rddoc/3rd/double-conversion)
+add_subdirectory(rddoc/3rd/http_parser)
+add_subdirectory(rddoc/3rd/thrift)
+
 add_subdirectory(rddoc/concurrency)
 add_subdirectory(rddoc/coroutine)
 add_subdirectory(rddoc/enc)
@@ -89,13 +93,13 @@ add_subdirectory(rddoc/plugins/memcached)
 add_subdirectory(rddoc/plugins/monitor)
 add_subdirectory(rddoc/plugins/mysql)
 add_subdirectory(rddoc/protocol/proto)
+add_subdirectory(rddoc/ssl)
 add_subdirectory(rddoc/util)
 
-add_subdirectory(rddoc/3rd/double-conversion)
-add_subdirectory(rddoc/3rd/http_parser)
-add_subdirectory(rddoc/3rd/thrift)
-
 add_library(rdd_static STATIC
+    $<TARGET_OBJECTS:double-conversion>
+    $<TARGET_OBJECTS:httpparser>
+    $<TARGET_OBJECTS:thrift>
     $<TARGET_OBJECTS:rdd_concurrency>
     $<TARGET_OBJECTS:rdd_coroutine>
     $<TARGET_OBJECTS:rdd_enc>
@@ -108,13 +112,14 @@ add_library(rdd_static STATIC
     $<TARGET_OBJECTS:rdd_plugins_monitor>
     $<TARGET_OBJECTS:rdd_plugins_mysql>
     $<TARGET_OBJECTS:rdd_protocol_proto>
+    $<TARGET_OBJECTS:rdd_ssl>
     $<TARGET_OBJECTS:rdd_util>
-    $<TARGET_OBJECTS:double-conversion>
-    $<TARGET_OBJECTS:httpparser>
-    $<TARGET_OBJECTS:thrift>
 )
 set_target_properties(rdd_static PROPERTIES OUTPUT_NAME rdd)
 add_library(rdd_shared SHARED
+    $<TARGET_OBJECTS:double-conversion>
+    $<TARGET_OBJECTS:httpparser>
+    $<TARGET_OBJECTS:thrift>
     $<TARGET_OBJECTS:rdd_concurrency>
     $<TARGET_OBJECTS:rdd_coroutine>
     $<TARGET_OBJECTS:rdd_enc>
@@ -127,10 +132,8 @@ add_library(rdd_shared SHARED
     $<TARGET_OBJECTS:rdd_plugins_monitor>
     $<TARGET_OBJECTS:rdd_plugins_mysql>
     $<TARGET_OBJECTS:rdd_protocol_proto>
+    $<TARGET_OBJECTS:rdd_ssl>
     $<TARGET_OBJECTS:rdd_util>
-    $<TARGET_OBJECTS:double-conversion>
-    $<TARGET_OBJECTS:httpparser>
-    $<TARGET_OBJECTS:thrift>
 )
 set_target_properties(rdd_shared PROPERTIES OUTPUT_NAME rdd)
 
@@ -163,6 +166,7 @@ if(GTEST_FOUND AND GMOCK_FOUND)
     add_subdirectory(rddoc/io/test)
     add_subdirectory(rddoc/parallel/test)
     add_subdirectory(rddoc/plugins/mysql/test)
+    add_subdirectory(rddoc/ssl/test)
     add_subdirectory(rddoc/util/test)
 endif()
 

@@ -3,7 +3,7 @@
  */
 
 #include "rddoc/util/Base64.h"
-#include "rddoc/util/Sha.h"
+#include "rddoc/ssl/OpenSSLHash.h"
 #include <gtest/gtest.h>
 
 using namespace rdd;
@@ -29,6 +29,12 @@ static char kAsciiTable[] =
 TEST(base64, all) {
   std::string str, enc, dec, hex;
 
+  auto sha256 = [](const char* s) {
+    std::array<uint8_t, 32> out;
+    OpenSSLHash::sha256(range(out), ByteRange(StringPiece(s)));
+    return std::string((char*)out.data(), out.size());
+  };
+
   str = std::string(kAsciiTable, 256);
   base64Encode(str, enc);
   base64Decode(enc, dec);
@@ -52,31 +58,24 @@ TEST(base64, all) {
     "8PHy8_T19vf4-fr7_P3-_w==");
   EXPECT_EQ(dec, str);
 
-  str = sha256(std::string(""));
+  str = sha256("");
   base64Encode(str, enc);
   base64Decode(enc, dec);
   hexlify(dec, hex);
   EXPECT_EQ(hex,
     "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
 
-  str = sha256(std::string("1234567890"));
+  str = sha256("1234567890");
   base64Encode(str, enc);
   base64Decode(enc, dec);
   hexlify(dec, hex);
   EXPECT_EQ(hex,
     "c775e7b757ede630cd0aa1113bd102661ab38829ca52a6422ab782862f268646");
 
-  str = sha256(std::string("abcdefg"));
+  str = sha256("abcdefg");
   base64Encode(str, enc);
   base64Decode(enc, dec);
   hexlify(dec, hex);
   EXPECT_EQ(hex,
     "7d1a54127b222502f5b79b5fb0803061152a44f92b37e23c6527baf665d4da9a");
-
-  str = sha256(std::string("1234567890"), std::string("abcdefg"));
-  base64Encode(str, enc);
-  base64Decode(enc, dec);
-  hexlify(dec, hex);
-  EXPECT_EQ(hex,
-    "88a00f46836cd629d0b79de98532afde3aead79a5c53e4848102f433046d0106");
 }

@@ -39,6 +39,40 @@ typename std::enable_if<
   std::extent<T>::value != 0, std::unique_ptr<T, Dp>>::type
 make_unique(Args&&...) = delete;
 
+/**
+ * static_function_deleter
+ *
+ * So you can write this:
+ *
+ *  using RSA_deleter = folly::static_function_deleter<RSA, &RSA_free>;
+ *  auto rsa = std::unique_ptr<RSA, RSA_deleter>(RSA_new());
+ *  RSA_generate_key_ex(rsa.get(), bits, exponent, nullptr);
+ *  rsa = nullptr;  // calls RSA_free(rsa.get())
+ *
+ * This would be sweet as well for BIO, but unfortunately BIO_free has signature
+ * int(BIO*) while we require signature void(BIO*). So you would need to make a
+ * wrapper for it:
+ *
+ *  inline void BIO_free_fb(BIO* bio) { CHECK_EQ(1, BIO_free(bio)); }
+ *  using BIO_deleter = folly::static_function_deleter<BIO, &BIO_free_fb>;
+ *  auto buf = std::unique_ptr<BIO, BIO_deleter>(BIO_new(BIO_s_mem()));
+ *  buf = nullptr;  // calls BIO_free(buf.get())
+ */
+
+template <typename T, void(*f)(T*)>
+struct static_function_deleter {
+  void operator()(T* t) const {
+    f(t);
+  }
+};
+
+/**
+ * StlAllocator wraps a SimpleAllocator into a STL-compliant
+ * allocator, maintaining an instance pointer to the simple allocator
+ * object.  The underlying SimpleAllocator object must outlive all
+ * instances of StlAllocator using it.
+ */
+
 template <class Alloc, class T>
 class StlAllocator {
 public:

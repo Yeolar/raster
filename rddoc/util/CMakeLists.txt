@@ -11,7 +11,6 @@ set(RDD_UTIL_SRCS
     MemoryMapping.cpp
     #MemTrace.cpp
     Range.cpp
-    Sha.cpp
     Signal.cpp
     SpookyHashV2.cpp
     String.cpp
