@@ -6,7 +6,6 @@
 #include <stdexcept>
 
 namespace rdd {
-namespace portability {
 namespace ssl {
 
 #if OPENSSL_IS_BORINGSSL
@@ -196,5 +195,4 @@ void HMAC_CTX_free(HMAC_CTX* ctx) {
 #endif
 
 } // namespace ssl
-} // namespace portability
 } // namespace rdd
