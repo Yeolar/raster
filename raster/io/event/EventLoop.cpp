@@ -3,8 +3,8 @@
  */
 
 #include "raster/io/event/EventLoop.h"
+#include "raster/framework/Monitor.h"
 #include "raster/net/Channel.h"
-#include "raster/plugins/monitor/Monitor.h"
 
 namespace rdd {
 

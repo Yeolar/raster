@@ -8,3 +8,15 @@ set(RASTER_NET_SRCS
     Socket.cpp
 )
 add_library(raster_net OBJECT ${RASTER_NET_SRCS})
+
+install(FILES
+    Actor.h
+    AsyncClientExecutor.h
+    AsyncClient.h
+    Channel.h
+    NetUtil.h
+    Processor.h
+    Protocol.h
+    Service.h
+    Socket.h
+    DESTINATION include/raster/net)

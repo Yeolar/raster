@@ -2,8 +2,7 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/plugins/monitor/Monitor.h"
-#include "raster/plugins/monitor/FalconClient.h"
+#include "raster/framework/Monitor.h"
 #include "raster/util/Algorithm.h"
 #include "raster/util/Logging.h"
 #include "raster/util/MapUtil.h"
@@ -12,13 +11,14 @@ namespace rdd {
 
 void Monitor::run() {
   open_ = true;
-  FalconClient falcon;
   CycleTimer timer(60000000); // 60s
   while (true) {
     if (timer.isExpired()) {
-      std::map<std::string, int> data;
+      MonMap data;
       dump(data);
-      falcon.send(data);
+      if (sender_) {
+        sender_(data);
+      }
     }
     sleep(1);
   }
@@ -42,7 +42,7 @@ void Monitor::addToMonitor(const std::string& name, int type, int value) {
   }
 }
 
-void Monitor::dump(std::map<std::string, int>& data) {
+void Monitor::dump(MonMap& data) {
   std::lock_guard<std::mutex> guard(lock_);
   for (auto& kv : mvalues_) {
     if (kv.second.isSet()) {

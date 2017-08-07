@@ -5,3 +5,8 @@ set(RASTER_SSL_SRCS
 )
 add_library(raster_ssl OBJECT ${RASTER_SSL_SRCS})
 
+install(FILES
+    OpenSSL.h
+    OpenSSLHash.h
+    OpenSSLPtrTypes.h
+    DESTINATION include/raster/ssl)

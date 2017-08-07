@@ -21,3 +21,7 @@ add_library(double-conversion OBJECT
     fixed-dtoa.cc
     strtod.cc
 )
+
+install(FILES
+    ${double-conversion-headers}
+    DESTINATION include/raster/3rd/double-conversion)

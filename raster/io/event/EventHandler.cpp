@@ -5,7 +5,7 @@
 #include "raster/io/event/EventHandler.h"
 #include "raster/net/Actor.h"
 #include "raster/net/Protocol.h"
-#include "raster/plugins/monitor/Monitor.h"
+#include "raster/framework/Monitor.h"
 
 namespace rdd {
 

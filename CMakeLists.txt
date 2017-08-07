@@ -20,12 +20,8 @@ set(VERSION_PATCH 0)
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 find_package(Threads REQUIRED)
 find_package(Boost REQUIRED COMPONENTS context filesystem regex system)
-find_package(CURL REQUIRED)
 find_package(GFlags REQUIRED)
 find_package(ICU REQUIRED)
-find_package(LevelDB REQUIRED)
-find_package(Libmemcached REQUIRED)
-find_package(MySQL REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -43,14 +39,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11 -fPIC")
 link_libraries(
     ${CMAKE_THREAD_LIBS_INIT}
     ${Boost_LIBRARIES}
-    ${CURL_LIBRARIES}
     ${GFLAGS_LIBRARIES}
     ${ICU_LIBRARIES}
     ${ICU_I18N_LIBRARIES}
-    ${LevelDB_LIBRARIES}
-    #${LIBEVENT_LIB}
-    ${LIBMEMCACHED_LIBRARY}
-    ${MYSQL_CLIENT_LIBS}
     ${OPENSSL_LIBRARIES}
     ${PROTOBUF_LIBRARIES}
     ${ZLIB_LIBRARIES}
@@ -85,14 +76,14 @@ add_subdirectory(raster/concurrency)
 add_subdirectory(raster/coroutine)
 add_subdirectory(raster/enc)
 add_subdirectory(raster/framework)
+add_subdirectory(raster/gen)
 add_subdirectory(raster/io)
 add_subdirectory(raster/io/event)
 add_subdirectory(raster/net)
-add_subdirectory(raster/plugins/leveldb)
-add_subdirectory(raster/plugins/memcached)
-add_subdirectory(raster/plugins/monitor)
-add_subdirectory(raster/plugins/mysql)
+add_subdirectory(raster/parallel)
+add_subdirectory(raster/protocol/binary)
 add_subdirectory(raster/protocol/proto)
+add_subdirectory(raster/protocol/thrift)
 add_subdirectory(raster/ssl)
 add_subdirectory(raster/util)
 
@@ -107,10 +98,6 @@ add_library(raster_static STATIC
     $<TARGET_OBJECTS:raster_io>
     $<TARGET_OBJECTS:raster_io_event>
     $<TARGET_OBJECTS:raster_net>
-    $<TARGET_OBJECTS:raster_plugins_leveldb>
-    $<TARGET_OBJECTS:raster_plugins_memcached>
-    $<TARGET_OBJECTS:raster_plugins_monitor>
-    $<TARGET_OBJECTS:raster_plugins_mysql>
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_ssl>
     $<TARGET_OBJECTS:raster_util>
@@ -127,10 +114,6 @@ add_library(raster_shared SHARED
     $<TARGET_OBJECTS:raster_io>
     $<TARGET_OBJECTS:raster_io_event>
     $<TARGET_OBJECTS:raster_net>
-    $<TARGET_OBJECTS:raster_plugins_leveldb>
-    $<TARGET_OBJECTS:raster_plugins_memcached>
-    $<TARGET_OBJECTS:raster_plugins_monitor>
-    $<TARGET_OBJECTS:raster_plugins_mysql>
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_ssl>
     $<TARGET_OBJECTS:raster_util>
@@ -162,10 +145,10 @@ if(GTEST_FOUND AND GMOCK_FOUND)
     enable_testing()
     add_subdirectory(raster/concurrency/test)
     add_subdirectory(raster/enc/test)
+    add_subdirectory(raster/framework/test)
     add_subdirectory(raster/gen/test)
     add_subdirectory(raster/io/test)
     add_subdirectory(raster/parallel/test)
-    add_subdirectory(raster/plugins/mysql/test)
     add_subdirectory(raster/ssl/test)
     add_subdirectory(raster/util/test)
 endif()

@@ -23,3 +23,66 @@ set(RASTER_UTIL_SRCS
 )
 add_library(raster_util OBJECT ${RASTER_UTIL_SRCS})
 
+install(FILES
+    Algorithm.h
+    Arena.h
+    AssignOp.h
+    AtomicBitSet.h
+    Base64.h
+    Base64-inl.h
+    Baton.h
+    Bits.h
+    BlockingQueue.h
+    Checksum.h
+    ContextWrapper.h
+    Conv.h
+    Counter.h
+    Debug.h
+    Demangle.h
+    dynamic.h
+    dynamic-inl.h
+    EvictingCacheMap.h
+    Exception.h
+    FixedStream.h
+    Function.h
+    Futex.h
+    Hash.h
+    json.h
+    LockedDeq.h
+    LockedLinkedList.h
+    LockedMap.h
+    LogBase.h
+    Logging.h
+    Macro.h
+    MapUtil.h
+    Memory.h
+    MemoryMapping.h
+    #MemTrace.h
+    noncopyable.h
+    Optional.h
+    ProducerConsumerQueue.h
+    Range.h
+    ReflectObject.h
+    RWLock.h
+    RWSpinLock.h
+    SArray.h
+    ScopeGuard.h
+    Sem.h
+    Serializer.h
+    Signal.h
+    Singleton.h
+    SpinLock.h
+    SpookyHashV2.h
+    String.h
+    String-inl.h
+    SysUtil.h
+    TestUtil.h
+    ThreadUtil.h
+    TimedHeap.h
+    Time.h
+    Traits.h
+    Unicode.h
+    Utf8StringPiece.h
+    Uuid.h
+    Waiter.h
+    DESTINATION include/raster/util)

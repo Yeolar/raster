@@ -10,7 +10,7 @@
 #include "raster/io/FileUtil.h"
 #include "raster/net/Actor.h"
 #include "raster/parallel/Scheduler.h"
-#include "raster/plugins/monitor/Monitor.h"
+#include "raster/framework/Monitor.h"
 #include "raster/util/Logging.h"
 
 namespace rdd {

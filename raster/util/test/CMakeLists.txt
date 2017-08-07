@@ -2,7 +2,6 @@
 
 set(RASTER_UTIL_TEST_SRCS
     ArenaTest.cpp
-    AutoTaskTest.cpp
     Base64Test.cpp
     ChecksumTest.cpp
     FixedStreamTest.cpp

@@ -3,7 +3,7 @@
  */
 
 #include "raster/io/event/EventPool.h"
-#include "raster/plugins/monitor/Monitor.h"
+#include "raster/framework/Monitor.h"
 
 namespace rdd {
 

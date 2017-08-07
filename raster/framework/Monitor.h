@@ -69,6 +69,8 @@ private:
 
 class Monitor {
 public:
+  typedef std::map<std::string, int> MonMap;
+
   Monitor() {}
 
   void start() {
@@ -83,12 +85,17 @@ public:
     prefix_ = prefix;
   }
 
+  void setSender(std::function<void(const MonMap&)>&& sender) {
+    sender_ = std::move(sender);
+  }
+
   void addToMonitor(const std::string& name, int type, int value = 0);
 
 private:
-  void dump(std::map<std::string, int>& data);
+  void dump(MonMap& data);
 
   std::string prefix_;
+  std::function<void(const MonMap&)> sender_;
   std::map<std::string, MonitorValue> mvalues_;
   std::mutex lock_;
   std::thread handle_;
