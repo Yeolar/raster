@@ -3,14 +3,14 @@
  */
 
 #include <gflags/gflags.h>
-#include "rddoc/framework/Config.h"
-#include "rddoc/net/Actor.h"
-#include "rddoc/protocol/binary/AsyncClient.h"
-#include "rddoc/protocol/binary/AsyncServer.h"
-#include "rddoc/util/Logging.h"
-#include "rddoc/util/ScopeGuard.h"
-#include "rddoc/util/Signal.h"
-#include "rddoc/util/Uuid.h"
+#include "raster/framework/Config.h"
+#include "raster/net/Actor.h"
+#include "raster/protocol/binary/AsyncClient.h"
+#include "raster/protocol/binary/AsyncServer.h"
+#include "raster/util/Logging.h"
+#include "raster/util/ScopeGuard.h"
+#include "raster/util/Signal.h"
+#include "raster/util/Uuid.h"
 #include "Helper.h"
 #include "table_generated.h"
 

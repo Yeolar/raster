@@ -3,11 +3,11 @@
  */
 
 #include <gflags/gflags.h>
-#include "rddoc/concurrency/CPUThreadPool.h"
-#include "rddoc/net/NetUtil.h"
-#include "rddoc/protocol/thrift/SyncClient.h"
-#include "rddoc/util/Algorithm.h"
-#include "rddoc/util/Logging.h"
+#include "raster/concurrency/CPUThreadPool.h"
+#include "raster/net/NetUtil.h"
+#include "raster/protocol/thrift/SyncClient.h"
+#include "raster/util/Algorithm.h"
+#include "raster/util/Logging.h"
 #include "gen-cpp/Proxy.h"
 
 static const char* VERSION = "1.0.0";

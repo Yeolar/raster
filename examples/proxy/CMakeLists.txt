@@ -6,7 +6,7 @@ add_executable(proxy
     gen-cpp/Proxy_types.cpp
     Server.cpp
 )
-target_link_libraries(proxy rdd_static)
+target_link_libraries(proxy raster_static)
 
 add_executable(proxy-bench
     gen-cpp/Proxy_constants.cpp
@@ -14,5 +14,5 @@ add_executable(proxy-bench
     gen-cpp/Proxy_types.cpp
     Bench.cpp
 )
-target_link_libraries(proxy-bench rdd_static)
+target_link_libraries(proxy-bench raster_static)
 

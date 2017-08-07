@@ -3,11 +3,11 @@
  */
 
 #include <gflags/gflags.h>
-#include "rddoc/concurrency/CPUThreadPool.h"
-#include "rddoc/net/NetUtil.h"
-#include "rddoc/protocol/binary/SyncClient.h"
-#include "rddoc/util/Algorithm.h"
-#include "rddoc/util/Logging.h"
+#include "raster/concurrency/CPUThreadPool.h"
+#include "raster/net/NetUtil.h"
+#include "raster/protocol/binary/SyncClient.h"
+#include "raster/util/Algorithm.h"
+#include "raster/util/Logging.h"
 #include "Helper.h"
 #include "table_generated.h"
 

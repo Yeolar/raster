@@ -6,7 +6,7 @@ add_executable(empty
     gen-cpp/Empty_types.cpp
     Server.cpp
 )
-target_link_libraries(empty rdd_static)
+target_link_libraries(empty raster_static)
 
 add_executable(empty-bench
     gen-cpp/Empty_constants.cpp
@@ -14,5 +14,5 @@ add_executable(empty-bench
     gen-cpp/Empty_types.cpp
     Bench.cpp
 )
-target_link_libraries(empty-bench rdd_static)
+target_link_libraries(empty-bench raster_static)
 

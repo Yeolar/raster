@@ -5,7 +5,7 @@ set(CMAKE_C_COMPILER gcc)
 set(CMAKE_CXX_COMPILER g++)
 
 # Define project
-project(rddoc-framework)
+project(raster)
 
 cmake_minimum_required(VERSION 2.8.8)
 
@@ -57,8 +57,8 @@ link_libraries(
 )
 
 include_directories(
-    ${PROJECT_SOURCE_DIR}/rddoc/3rd
-    ${PROJECT_SOURCE_DIR}/rddoc/3rd/thrift
+    ${PROJECT_SOURCE_DIR}/raster/3rd
+    ${PROJECT_SOURCE_DIR}/raster/3rd/thrift
     ${PROJECT_SOURCE_DIR}
 )
 
@@ -77,73 +77,73 @@ check_cxx_source_compiles("
     RDD_HAVE_XSI_STRERROR_R)
 
 # Work on all sub directories
-add_subdirectory(rddoc/3rd/double-conversion)
-add_subdirectory(rddoc/3rd/http_parser)
-add_subdirectory(rddoc/3rd/thrift)
+add_subdirectory(raster/3rd/double-conversion)
+add_subdirectory(raster/3rd/http_parser)
+add_subdirectory(raster/3rd/thrift)
 
-add_subdirectory(rddoc/concurrency)
-add_subdirectory(rddoc/coroutine)
-add_subdirectory(rddoc/enc)
-add_subdirectory(rddoc/framework)
-add_subdirectory(rddoc/io)
-add_subdirectory(rddoc/io/event)
-add_subdirectory(rddoc/net)
-add_subdirectory(rddoc/plugins/leveldb)
-add_subdirectory(rddoc/plugins/memcached)
-add_subdirectory(rddoc/plugins/monitor)
-add_subdirectory(rddoc/plugins/mysql)
-add_subdirectory(rddoc/protocol/proto)
-add_subdirectory(rddoc/ssl)
-add_subdirectory(rddoc/util)
+add_subdirectory(raster/concurrency)
+add_subdirectory(raster/coroutine)
+add_subdirectory(raster/enc)
+add_subdirectory(raster/framework)
+add_subdirectory(raster/io)
+add_subdirectory(raster/io/event)
+add_subdirectory(raster/net)
+add_subdirectory(raster/plugins/leveldb)
+add_subdirectory(raster/plugins/memcached)
+add_subdirectory(raster/plugins/monitor)
+add_subdirectory(raster/plugins/mysql)
+add_subdirectory(raster/protocol/proto)
+add_subdirectory(raster/ssl)
+add_subdirectory(raster/util)
 
-add_library(rdd_static STATIC
+add_library(raster_static STATIC
     $<TARGET_OBJECTS:double-conversion>
     $<TARGET_OBJECTS:httpparser>
     $<TARGET_OBJECTS:thrift>
-    $<TARGET_OBJECTS:rdd_concurrency>
-    $<TARGET_OBJECTS:rdd_coroutine>
-    $<TARGET_OBJECTS:rdd_enc>
-    $<TARGET_OBJECTS:rdd_framework>
-    $<TARGET_OBJECTS:rdd_io>
-    $<TARGET_OBJECTS:rdd_io_event>
-    $<TARGET_OBJECTS:rdd_net>
-    $<TARGET_OBJECTS:rdd_plugins_leveldb>
-    $<TARGET_OBJECTS:rdd_plugins_memcached>
-    $<TARGET_OBJECTS:rdd_plugins_monitor>
-    $<TARGET_OBJECTS:rdd_plugins_mysql>
-    $<TARGET_OBJECTS:rdd_protocol_proto>
-    $<TARGET_OBJECTS:rdd_ssl>
-    $<TARGET_OBJECTS:rdd_util>
+    $<TARGET_OBJECTS:raster_concurrency>
+    $<TARGET_OBJECTS:raster_coroutine>
+    $<TARGET_OBJECTS:raster_enc>
+    $<TARGET_OBJECTS:raster_framework>
+    $<TARGET_OBJECTS:raster_io>
+    $<TARGET_OBJECTS:raster_io_event>
+    $<TARGET_OBJECTS:raster_net>
+    $<TARGET_OBJECTS:raster_plugins_leveldb>
+    $<TARGET_OBJECTS:raster_plugins_memcached>
+    $<TARGET_OBJECTS:raster_plugins_monitor>
+    $<TARGET_OBJECTS:raster_plugins_mysql>
+    $<TARGET_OBJECTS:raster_protocol_proto>
+    $<TARGET_OBJECTS:raster_ssl>
+    $<TARGET_OBJECTS:raster_util>
 )
-set_target_properties(rdd_static PROPERTIES OUTPUT_NAME rdd)
-add_library(rdd_shared SHARED
+set_target_properties(raster_static PROPERTIES OUTPUT_NAME raster)
+add_library(raster_shared SHARED
     $<TARGET_OBJECTS:double-conversion>
     $<TARGET_OBJECTS:httpparser>
     $<TARGET_OBJECTS:thrift>
-    $<TARGET_OBJECTS:rdd_concurrency>
-    $<TARGET_OBJECTS:rdd_coroutine>
-    $<TARGET_OBJECTS:rdd_enc>
-    $<TARGET_OBJECTS:rdd_framework>
-    $<TARGET_OBJECTS:rdd_io>
-    $<TARGET_OBJECTS:rdd_io_event>
-    $<TARGET_OBJECTS:rdd_net>
-    $<TARGET_OBJECTS:rdd_plugins_leveldb>
-    $<TARGET_OBJECTS:rdd_plugins_memcached>
-    $<TARGET_OBJECTS:rdd_plugins_monitor>
-    $<TARGET_OBJECTS:rdd_plugins_mysql>
-    $<TARGET_OBJECTS:rdd_protocol_proto>
-    $<TARGET_OBJECTS:rdd_ssl>
-    $<TARGET_OBJECTS:rdd_util>
+    $<TARGET_OBJECTS:raster_concurrency>
+    $<TARGET_OBJECTS:raster_coroutine>
+    $<TARGET_OBJECTS:raster_enc>
+    $<TARGET_OBJECTS:raster_framework>
+    $<TARGET_OBJECTS:raster_io>
+    $<TARGET_OBJECTS:raster_io_event>
+    $<TARGET_OBJECTS:raster_net>
+    $<TARGET_OBJECTS:raster_plugins_leveldb>
+    $<TARGET_OBJECTS:raster_plugins_memcached>
+    $<TARGET_OBJECTS:raster_plugins_monitor>
+    $<TARGET_OBJECTS:raster_plugins_mysql>
+    $<TARGET_OBJECTS:raster_protocol_proto>
+    $<TARGET_OBJECTS:raster_ssl>
+    $<TARGET_OBJECTS:raster_util>
 )
-set_target_properties(rdd_shared PROPERTIES OUTPUT_NAME rdd)
+set_target_properties(raster_shared PROPERTIES OUTPUT_NAME raster)
 
-install(TARGETS rdd_static
+install(TARGETS raster_static
     DESTINATION lib
     PERMISSIONS OWNER_READ OWNER_WRITE
                 GROUP_READ
                 WORLD_READ
 )
-install(TARGETS rdd_shared
+install(TARGETS raster_shared
     DESTINATION lib
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
                 GROUP_READ GROUP_EXECUTE
@@ -160,14 +160,14 @@ add_subdirectory(examples/proxy)
 # Test
 if(GTEST_FOUND AND GMOCK_FOUND)
     enable_testing()
-    add_subdirectory(rddoc/concurrency/test)
-    add_subdirectory(rddoc/enc/test)
-    add_subdirectory(rddoc/gen/test)
-    add_subdirectory(rddoc/io/test)
-    add_subdirectory(rddoc/parallel/test)
-    add_subdirectory(rddoc/plugins/mysql/test)
-    add_subdirectory(rddoc/ssl/test)
-    add_subdirectory(rddoc/util/test)
+    add_subdirectory(raster/concurrency/test)
+    add_subdirectory(raster/enc/test)
+    add_subdirectory(raster/gen/test)
+    add_subdirectory(raster/io/test)
+    add_subdirectory(raster/parallel/test)
+    add_subdirectory(raster/plugins/mysql/test)
+    add_subdirectory(raster/ssl/test)
+    add_subdirectory(raster/util/test)
 endif()
 
 # Pack
@@ -177,7 +177,7 @@ set(CPACK_PACKAGE_VERSION_MINOR "${VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${VERSION_PATCH}")
 set(CPACK_GENERATOR "DEB")
 set(CPACK_SOURCE_GENERATOR "TGZ")
-SET(CPACK_PACKAGE_DESCRIPTION "rddoc framework")
+SET(CPACK_PACKAGE_DESCRIPTION "raster: rddoc framework")
 SET(CPACK_PACKAGE_CONTACT "rdd@rddoc.com")
 include(CPack)
 

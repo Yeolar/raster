@@ -3,14 +3,14 @@
  */
 
 #include <gflags/gflags.h>
-#include "rddoc/framework/Config.h"
-#include "rddoc/net/Actor.h"
-#include "rddoc/protocol/proto/AsyncClient.h"
-#include "rddoc/protocol/proto/AsyncServer.h"
-#include "rddoc/util/Logging.h"
-#include "rddoc/util/ScopeGuard.h"
-#include "rddoc/util/Signal.h"
-#include "rddoc/util/Uuid.h"
+#include "raster/framework/Config.h"
+#include "raster/net/Actor.h"
+#include "raster/protocol/proto/AsyncClient.h"
+#include "raster/protocol/proto/AsyncServer.h"
+#include "raster/util/Logging.h"
+#include "raster/util/ScopeGuard.h"
+#include "raster/util/Signal.h"
+#include "raster/util/Uuid.h"
 #include "Proxy.pb.h"
 
 static const char* VERSION = "1.0.0";

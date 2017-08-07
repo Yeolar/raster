@@ -6,7 +6,7 @@ add_executable(parallel
     gen-cpp/Parallel_types.cpp
     Server.cpp
 )
-target_link_libraries(parallel rdd_static)
+target_link_libraries(parallel raster_static)
 
 add_executable(parallel-bench
     gen-cpp/Parallel_constants.cpp
@@ -14,5 +14,5 @@ add_executable(parallel-bench
     gen-cpp/Parallel_types.cpp
     Bench.cpp
 )
-target_link_libraries(parallel-bench rdd_static)
+target_link_libraries(parallel-bench raster_static)
 
