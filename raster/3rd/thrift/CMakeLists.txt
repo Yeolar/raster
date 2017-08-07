@@ -18,12 +18,19 @@ install(FILES
     TDispatchProcessor.h
     Thrift.h
     TProcessor.h
+    DESTINATION include/raster/3rd/thrift)
+
+install(FILES
     protocol/TBase64Utils.h
     protocol/TBinaryProtocol.h
+    protocol/TBinaryProtocol.tcc
     protocol/TJSONProtocol.h
     protocol/TProtocolException.h
     protocol/TProtocol.h
     protocol/TVirtualProtocol.h
+    DESTINATION include/raster/3rd/thrift/protocol)
+
+install(FILES
     transport/TBufferTransports.h
     transport/TServerSocket.h
     transport/TServerTransport.h
@@ -31,4 +38,4 @@ install(FILES
     transport/TTransportException.h
     transport/TTransport.h
     transport/TVirtualTransport.h
-    DESTINATION include/raster/3rd/thrift)
+    DESTINATION include/raster/3rd/thrift/transport)
