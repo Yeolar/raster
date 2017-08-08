@@ -20,6 +20,7 @@ set(VERSION_PATCH 0)
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 find_package(Threads REQUIRED)
 find_package(Boost REQUIRED COMPONENTS context filesystem regex system)
+find_package(CURL REQUIRED)
 find_package(GFlags REQUIRED)
 find_package(ICU REQUIRED)
 find_package(OpenSSL REQUIRED)
@@ -39,6 +40,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11 -fPIC")
 link_libraries(
     ${CMAKE_THREAD_LIBS_INIT}
     ${Boost_LIBRARIES}
+    ${CURL_LIBRARIES}
     ${GFLAGS_LIBRARIES}
     ${ICU_LIBRARIES}
     ${ICU_I18N_LIBRARIES}

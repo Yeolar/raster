@@ -10,6 +10,7 @@
 #include "raster/io/FileUtil.h"
 #include "raster/net/Actor.h"
 #include "raster/parallel/Scheduler.h"
+#include "raster/framework/FalconSender.h"
 #include "raster/framework/Monitor.h"
 #include "raster/util/Logging.h"
 
@@ -102,6 +103,11 @@ void configMonitor(const dynamic& j) {
   RDDLOG(INFO) << "config monitor";
   if (json::get(j, "open", false)) {
     Singleton<Monitor>::get()->setPrefix(json::get(j, "prefix", "rdd"));
+    auto sender = json::get(j, "sender", "falcon");
+    if (sender == "falcon") {
+      Singleton<Monitor>::get()->setSender(
+          std::unique_ptr<Monitor::Sender>(new FalconSender()));
+    }
     Singleton<Monitor>::get()->start();
   }
 }

@@ -17,7 +17,7 @@ void Monitor::run() {
       MonMap data;
       dump(data);
       if (sender_) {
-        sender_(data);
+        sender_->send(data);
       }
     }
     sleep(1);

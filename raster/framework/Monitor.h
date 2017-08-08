@@ -71,6 +71,11 @@ class Monitor {
 public:
   typedef std::map<std::string, int> MonMap;
 
+  class Sender {
+  public:
+    virtual bool send(const MonMap& data) = 0;
+  };
+
   Monitor() {}
 
   void start() {
@@ -85,7 +90,7 @@ public:
     prefix_ = prefix;
   }
 
-  void setSender(std::function<void(const MonMap&)>&& sender) {
+  void setSender(std::unique_ptr<Sender>&& sender) {
     sender_ = std::move(sender);
   }
 
@@ -95,7 +100,7 @@ private:
   void dump(MonMap& data);
 
   std::string prefix_;
-  std::function<void(const MonMap&)> sender_;
+  std::unique_ptr<Sender> sender_;
   std::map<std::string, MonitorValue> mvalues_;
   std::mutex lock_;
   std::thread handle_;
