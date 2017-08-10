@@ -1,4 +1,6 @@
 /*
+ * Copyright 2017 Facebook, Inc.
+ * Copyright ICU
  * Copyright (C) 2017, Yeolar
  */
 

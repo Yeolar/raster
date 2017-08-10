@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 1996, 1997, 1998 Theodore Ts'o.
  * Copyright (C) 2017, Yeolar
  */
 
