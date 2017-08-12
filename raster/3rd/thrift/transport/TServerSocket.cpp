@@ -29,8 +29,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <thrift/transport/TSocket.h>
-#include <thrift/transport/TServerSocket.h>
+#include "TSocket.h"
+#include "TServerSocket.h"
 #include "raster/util/Logging.h"
 
 #ifndef AF_LOCAL

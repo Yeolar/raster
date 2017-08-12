@@ -28,8 +28,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <thrift/transport/TSocket.h>
-#include <thrift/transport/TTransportException.h>
+#include "TSocket.h"
+#include "TTransportException.h"
 #include "raster/util/Logging.h"
 
 template <class T>

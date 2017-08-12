@@ -5,8 +5,8 @@
 #pragma once
 
 #include <arpa/inet.h>
-#include <protocol/TBinaryProtocol.h>
-#include <transport/TBufferTransports.h>
+#include "raster/3rd/thrift/protocol/TBinaryProtocol.h"
+#include "raster/3rd/thrift/transport/TBufferTransports.h"
 #include "raster/net/AsyncClient.h"
 #include "raster/protocol/thrift/Encoding.h"
 #include "raster/protocol/thrift/Protocol.h"

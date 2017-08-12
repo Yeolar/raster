@@ -21,7 +21,7 @@
 #define _THRIFT_TRANSPORT_TTRANSPORTEXCEPTION_H_ 1
 
 #include <string>
-#include <thrift/Thrift.h>
+#include "../Thrift.h"
 #include "raster/util/String.h"
 
 namespace apache {

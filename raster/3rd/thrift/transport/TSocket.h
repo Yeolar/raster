@@ -22,9 +22,9 @@
 
 #include <string>
 
-#include <thrift/transport/TTransport.h>
-#include <thrift/transport/TVirtualTransport.h>
-#include <thrift/transport/TServerSocket.h>
+#include "TTransport.h"
+#include "TVirtualTransport.h"
+#include "TServerSocket.h"
 
 #include <arpa/inet.h>
 #include <sys/time.h>

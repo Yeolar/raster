@@ -6,10 +6,10 @@
 
 #include <arpa/inet.h>
 #include <boost/shared_ptr.hpp>
-#include <thrift/TProcessor.h>
-#include <thrift/protocol/TBinaryProtocol.h>
-#include <thrift/transport/TBufferTransports.h>
-#include <thrift/transport/TTransportException.h>
+#include "raster/3rd/thrift/TProcessor.h"
+#include "raster/3rd/thrift/protocol/TBinaryProtocol.h"
+#include "raster/3rd/thrift/transport/TBufferTransports.h"
+#include "raster/3rd/thrift/transport/TTransportException.h"
 #include "raster/net/Event.h"
 #include "raster/net/Processor.h"
 #include "raster/protocol/thrift/Encoding.h"

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "raster/net/Protocol.h"
-#include <thrift/transport/TBufferTransports.h>
+#include "raster/3rd/thrift/transport/TBufferTransports.h"
 
 namespace rdd {
 

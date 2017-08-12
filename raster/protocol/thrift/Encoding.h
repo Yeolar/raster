@@ -5,7 +5,7 @@
 #pragma once
 
 #include <arpa/inet.h>
-#include <thrift/transport/TBufferTransports.h>
+#include "raster/3rd/thrift/transport/TBufferTransports.h"
 #include "raster/net/Protocol.h"
 #include "raster/io/Cursor.h"
 #include "raster/io/TypedIOBuf.h"

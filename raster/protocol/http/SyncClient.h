@@ -5,10 +5,10 @@
 #pragma once
 
 #include <arpa/inet.h>
-#include <thrift/transport/TSocket.h>
-#include <thrift/transport/TTransport.h>
-#include <thrift/transport/TBufferTransports.h>
-#include <thrift/protocol/TBinaryProtocol.h>
+#include "raster/3rd/thrift/transport/TSocket.h"
+#include "raster/3rd/thrift/transport/TTransport.h"
+#include "raster/3rd/thrift/transport/TBufferTransports.h"
+#include "raster/3rd/thrift/protocol/TBinaryProtocol.h"
 #include "raster/net/NetUtil.h"
 #include "raster/util/Logging.h"
 

@@ -19,7 +19,7 @@
 #ifndef _THRIFT_TDISPATCHPROCESSOR_H_
 #define _THRIFT_TDISPATCHPROCESSOR_H_ 1
 
-#include <thrift/TProcessor.h>
+#include "TProcessor.h"
 #include "raster/util/Logging.h"
 
 namespace apache {

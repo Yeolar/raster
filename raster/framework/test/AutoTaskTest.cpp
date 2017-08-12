@@ -2,7 +2,7 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/util/AutoTask.h"
+#include "raster/framework/AutoTask.h"
 #include <gtest/gtest.h>
 
 using namespace rdd;

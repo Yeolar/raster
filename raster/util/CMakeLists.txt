@@ -26,7 +26,6 @@ add_library(raster_util OBJECT ${RASTER_UTIL_SRCS})
 install(FILES
     Algorithm.h
     Arena.h
-    AssignOp.h
     AtomicBitSet.h
     Base64.h
     Base64-inl.h

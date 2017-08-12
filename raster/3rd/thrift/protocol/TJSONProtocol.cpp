@@ -17,7 +17,7 @@
  * under the License.
  */
 
-#include <thrift/protocol/TJSONProtocol.h>
+#include "TJSONProtocol.h"
 
 #include <limits>
 #include <locale>
@@ -27,8 +27,8 @@
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <thrift/protocol/TBase64Utils.h>
-#include <thrift/transport/TTransportException.h>
+#include "TBase64Utils.h"
+#include "../transport/TTransportException.h"
 
 using namespace apache::thrift::transport;
 
