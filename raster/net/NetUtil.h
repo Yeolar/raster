@@ -36,6 +36,11 @@ inline bool operator<(const Peer& lhs, const Peer& rhs) {
   return lhs.port < rhs.port || (lhs.port == rhs.port && lhs.host < rhs.host);
 }
 
+inline std::ostream& operator<<(std::ostream& os, const Peer& peer) {
+  os << peer.host << ":" << peer.port;
+  return os;
+}
+
 struct TimeoutOption {
   uint64_t ctimeout;    // connect timeout
   uint64_t rtimeout;    // read timeout
