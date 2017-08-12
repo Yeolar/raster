@@ -24,10 +24,11 @@ raster是我针对目前的微服务的概念，参考之前的项目以及folly
 
 依赖包括 Boost CURL GFlags ICU LevelDB Libmemcached MySQL OpenSSL Protobuf ZLIB，其中部分是扩展插件的依赖。
 
-编译
+编译安装
 
     $ mkdir build && cd build
     $ make -j8
+    $ sudo make install
 
 运行demo
 
