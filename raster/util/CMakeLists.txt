@@ -47,9 +47,9 @@ install(FILES
     Futex.h
     Hash.h
     json.h
-    LockedDeq.h
     LockedLinkedList.h
     LockedMap.h
+    LockedQueue.h
     LogBase.h
     Logging.h
     Macro.h

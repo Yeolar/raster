@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <atomic>
 #include <functional>
 #include <iomanip>
 #include <iostream>
@@ -15,8 +16,8 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "raster/io/FSUtil.h"
 #include "raster/util/FixedStream.h"
-#include "raster/util/ProducerConsumerQueue.h"
 #include "raster/util/String.h"
 #include "raster/util/ThreadUtil.h"
 #include "raster/util/Time.h"
@@ -57,18 +58,47 @@ inline const char* getLevelName(int level) {
 
 class BaseLogger {
 public:
+  template <class T>
+  class SwapQueue {
+  public:
+    SwapQueue() {}
+
+    void add(const T& value) {
+      std::lock_guard<std::mutex> guard(lock_);
+      producer_.push_back(value);
+    }
+
+    void consume(const std::function<void(const T&)>& consumer) {
+      {
+        std::lock_guard<std::mutex> guard(lock_);
+        std::swap(producer_, consumer_);
+      }
+      if (!consumer_.empty()) {
+        for (auto& value : consumer_) {
+          consumer(value);
+        }
+        consumer_.clear();
+      }
+    }
+
+  private:
+    std::vector<T> producer_;
+    std::vector<T> consumer_;
+    std::mutex lock_;
+  };
+
+public:
   struct Options {
-    std::string logfile;
+    std::string logFile;
     int level;
+    int rotate;
+    int splitSize;
     bool async;
   };
 
   BaseLogger(const std::string& name)
     : name_(name)
-    , fd_(-1)
-    , level_(1)
-    , async_(false)
-    , queue_(10240) {
+    , fd_(-1) {
   }
 
   virtual ~BaseLogger() {
@@ -79,19 +109,16 @@ public:
   }
 
   void run() {
+    using namespace std::placeholders;
     while (true) {
-      while (!queue_.isEmpty()) {
-        std::string message;
-        queue_.read(message);
-        write(message);
-      }
+      queue_.consume(std::bind(&BaseLogger::write, this, _1));
       usleep(1000);
     }
   }
 
   void log(const std::string& message, bool async = true) {
-    if (async_ && async && !queue_.isFull()) {
-      queue_.write(message);
+    if (async_ && async) {
+      queue_.add(message);
     } else {
       std::lock_guard<std::mutex> guard(lock_);
       write(message);
@@ -109,6 +136,13 @@ public:
     }
   }
 
+  void setRotate(int rotate, int size) {
+    if (size > 0) {
+      rotate_ = rotate;
+      splitSize_ = size;
+    }
+  }
+
   void setAsync(bool async) {
     async_ = async;
     if (async_) {
@@ -118,8 +152,9 @@ public:
   }
 
   void setOptions(const Options& opts) {
-    setLogFile(opts.logfile);
+    setLogFile(opts.logFile);
     setLevel(opts.level);
+    setRotate(opts.rotate, opts.splitSize);
     setAsync(opts.async);
   }
 
@@ -134,18 +169,53 @@ private:
     }
   }
 
-  void write(const std::string& message) const {
+  int getSize() const {
+    if (fd_ >= 0) {
+      struct stat fs;
+      if (fstat(fd_, &fs) != -1) {
+        return fs.st_size;
+      }
+    }
+    return -1;
+  }
+
+  void split() {
+    close();
+    fs::path file(file_);
+    for (fs::directory_iterator it(file.parent_path());
+         it != fs::directory_iterator(); ++it) {
+      auto path = it->path();
+      if (path.stem() == file.filename()) {
+        int no = atoi(path.extension().c_str());
+        if (rotate_ > 0 && no >= rotate_) {
+          remove(path.c_str());
+        } else if (no > 0) {
+          rename(path.c_str(),
+                 path.replace_extension(to<std::string>(no+1)).c_str());
+        }
+      }
+    }
+    rename(file_.c_str(), (file_ + ".1").c_str());
+    open();
+  }
+
+  void write(const std::string& message) {
     int fd = fd_;
     ::write(fd >= 0 ? fd : STDERR_FILENO, message.c_str(), message.size());
+    if (splitSize_ > 0 && getSize() >= splitSize_) {
+      split();
+    }
   }
 
   std::string name_;
   std::string file_;
   std::atomic<int> fd_;
-  int level_;
-  bool async_;
+  int level_{1};
+  int rotate_{0};
+  int splitSize_{0};
+  bool async_{false};
   std::thread handle_;
-  ProducerConsumerQueue<std::string> queue_;
+  SwapQueue<std::string> queue_;
   std::mutex lock_;
 };
 
