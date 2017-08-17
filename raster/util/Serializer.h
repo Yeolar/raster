@@ -11,10 +11,155 @@
 #include "raster/3rd/thrift/protocol/TBinaryProtocol.h"
 #include "raster/3rd/thrift/protocol/TJSONProtocol.h"
 #include "raster/3rd/thrift/transport/TBufferTransports.h"
+#include "raster/io/Cursor.h"
 #include "raster/util/String.h"
 #include "raster/util/Traits.h"
 
 namespace rdd {
+
+/*
+ * Binary serialize protocol.
+ * Support basic types and most STL containers, can be extended by
+ * adding serialize/unserialize functions.
+ */
+namespace bsp {
+
+/*
+ * Outer base on IOBuf, support string-like interface.
+ */
+class IOBufOuter {
+public:
+  IOBufOuter(IOBuf* buf, uint64_t growth)
+    : appender_(buf, growth) {}
+
+  void append(const char* p, size_t n) {
+    appender_.pushAtMost((uint8_t*)p, n);
+  }
+
+  void append(const std::string& s) {
+    append(s.data(), s.size());
+  }
+
+private:
+  io::Appender appender_;
+};
+
+template <class T, class Out>
+inline typename std::enable_if<std::is_arithmetic<T>::value>::type
+serialize(const T& value, Out& out) {
+  out.append((char*)&value, sizeof(T));
+}
+
+template <class T>
+inline typename std::enable_if<std::is_arithmetic<T>::value, uint32_t>::type
+unserialize(ByteRange in, uint32_t pos, T& value) {
+  memcpy(&value, in.data() + pos, sizeof(T));
+  return sizeof(T);
+}
+
+template <class Out>
+inline void serialize(const std::string& value, Out& out) {
+  uint32_t n = value.size();
+  serialize(n, out);
+  out.append(value);
+}
+
+inline uint32_t unserialize(ByteRange in, uint32_t pos, std::string& value) {
+  uint32_t n = 0;
+  uint32_t p = pos + unserialize(in, pos, n);
+  value.assign((char*)in.data() + p, n);
+  return n + sizeof(uint32_t);
+}
+
+template <class T, class Out>
+void serialize(const std::vector<T>& value, Out& out) {
+  uint32_t n = value.size();
+  serialize(n, out);
+  for (auto& i : value) {
+    serialize(i, out);
+  }
+}
+
+template <class T>
+uint32_t unserialize(ByteRange in, uint32_t pos, std::vector<T>& value) {
+  uint32_t n = 0;
+  uint32_t p = pos + unserialize(in, pos, n);
+  value.clear();
+  value.reserve(n);
+  T v;
+  for (uint32_t i = 0; i < n; i++) {
+    p += unserialize(in, p, v);
+    value.push_back(std::move(v));
+  }
+  return p - pos;
+}
+
+template <class T, class Out>
+void serialize(const std::set<T>& value, Out& out) {
+  uint32_t n = value.size();
+  serialize(n, out);
+  for (auto& i : value) {
+    serialize(i, out);
+  }
+}
+
+template <class T>
+uint32_t unserialize(ByteRange in, uint32_t pos, std::set<T>& value) {
+  uint32_t n = 0;
+  uint32_t p = pos + unserialize(in, pos, n);
+  value.clear();
+  T v;
+  for (uint32_t i = 0; i < n; i++) {
+    p += unserialize(in, p, v);
+    value.insert(std::move(v));
+  }
+  return p - pos;
+}
+
+template <class K, class V, class Out>
+void serialize(const std::map<K, V>& value, Out& out) {
+  uint32_t n = value.size();
+  serialize(n, out);
+  for (auto& p : value) {
+    serialize(p.first, out);
+    serialize(p.second, out);
+  }
+}
+
+template <class K, class V>
+uint32_t unserialize(ByteRange in, uint32_t pos, std::map<K, V>& value) {
+  uint32_t n = 0;
+  uint32_t p = pos + unserialize(in, pos, n);
+  value.clear();
+  K k;
+  V v;
+  for (uint32_t i = 0; i < n; i++) {
+    p += unserialize(in, p, k);
+    p += unserialize(in, p, v);
+    value.emplace(k, v);
+  }
+  return p - pos;
+}
+
+template <class K, class V, class Out>
+void serialize(const std::pair<K, V>& value, Out& out) {
+  serialize(value.first, out);
+  serialize(value.second, out);
+}
+
+template <class K, class V>
+uint32_t unserialize(ByteRange in, uint32_t pos, std::pair<K, V>& value) {
+  uint32_t p = pos;
+  K k;
+  V v;
+  p += unserialize(in, p, k);
+  p += unserialize(in, p, v);
+  value.first = std::move(k);
+  value.second = std::move(v);
+  return p - pos;
+}
+
+} // namespace bsp
 
 namespace thrift {
 
