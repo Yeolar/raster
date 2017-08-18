@@ -67,7 +67,6 @@ install(FILES
     SArray.h
     ScopeGuard.h
     Sem.h
-    Serializer.h
     Signal.h
     Singleton.h
     SpinLock.h

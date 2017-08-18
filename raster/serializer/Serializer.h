@@ -150,17 +150,41 @@ void serialize(const std::pair<K, V>& value, Out& out) {
 template <class K, class V>
 uint32_t unserialize(ByteRange in, uint32_t pos, std::pair<K, V>& value) {
   uint32_t p = pos;
-  K k;
-  V v;
-  p += unserialize(in, p, k);
-  p += unserialize(in, p, v);
-  value.first = std::move(k);
-  value.second = std::move(v);
+  p += unserialize(in, p, value.first);
+  p += unserialize(in, p, value.second);
   return p - pos;
 }
 
+/*
+ * Macro for generate serialize and unserialize functions for struct type.
+ * Usage:
+ *
+ *  struct A {
+ *    int i;
+ *    float j;
+ *  };
+ *  RDD_BSP_SERIALIZER(A, i, j);
+ */
+
+#define RDD_BSP_SERIALIZE_X(a)    serialize(value.a, out);
+#define RDD_BSP_UNSERIALIZE_X(a)  p += unserialize(in, p, value.a);
+
+#define RDD_BSP_SERIALIZER(type, ...)                                     \
+  template <class Out>                                                    \
+  inline void serialize(const type& value, Out& out) {                    \
+    RDD_APPLYXn(RDD_BSP_SERIALIZE_X, __VA_ARGS__)                         \
+  }                                                                       \
+  inline uint32_t unserialize(ByteRange in, uint32_t pos, type& value) {  \
+    uint32_t p = pos;                                                     \
+    RDD_APPLYXn(RDD_BSP_UNSERIALIZE_X, __VA_ARGS__)                       \
+    return p - pos;                                                       \
+  }
+
 } // namespace bsp
 
+/*
+ * Thrift protocol.
+ */
 namespace thrift {
 
 namespace {
