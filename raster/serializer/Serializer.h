@@ -19,8 +19,8 @@ namespace rdd {
 
 /*
  * Binary serialize protocol.
- * Support basic types and most STL containers, can be extended by
- * adding serialize/unserialize functions.
+ * Support basic types, most STL containers, and self-defined structs,
+ * can be extended by adding serialize/unserialize functions.
  */
 namespace bsp {
 
@@ -166,19 +166,19 @@ uint32_t unserialize(ByteRange in, uint32_t pos, std::pair<K, V>& value) {
  *  RDD_BSP_SERIALIZER(A, i, j);
  */
 
-#define RDD_BSP_SERIALIZE_X(a)    serialize(value.a, out);
-#define RDD_BSP_UNSERIALIZE_X(a)  p += unserialize(in, p, value.a);
+#define RDD_BSP_SERIALIZE_X(a)    ::rdd::bsp::serialize(value.a, out);
+#define RDD_BSP_UNSERIALIZE_X(a)  p += ::rdd::bsp::unserialize(in, p, value.a);
 
-#define RDD_BSP_SERIALIZER(type, ...)                                     \
-  template <class Out>                                                    \
-  inline void serialize(const type& value, Out& out) {                    \
-    RDD_APPLYXn(RDD_BSP_SERIALIZE_X, __VA_ARGS__)                         \
-  }                                                                       \
-  inline uint32_t unserialize(ByteRange in, uint32_t pos, type& value) {  \
-    uint32_t p = pos;                                                     \
-    RDD_APPLYXn(RDD_BSP_UNSERIALIZE_X, __VA_ARGS__)                       \
-    return p - pos;                                                       \
-  }
+#define RDD_BSP_SERIALIZER(type, ...)                                         \
+template <class Out>                                                          \
+inline void serialize(const type& value, Out& out) {                          \
+  RDD_APPLYXn(RDD_BSP_SERIALIZE_X, __VA_ARGS__)                               \
+}                                                                             \
+inline uint32_t unserialize(::rdd::ByteRange in, uint32_t pos, type& value) { \
+  uint32_t p = pos;                                                           \
+  RDD_APPLYXn(RDD_BSP_UNSERIALIZE_X, __VA_ARGS__)                             \
+  return p - pos;                                                             \
+}
 
 } // namespace bsp
 
