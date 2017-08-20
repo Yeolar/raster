@@ -8,8 +8,7 @@
 #include <vector>
 #include <gtest/gtest.h>
 
-using namespace rdd;
-using namespace rdd::bsp;
+namespace rdd {
 
 struct BasicTypeObject {
   bool b{false};
@@ -18,15 +17,19 @@ struct BasicTypeObject {
   std::string s;
 };
 
-RDD_BSP_SERIALIZER(BasicTypeObject, b, i, f, s)
+RDD_SERIALIZER(BasicTypeObject, b, i, f, s)
 
 struct NestedObject {
-  BasicTypeObject object;
-  std::vector<BasicTypeObject> list;
-  std::map<std::string, BasicTypeObject> map;
+  BasicTypeObject o;
+  std::vector<BasicTypeObject> a;
+  std::map<std::string, BasicTypeObject> m;
 };
 
-RDD_BSP_SERIALIZER(NestedObject, object, list, map);
+RDD_SERIALIZER(NestedObject, o, a, m)
+
+}
+
+using namespace rdd;
 
 TEST(bsp_serialize, basic) {
   {
@@ -72,19 +75,19 @@ TEST(bsp_serialize, structure) {
   {
     std::string out;
     NestedObject object, outObject;
-    object.object.b = true;
-    object.object.i = 10;
-    object.object.f = 0.1;
-    object.object.s = "abc";
-    object.list.push_back(object.object);
-    object.map.emplace("key", object.object);
+    object.o.b = true;
+    object.o.i = 10;
+    object.o.f = 0.1;
+    object.o.s = "abc";
+    object.a.push_back(object.o);
+    object.m.emplace("key", object.o);
     serialize(object, out);
     unserialize(range(out), 0, outObject);
-    EXPECT_EQ(outObject.object.b, true);
-    EXPECT_EQ(outObject.object.i, 10);
-    EXPECT_FLOAT_EQ(outObject.object.f, 0.1);
-    EXPECT_STREQ(outObject.object.s.c_str(), "abc");
-    EXPECT_EQ(outObject.list.size(), 1);
-    EXPECT_EQ(outObject.map.size(), 1);
+    EXPECT_EQ(outObject.o.b, true);
+    EXPECT_EQ(outObject.o.i, 10);
+    EXPECT_FLOAT_EQ(outObject.o.f, 0.1);
+    EXPECT_STREQ(outObject.o.s.c_str(), "abc");
+    EXPECT_EQ(outObject.a.size(), 1);
+    EXPECT_EQ(outObject.m.size(), 1);
   }
 }

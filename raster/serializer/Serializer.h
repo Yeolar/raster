@@ -5,6 +5,7 @@
 #pragma once
 
 #include <algorithm>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <arpa/inet.h>
@@ -22,7 +23,6 @@ namespace rdd {
  * Support basic types, most STL containers, and self-defined structs,
  * can be extended by adding serialize/unserialize functions.
  */
-namespace bsp {
 
 /*
  * Outer base on IOBuf, support string-like interface.
@@ -159,28 +159,30 @@ uint32_t unserialize(ByteRange in, uint32_t pos, std::pair<K, V>& value) {
  * Macro for generate serialize and unserialize functions for struct type.
  * Usage:
  *
+ *  namespace rdd {
+ *
  *  struct A {
  *    int i;
  *    float j;
  *  };
- *  RDD_BSP_SERIALIZER(A, i, j);
+ *  RDD_SERIALIZER(A, i, j)
+ *
+ *  }
  */
 
-#define RDD_BSP_SERIALIZE_X(a)    ::rdd::bsp::serialize(value.a, out);
-#define RDD_BSP_UNSERIALIZE_X(a)  p += ::rdd::bsp::unserialize(in, p, value.a);
+#define RDD_SERIALIZE_X(_a)   serialize(value._a, out);
+#define RDD_UNSERIALIZE_X(_a) p += unserialize(in, p, value._a);
 
-#define RDD_BSP_SERIALIZER(type, ...)                                         \
-template <class Out>                                                          \
-inline void serialize(const type& value, Out& out) {                          \
-  RDD_APPLYXn(RDD_BSP_SERIALIZE_X, __VA_ARGS__)                               \
-}                                                                             \
-inline uint32_t unserialize(::rdd::ByteRange in, uint32_t pos, type& value) { \
-  uint32_t p = pos;                                                           \
-  RDD_APPLYXn(RDD_BSP_UNSERIALIZE_X, __VA_ARGS__)                             \
-  return p - pos;                                                             \
+#define RDD_SERIALIZER(_type, ...)                                      \
+template <class Out>                                                    \
+inline void serialize(const _type& value, Out& out) {                   \
+  RDD_APPLYXn(RDD_SERIALIZE_X, __VA_ARGS__)                             \
+}                                                                       \
+inline uint32_t unserialize(ByteRange in, uint32_t pos, _type& value) { \
+  uint32_t p = pos;                                                     \
+  RDD_APPLYXn(RDD_UNSERIALIZE_X, __VA_ARGS__)                           \
+  return p - pos;                                                       \
 }
-
-} // namespace bsp
 
 /*
  * Thrift protocol.
