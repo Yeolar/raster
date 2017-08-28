@@ -51,7 +51,7 @@ public:
       const H* header = TypedIOBuf<H>(buf).data();
       size_t n = bodyLength(*header);
       if (n > BODYLEN_LIMIT) {
-        RDD_EVLOG(WARN, event) << "big request, bodyLength=" << n;
+        RDDLOG(WARN) << *event << " big request, bodyLength=" << n;
       }
       event->rlen() = n;
       r = Protocol::readData(event);

@@ -14,19 +14,6 @@
 #include "raster/net/Socket.h"
 #include "raster/util/ContextWrapper.h"
 
-#define RDD_EVLOG(severity, ev) \
-  RDDLOG(severity) << "ev(" << (void*)(ev) << ", " \
-    << (ev)->roleLabel() << ":" \
-    << (ev)->str() << ", " \
-    << (ev)->typeName() << ") "
-
-#define RDD_EVTLOG(severity, ev) \
-  RDDLOG(severity) << "ev(" << (void*)(ev) << ", " \
-    << (ev)->roleLabel() << ":" \
-    << (ev)->str() << ", " \
-    << (ev)->typeName() << ", " \
-    << (ev)->timestampStr() << ") "
-
 namespace rdd {
 
 class Channel;
@@ -191,5 +178,14 @@ private:
 
   ContextWrapper userCtx_;
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Event& event) {
+  os << "ev("
+     << (void*)(&event) << ", "
+     << event.str() << ", "
+     << event.typeName() << ", "
+     << event.timestampStr() << ")";
+  return os;
+}
 
 } // namespace rdd

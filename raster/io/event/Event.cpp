@@ -19,7 +19,7 @@ Event::Event(const std::shared_ptr<Channel>& channel,
   , socket_(socket)
   , timeoutOpt_(channel->timeoutOption()) {
   reset();
-  RDD_EVLOG(V2, this) << "+";
+  RDDLOG(V2) << *this << " +";
 }
 
 Event::Event(Waker* waker) {
@@ -32,7 +32,7 @@ Event::Event(Waker* waker) {
 
 Event::~Event() {
   userCtx_.dispose();
-  RDD_EVTLOG(V2, this) << "-";
+  RDDLOG(V2) << *this << " -";
 }
 
 void Event::reset() {
@@ -51,7 +51,7 @@ void Event::reset() {
 
 void Event::restart() {
   if (!timestamps_.empty()) {
-    RDD_EVTLOG(V2, this) << "restart";
+    RDDLOG(V2) << *this << " restart";
     timestamps_.clear();
   }
   timestamps_.push_back(Timestamp(INIT));

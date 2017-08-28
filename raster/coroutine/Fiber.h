@@ -12,11 +12,9 @@
 #include "raster/util/noncopyable.h"
 #include "raster/util/Time.h"
 
-#define RDD_FCLOG(severity, t) \
-  RDDLOG(severity) << "fiber(" << (void*)(t) << ", " \
-    << (t)->timestampStr() << ") "
-
 namespace rdd {
+
+std::ostream& operator<<(std::ostream& os, const Fiber& fiber);
 
 class Fiber : noncopyable {
 public:
@@ -63,7 +61,7 @@ public:
     if (qtimeout_ > 0) {
       uint64_t interval = timePassed(qstart_);
       if (interval > qtimeout_) {
-        RDD_FCLOG(WARN, this) << "is timeout(us): "
+        RDDLOG(WARN) << *this << " is timeout(us): "
           << interval << ">" << qtimeout_;
         return true;
       }
@@ -74,13 +72,13 @@ public:
   void execute() {
     assert(status_ == RUNABLE);
     setStatus(RUNNING);
-    RDD_FCLOG(V5, this) << "execute";
+    RDDLOG(V5) << *this << " execute";
     context_.activate();
   }
   void yield(int status) {
     assert(status_ == RUNNING);
     setStatus(status);
-    RDD_FCLOG(V5, this) << "yield:" << statusLabel();
+    RDDLOG(V5) << *this << " yield:" << statusLabel();
     context_.deactivate();
   }
 
@@ -114,5 +112,13 @@ private:
   uint64_t qtimeout_{300000}; // deq timeout
   std::vector<Timestamp> timestamps_;
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Fiber& fiber) {
+  os << "fc("
+     << (void*)(&fiber) << ", "
+     << fiber.statusLabel() << ", "
+     << fiber.timestampStr() << ")";
+  return os;
+}
 
 } // namespace rdd

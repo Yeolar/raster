@@ -29,7 +29,7 @@ public:
     } else {
       size_t n = http_event->bodyLength();
       if (n > BODYLEN_LIMIT) {
-        RDD_EVLOG(WARN, event) << "big request, bodyLength=" << n;
+        RDDLOG(WARN) << *event << " big request, bodyLength=" << n;
       }
       event->rlen() = n;
       r = Protocol::readData(event);

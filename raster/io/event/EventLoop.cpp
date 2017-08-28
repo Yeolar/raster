@@ -36,7 +36,7 @@ void EventLoop::listen(const std::shared_ptr<Channel>& channel, int backlog) {
   listenFds_.emplace_back(socket->fd());
   event->setType(Event::LISTEN);
   dispatchEvent(event);
-  RDD_EVLOG(INFO, event) << "listen on port=" << port;
+  RDDLOG(INFO) << *event << " listen on port=" << port;
 }
 
 void EventLoop::loopBody(bool once) {
@@ -123,8 +123,8 @@ void EventLoop::addCallback(const VoidFunc& callback) {
 }
 
 void EventLoop::dispatchEvent(Event *event) {
-  RDD_EVLOG(V2, event)
-    << "add event with executor(" << (void*)event->executor() << ")";
+  RDDLOG(V2) << *event
+    << " add event with executor(" << (void*)event->executor() << ")";
   switch (event->type()) {
     case Event::LISTEN:
       addListenEvent(event); break;
@@ -135,7 +135,7 @@ void EventLoop::dispatchEvent(Event *event) {
     case Event::TOWRITE:
       addWriteEvent(event); break;
     default:
-      RDD_EVLOG(ERROR, event) << "cannot add event";
+      RDDLOG(ERROR) << *event << " cannot add event";
       break;
   }
 }
@@ -148,7 +148,7 @@ void EventLoop::addListenEvent(Event *event) {
 void EventLoop::addReadEvent(Event *event) {
   assert(event->type() == Event::NEXT ||
          event->type() == Event::TOREAD);
-  RDD_EVLOG(V2, event) << "add e/rdeadline";
+  RDDLOG(V2) << *event << " add e/rdeadline";
   deadlineHeap_.push(event->type() == Event::NEXT ?
                      event->edeadline() : event->rdeadline());
   poll_.add(event->fd(), EPOLLIN, event);
@@ -157,7 +157,7 @@ void EventLoop::addReadEvent(Event *event) {
 void EventLoop::addWriteEvent(Event *event) {
   assert(event->type() == Event::CONNECT ||
          event->type() == Event::TOWRITE);
-  RDD_EVLOG(V2, event) << "add wdeadline";
+  RDDLOG(V2) << *event << " add wdeadline";
   // TODO epoll_wait interval
   //deadlineHeap_.push(event->type() == Event::CONNECT ?
   //                    event->cdeadline() : event->wdeadline());
@@ -166,17 +166,17 @@ void EventLoop::addWriteEvent(Event *event) {
 }
 
 void EventLoop::removeEvent(Event *event) {
-  RDD_EVLOG(V2, event) << "remove deadline";
+  RDDLOG(V2) << *event << " remove deadline";
   deadlineHeap_.erase(event);
-  RDD_EVLOG(V2, event) << "remove event";
+  RDDLOG(V2) << *event << " remove event";
   poll_.remove(event->fd());
 }
 
 void EventLoop::restartEvent(Event* event) {
-  RDD_EVLOG(V2, event) << "remove deadline";
+  RDDLOG(V2) << *event << " remove deadline";
   deadlineHeap_.erase(event);
   event->restart();  // the next request
-  RDD_EVLOG(V2, event) << "add rdeadline";
+  RDDLOG(V2) << *event << " add rdeadline";
   deadlineHeap_.push(event->rdeadline());
 }
 
@@ -194,9 +194,9 @@ void EventLoop::checkTimeoutEvent() {
       deadlineHeap_.push(timeout);
     }
     else {
-      RDD_EVLOG(V2, event) << "pop deadline";
+      RDDLOG(V2) << *event << " pop deadline";
       event->setType(Event::TIMEOUT);
-      RDD_EVTLOG(WARN, event) << "remove timeout event: >"
+      RDDLOG(WARN) << *event << " remove timeout event: >"
         << timeout.deadline - event->starttime();
       handler_.onTimeout(event);
     }

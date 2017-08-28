@@ -10,7 +10,7 @@
 namespace rdd {
 
 void EventHandler::handle(Event* event, uint32_t etype) {
-  RDD_EVLOG(V2, event) << "on event, type=" << etype;
+  RDDLOG(V2) << *event << " on event, type=" << etype;
   switch (event->type()) {
     case Event::LISTEN:
       onListen(event); break;
@@ -27,7 +27,7 @@ void EventHandler::handle(Event* event, uint32_t etype) {
     case Event::TIMEOUT:
       onTimeout(event); break;
     default:
-      RDD_EVLOG(ERROR, event) << "error event, type=" << etype;
+      RDDLOG(ERROR) << *event << " error event, type=" << etype;
       closePeer(event);
       break;
   }
@@ -52,10 +52,10 @@ void EventHandler::onListen(Event* event) {
     RDDLOG(ERROR) << "create event failed";
     return;
   }
-  RDD_EVLOG(V1, evnew) << "accepted";
+  RDDLOG(V1) << *evnew << " accepted";
   if (evnew->isConnectTimeout()) {
     evnew->setType(Event::TIMEOUT);
-    RDD_EVTLOG(WARN, evnew) << "remove connect timeout request: >"
+    RDDLOG(WARN) << *evnew << " remove connect timeout request: >"
       << evnew->timeoutOption().ctimeout;
     onTimeout(evnew);
     return;
@@ -68,7 +68,7 @@ void EventHandler::onConnect(Event* event) {
   assert(event->type() == Event::CONNECT);
   if (event->isConnectTimeout()) {
     event->setType(Event::TIMEOUT);
-    RDD_EVTLOG(WARN, event) << "remove connect timeout request: >"
+    RDDLOG(WARN) << *event << " remove connect timeout request: >"
       << event->timeoutOption().ctimeout;
     onTimeout(event);
     return;
@@ -76,12 +76,12 @@ void EventHandler::onConnect(Event* event) {
   int err = 1;
   event->socket()->getError(err);
   if (err != 0) {
-    RDD_EVLOG(ERROR, event) << "connect: close for error: " << strerror(errno);
+    RDDLOG(ERROR) << *event << " connect: close for error: " << strerror(errno);
     event->setType(Event::ERROR);
     onError(event);
     return;
   }
-  RDD_EVLOG(V1, event) << "connect: complete";
+  RDDLOG(V1) << *event << " connect: complete";
   event->setType(Event::TOWRITE);
 }
 
@@ -92,11 +92,11 @@ void EventHandler::onRead(Event* event) {
     case -1:
     {
       if (event->type() == Event::TIMEOUT) {
-        RDD_EVTLOG(WARN, event) << "remove read timeout request: >"
+        RDDLOG(WARN) << *event << " remove read timeout request: >"
           << event->timeoutOption().rtimeout;
         onTimeout(event);
       } else {
-        RDD_EVLOG(ERROR, event) << "read: close for error: "
+        RDDLOG(ERROR) << *event << " read: close for error: "
           << strerror(errno);
         event->setType(Event::ERROR);
         onError(event);
@@ -105,19 +105,19 @@ void EventHandler::onRead(Event* event) {
     }
     case 0:
     {
-      RDD_EVLOG(V1, event) << "read: complete";
+      RDDLOG(V1) << *event << " read: complete";
       event->setType(Event::READED);
       onComplete(event);
       break;
     }
     case 1:
     {
-      RDD_EVLOG(V1, event) << "read: again";
+      RDDLOG(V1) << *event << " read: again";
       break;
     }
     case 2:
     {
-      RDD_EVLOG(V1, event) << "read: peer is closed";
+      RDDLOG(V1) << *event << " read: peer is closed";
       closePeer(event);
       break;
     }
@@ -132,11 +132,11 @@ void EventHandler::onWrite(Event* event) {
     case -1:
     {
       if (event->type() == Event::TIMEOUT) {
-        RDD_EVTLOG(WARN, event) << "remove write timeout request: >"
+        RDDLOG(WARN) << *event << " remove write timeout request: >"
           << event->timeoutOption().wtimeout;
         onTimeout(event);
       } else {
-        RDD_EVLOG(ERROR, event) << "write: close for error: "
+        RDDLOG(ERROR) << *event << " write: close for error: "
           << strerror(errno);
         event->setType(Event::ERROR);
         onError(event);
@@ -145,14 +145,14 @@ void EventHandler::onWrite(Event* event) {
     }
     case 0:
     {
-      RDD_EVLOG(V1, event) << "write: complete";
+      RDDLOG(V1) << *event << " write: complete";
       event->setType(Event::WRITED);
       onComplete(event);
       break;
     }
     case 1:
     {
-      RDD_EVLOG(V1, event) << "write: again";
+      RDDLOG(V1) << *event << " write: again";
       break;
     }
     default: break;
@@ -162,14 +162,14 @@ void EventHandler::onWrite(Event* event) {
 void EventHandler::onComplete(Event* event) {
   if (event->type() == Event::READED && event->isReadTimeout()) {
     event->setType(Event::TIMEOUT);
-    RDD_EVTLOG(WARN, event) << "remove read timeout request: >"
+    RDDLOG(WARN) << *event << " remove read timeout request: >"
       << event->timeoutOption().rtimeout;
     onTimeout(event);
     return;
   }
   if (event->type() == Event::WRITED && event->isWriteTimeout()) {
     event->setType(Event::TIMEOUT);
-    RDD_EVTLOG(WARN, event) << "remove write timeout request: >"
+    RDDLOG(WARN) << *event << " remove write timeout request: >"
       << event->timeoutOption().wtimeout;
     onTimeout(event);
     return;

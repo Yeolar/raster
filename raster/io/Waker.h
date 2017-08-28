@@ -26,7 +26,7 @@ public:
   virtual int fd() const { return pipeFds_[0]; }
   virtual int role() const { return -1; }
   virtual char roleLabel() const { return 'W'; }
-  virtual std::string str() { return "waker"; }
+  virtual std::string str() { return to<std::string>("W:", fd(), "[]"); }
 
   void wake() {
     write(pipeFds_[1], (void*)"x", 1);

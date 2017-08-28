@@ -21,7 +21,7 @@ bool AsyncClient::connect() {
   if (!initConnection()) {
     return false;
   }
-  RDD_EVLOG(V2, event()) << "connect";
+  RDDLOG(V2) << *event() << " connect";
   if (!callbackMode_) {
     ExecutorPtr executor = getCurrentExecutor();
     event_->setExecutor(executor.get());
