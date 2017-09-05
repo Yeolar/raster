@@ -15,7 +15,7 @@ void setupSignal(int signo, void (*handler)(int, siginfo_t*, void*));
 
 void setupIgnoreSignal(int signo);
 void setupShutdownSignal(int signo);
-void setupSigsegvSignal(bool protect = false);
+void setupMemoryProtectSignal();
 
 class Shutdown {
 public:

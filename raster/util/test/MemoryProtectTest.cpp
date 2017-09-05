@@ -11,7 +11,7 @@
 using namespace rdd;
 
 int main(int argc, char *argv[]) {
-  setupSigsegvSignal(true);
+  setupMemoryProtectSignal();
 
   int pagesize = sysconf(_SC_PAGESIZE);
 

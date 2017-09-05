@@ -21,18 +21,7 @@ static void shutdownSignalHandler(int signo) {
   Singleton<Shutdown>::get()->run();
 }
 
-static void sigsegvSignalHandler(int signo, siginfo_t* info, void* context) {
-  std::array<char, 128> buffer;
-  size_t n = snprintf(buffer.data(), buffer.size(),
-                      "Segmentation fault (sig=%d), fault address: %p.\n",
-                      signo, info->si_addr);
-  ::write(STDERR_FILENO, buffer.data(), n);
-  recordBacktrace();
-  ::write(STDERR_FILENO, "\n", 1);
-  exit(1);
-}
-
-static void sigsegvSignalHandler2(int signo, siginfo_t* info, void* context) {
+static void memoryProtectSignalHandler(int signo, siginfo_t* info, void*) {
   std::array<char, 128> buffer;
   size_t n = snprintf(buffer.data(), buffer.size(),
                       "Segmentation fault (sig=%d), fault address: %p.\n",
@@ -70,8 +59,8 @@ void setupShutdownSignal(int signo) {
   setupSignal(signo, shutdownSignalHandler);
 }
 
-void setupSigsegvSignal(bool protect) {
-  setupSignal(SIGSEGV, protect ? sigsegvSignalHandler2 : sigsegvSignalHandler);
+void setupMemoryProtectSignal() {
+  setupSignal(SIGSEGV, memoryProtectSignalHandler);
 }
 
 } // namespace rdd
