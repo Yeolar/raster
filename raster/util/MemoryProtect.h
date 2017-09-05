@@ -12,9 +12,13 @@ namespace rdd {
 
 class MemoryProtect {
 public:
-  MemoryProtect(void* addr)
+  MemoryProtect(void* addr, bool align = true)
     : addr_(addr),
-      size_(sysconf(_SC_PAGESIZE)) {}
+      size_(sysconf(_SC_PAGESIZE)) {
+    if (align) {
+      addr_ = (void*)(((size_t)addr_) & ~(size_ - 1));
+    }
+  }
 
   void protect() {
     checkUnixError(mprotect(addr_, size_, PROT_READ),
