@@ -20,14 +20,20 @@ public:
     }
   }
 
+  void set(int prot) {
+    checkUnixError(mprotect(addr_, size_, prot), "mprotect failed");
+  }
+
+  void ban() {
+    set(PROT_NONE);
+  }
+
   void protect() {
-    checkUnixError(mprotect(addr_, size_, PROT_READ),
-                   "mprotect failed");
+    set(PROT_READ);
   }
 
   void unprotect() {
-    checkUnixError(mprotect(addr_, size_, PROT_READ|PROT_WRITE),
-                   "mprotect failed");
+    set(PROT_READ|PROT_WRITE);
   }
 
 private:

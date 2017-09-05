@@ -28,12 +28,23 @@ static void sigsegvSignalHandler(int signo, siginfo_t* info, void* context) {
                       signo, info->si_addr);
   ::write(STDERR_FILENO, buffer.data(), n);
   recordBacktrace();
+  ::write(STDERR_FILENO, "\n", 1);
+  exit(1);
+}
+
+static void sigsegvSignalHandler2(int signo, siginfo_t* info, void* context) {
+  std::array<char, 128> buffer;
+  size_t n = snprintf(buffer.data(), buffer.size(),
+                      "Segmentation fault (sig=%d), fault address: %p.\n",
+                      signo, info->si_addr);
+  ::write(STDERR_FILENO, buffer.data(), n);
+  recordBacktrace();
+  ::write(STDERR_FILENO, "\n", 1);
   MemoryProtect(info->si_addr).unprotect();
 }
 
 void setupSignal(int signo, void (*handler)(int)) {
   struct sigaction sa;
-  memset(&sa, 0, sizeof(struct sigaction));
   sa.sa_handler = handler;
   if (sigemptyset(&sa.sa_mask) == -1 ||
       sigaction(signo, &sa, nullptr) == -1) {
@@ -43,7 +54,6 @@ void setupSignal(int signo, void (*handler)(int)) {
 
 void setupSignal(int signo, void (*handler)(int, siginfo_t*, void*)) {
   struct sigaction sa;
-  memset(&sa, 0, sizeof(struct sigaction));
   sa.sa_sigaction = handler;
   sa.sa_flags = SA_SIGINFO;
   if (sigemptyset(&sa.sa_mask) == -1 ||
@@ -60,8 +70,8 @@ void setupShutdownSignal(int signo) {
   setupSignal(signo, shutdownSignalHandler);
 }
 
-void setupSigsegvSignal() {
-  setupSignal(SIGSEGV, sigsegvSignalHandler);
+void setupSigsegvSignal(bool protect) {
+  setupSignal(SIGSEGV, protect ? sigsegvSignalHandler2 : sigsegvSignalHandler);
 }
 
 } // namespace rdd

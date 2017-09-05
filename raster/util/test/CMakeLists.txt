@@ -7,6 +7,7 @@ set(RASTER_UTIL_TEST_SRCS
     FixedStreamTest.cpp
     HashTest.cpp
     LoggingTest.cpp
+    MemoryProtectTest.cpp
     ReflectObjectTest.cpp
     SingletonTest.cpp
     StringTest.cpp
