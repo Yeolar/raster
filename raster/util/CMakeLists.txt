@@ -56,6 +56,7 @@ install(FILES
     MapUtil.h
     Memory.h
     MemoryMapping.h
+    MemoryProtect.h
     #MemTrace.h
     noncopyable.h
     Optional.h
