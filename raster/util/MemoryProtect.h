@@ -12,16 +12,23 @@ namespace rdd {
 
 class MemoryProtect {
 public:
-  MemoryProtect(void* addr, bool align = true)
-    : addr_(addr),
-      size_(sysconf(_SC_PAGESIZE)) {
-    if (align) {
-      addr_ = (void*)(((size_t)addr_) & ~(size_ - 1));
-    }
+  static void* align(void* addr) {
+    return (void*)(((size_t)addr) & ~(sysconf(_SC_PAGESIZE) - 1));
+  }
+
+  MemoryProtect() {}
+
+  MemoryProtect(void* addr, size_t size = sysconf(_SC_PAGESIZE))
+    : addr_(align(addr)), size_(size) {}
+
+  void resize(size_t size) {
+    size_ = size;
   }
 
   void set(int prot) {
-    checkUnixError(mprotect(addr_, size_, prot), "mprotect failed");
+    if (addr_ != nullptr) {
+      checkUnixError(mprotect(addr_, size_, prot), "mprotect failed");
+    }
   }
 
   void ban() {
@@ -37,8 +44,8 @@ public:
   }
 
 private:
-  void* addr_;
-  size_t size_;
+  void* addr_{nullptr};
+  size_t size_{0};
 };
 
 } // namespace rdd
