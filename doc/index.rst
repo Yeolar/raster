@@ -11,6 +11,9 @@ Raster文档
 .. toctree::
    :maxdepth: 2
 
+   tutorial
+   api
+
 索引和表格
 ==========
 
