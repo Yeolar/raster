@@ -22,7 +22,7 @@ raster是我针对目前的微服务的概念，参考之前的项目以及folly
 
 框架的开发初衷是可以快速完成C++服务的开发，目前用于 [rddoc.com](https://www.rddoc.com/) 的搜索、持久化KV存储、代理服务等。
 
-依赖包括 Boost CURL GFlags ICU LevelDB Libmemcached MySQL OpenSSL Protobuf ZLIB，其中部分是扩展插件的依赖。
+依赖包括 Boost CURL GFlags ICU OpenSSL Protobuf ZLIB。
 
 编译安装
 
@@ -34,6 +34,8 @@ raster是我针对目前的微服务的概念，参考之前的项目以及folly
 
     $ ./examples/empty/empty -conf ../examples/empty/server.json
     $ ./examples/empty/empty-bench -count 1000
+
+详细的介绍和使用方法请参考文档。
 
 TODO: 未来会在性能、协议等方面进一步优化和扩展。
 
