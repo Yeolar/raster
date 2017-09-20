@@ -4,22 +4,18 @@
 
 #pragma once
 
-#include <unistd.h>
 #include <sys/mman.h>
 #include "raster/util/Exception.h"
+#include "raster/util/Memory.h"
 
 namespace rdd {
 
 class MemoryProtect {
 public:
-  static void* align(void* addr) {
-    return (void*)(((size_t)addr) & ~(sysconf(_SC_PAGESIZE) - 1));
-  }
-
   MemoryProtect() {}
 
   MemoryProtect(void* addr, size_t size = sysconf(_SC_PAGESIZE))
-    : addr_(align(addr)), size_(size) {}
+    : addr_(alignAddress(addr)), size_(size) {}
 
   void resize(size_t size) {
     size_ = size;
@@ -40,7 +36,7 @@ public:
   }
 
   void unprotect() {
-    set(PROT_READ|PROT_WRITE);
+    set(PROT_READ | PROT_WRITE);
   }
 
 private:

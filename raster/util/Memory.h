@@ -10,6 +10,7 @@
 #include <limits>
 #include <memory>
 #include <utility>
+#include <unistd.h>
 
 namespace rdd {
 
@@ -146,5 +147,9 @@ struct CacheLocality {
 /// An attribute that will cause a variable or field to be aligned so that
 /// it doesn't have false sharing with anything at a smaller memory address.
 #define RDD_ALIGN_TO_AVOID_FALSE_SHARING RDD_ALIGNED(128)
+
+inline void* alignAddress(void* addr) {
+  return (void*)(((size_t)addr) & ~((size_t)sysconf(_SC_PAGESIZE) - 1));
+}
 
 } // namespace rdd

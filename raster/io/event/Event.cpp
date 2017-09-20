@@ -13,6 +13,8 @@ Event* Event::getCurrentEvent() {
   return executor ? std::dynamic_pointer_cast<EventExecutor>(executor)->event() : nullptr;
 }
 
+std::atomic<uint64_t> Event::globalSeqid_(1);
+
 Event::Event(const std::shared_ptr<Channel>& channel,
              const std::shared_ptr<Socket>& socket)
   : channel_(channel)
@@ -23,6 +25,7 @@ Event::Event(const std::shared_ptr<Channel>& channel,
 }
 
 Event::Event(Waker* waker) {
+  seqid_ = 0;
   type_ = WAKER;
   group_ = 0;
   action_ = NONE;
@@ -37,7 +40,7 @@ Event::~Event() {
 
 void Event::reset() {
   restart();
-  seqid_ = std::max(++seqid_, 1);
+  seqid_ = globalSeqid_.fetch_add(1);
   type_ = INIT;
   group_ = 0;
   action_ = NONE;

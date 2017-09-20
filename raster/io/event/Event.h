@@ -66,7 +66,7 @@ public:
   std::string label() const;
   const char* typeName() const;
 
-  int seqid() const { return seqid_; }
+  uint64_t seqid() const { return seqid_; }
 
   int type() const { return type_; }
   void setType(int type) {
@@ -156,7 +156,9 @@ private:
     return std::max(timeoutOpt_.rtimeout, timeoutOpt_.wtimeout);
   }
 
-  int seqid_{0};
+  static std::atomic<uint64_t> globalSeqid_;
+
+  uint64_t seqid_;
   int type_;
   int group_;
   int action_;
