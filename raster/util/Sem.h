@@ -12,8 +12,8 @@ namespace rdd {
 
 class Sem : noncopyable {
 public:
-  Sem() {
-    checkUnixError(sem_init(&sem_, 0, 0), "failed to init sem");
+  Sem(unsigned int value = 0) {
+    checkUnixError(sem_init(&sem_, 0, value), "failed to init sem");
   }
 
   ~Sem() {
@@ -26,6 +26,12 @@ public:
 
   void wait() const {
     checkUnixError(sem_wait(&sem_), "failed to wait sem");
+  }
+
+  int getValue() const {
+    int value = INT_MIN;
+    checkUnixError(sem_getvalue(&sem_, &value), "failed to get sem value");
+    return value;
   }
 
 private:
