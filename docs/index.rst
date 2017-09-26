@@ -17,9 +17,3 @@ Raster文档
    introduction
    tutorial
 
-索引和表格
-==========
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
