@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Yeolar/raster.svg?branch=master)](https://travis-ci.org/Yeolar/raster)
+
 raster
 ======
 
