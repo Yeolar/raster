@@ -32,7 +32,7 @@ before_install:
   - sudo apt-get install -y libicu-dev
   - sudo apt-get install -y openssl
   - sudo apt-get install -y libprotobuf-dev
-  - sudo apt-get install -y zlib
+  - sudo apt-get install -y zlib1g-dev
 
 script:
   - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make && make test
