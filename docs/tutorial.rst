@@ -24,9 +24,9 @@ raster可以支持thift协议、pbrpc协议，还可以自己扩展以支持其�
 thrift协议
 ~~~~~~~~~~
 
-raster可以和Apache thrift兼容。
+raster可以和 `Apache thrift <http://thrift.apache.org>`_ 兼容。
 
-以一个简单的查询服务为例，定义如下thrift接口文件 :file:`Empty.thrift`` ：
+以一个简单的查询服务为例，定义如下thrift接口文件 :file:`Empty.thrift` ：
 
 .. code-block:: thrift
 
@@ -159,7 +159,7 @@ raster可以和Apache thrift兼容。
 pbrpc协议
 ~~~~~~~~~
 
-如果您使用过protobuf v2，可能会知道它的proto接口文件提供了 ``service`` 语义。raster实现了这一语义，因此它可以支持protobuf的RPC。
+如果您使用过 `protobuf <https://developers.google.com/protocol-buffers/>`_ v2，可能会知道它的proto接口文件提供了 ``service`` 语义。raster实现了这一语义，因此它可以支持protobuf的RPC。
 
 :file:`examples/pbrpc/` 下包含了一个使用protobuf作为RPC通信的数据格式的示例。这个例子稍微复杂一点，它实现了一个代理服务，对应地， :file:`examples/proxy/` 是它的thrift实现版本。
 
