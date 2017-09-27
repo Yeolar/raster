@@ -28,4 +28,4 @@ raster是一个完整的高性能C++协程服务框架。
     $ ./examples/empty/empty -conf ../examples/empty/server.json
     $ ./examples/empty/empty-bench -count 1000
 
-详细的介绍和使用方法请参考文档 [Raster](https://www.rddoc.com/doc/Raster-1.0.0/)。
+详细的介绍和使用方法请参考[Raster](https://www.rddoc.com/doc/Raster-1.0.0/) 文档。

@@ -270,3 +270,17 @@ pbrpc协议
 
 :file:`Bench.cpp` 中使用同步客户端 ``PBSyncClient`` 建立短连接请求，可以作为创建同步客户端请求的示例来参考。
 
+二进制协议
+~~~~~~~~~~
+
+某些情况下，服务接口单一，不需要使用RPC，但对于数据的序列化格式有自定义的要求。比如， `flatbuffers <https://github.com/google/flatbuffers>`_ 是Google开发的另一个序列化协议，它可以在buffer上直接做序列化和反序列化，性能高于protobuf。在性能要求苛刻的环境，可能你打算使用它。
+
+:file:`examples/flatbuffers/` 给出了一个采用flatbuffers作为序列化协议的代理服务示例。它基于raster对二进制协议的支持。
+
+自定义协议扩展
+~~~~~~~~~~~~~~
+
+未来raster会考虑支持HTTP协议，但同时也许你会有自己的特殊协议需要支持。这可以通过扩展raster来做到。
+
+raster对各种协议的支持主要实现在 :file:`raster/protocol/` 下，但自定义协议扩展仍需要在理解raster的内部实现机制的基础之上。
+

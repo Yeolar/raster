@@ -16,4 +16,7 @@ Raster文档
 
    introduction
    tutorial
+   moreapps
+   design
+   api
 
