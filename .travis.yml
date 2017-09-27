@@ -1,0 +1,39 @@
+language: cpp
+
+os:
+- linux
+
+compiler:
+- gcc
+
+env:
+  matrix:
+  - BUILD_TYPE=Debug
+  - BUILD_TYPE=Release
+
+matrix:
+  include:
+  - os: linux
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - g++-4.9
+      env:
+      - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+
+before_install:
+- eval "${MATRIX_EVAL}"
+- sudo apt-get -qq update
+- sudo apt-get install -y libboost-all-dev
+- sudo apt-get install -y libcurl3
+- sudo apt-get install -y libgflags-dev
+- sudo apt-get install -y libicu-dev
+- sudo apt-get install -y openssl
+- sudo apt-get install -y libprotobuf-dev
+- sudo apt-get install -y zlib
+
+script:
+- mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make && make test
+
