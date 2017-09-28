@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <flatbuffers/flatbuffers.h>
+#include "flatbuffers/flatbuffers.h"
 #include "raster/util/Range.h"
 
 namespace rdd {
