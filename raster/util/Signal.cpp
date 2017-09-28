@@ -23,12 +23,12 @@ static void shutdownSignalHandler(int signo) {
 
 static void memoryProtectSignalHandler(int signo, siginfo_t* info, void*) {
   std::array<char, 128> buffer;
-  size_t n = snprintf(buffer.data(), buffer.size(),
-                      "Segmentation fault (sig=%d), fault address: %p.\n",
-                      signo, info->si_addr);
-  ::write(STDERR_FILENO, buffer.data(), n);
+  int n = snprintf(buffer.data(), buffer.size(),
+                   "Segmentation fault (sig=%d), fault address: %p.\n",
+                   signo, info->si_addr);
+  n = ::write(STDERR_FILENO, buffer.data(), n);
   recordBacktrace();
-  ::write(STDERR_FILENO, "\n", 1);
+  n = ::write(STDERR_FILENO, "\n", 1);
   MemoryProtect(info->si_addr).unprotect();
 }
 

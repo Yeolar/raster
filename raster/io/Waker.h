@@ -29,7 +29,7 @@ public:
   virtual std::string str() { return to<std::string>("W:", fd(), "[]"); }
 
   void wake() {
-    write(pipeFds_[1], (void*)"x", 1);
+    checkUnixError(write(pipeFds_[1], (void*)"x", 1), "write error");
     RDDLOG(V2) << "waker wake";
   }
 

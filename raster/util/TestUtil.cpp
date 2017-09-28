@@ -13,6 +13,7 @@
 #include <raster/io/File.h>
 #include <raster/io/FileUtil.h>
 #include <raster/util/Conv.h>
+#include <raster/util/Exception.h>
 #include <raster/util/String.h>
 
 namespace rdd {
@@ -101,12 +102,12 @@ TemporaryDirectory::~TemporaryDirectory() {
 
 ChangeToTempDir::ChangeToTempDir() : initialPath_(fs::current_path()) {
   std::string p = dir_.path().string();
-  ::chdir(p.c_str());
+  checkUnixError(::chdir(p.c_str()), "failed chdir to ", p);
 }
 
 ChangeToTempDir::~ChangeToTempDir() {
   std::string p = initialPath_.string();
-  ::chdir(p.c_str());
+  checkUnixError(::chdir(p.c_str()), "failed chdir to ", p);
 }
 
 } // namespace test

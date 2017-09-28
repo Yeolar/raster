@@ -17,6 +17,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "raster/io/FSUtil.h"
+#include "raster/util/Exception.h"
 #include "raster/util/FixedStream.h"
 #include "raster/util/String.h"
 #include "raster/util/ThreadUtil.h"
@@ -201,7 +202,9 @@ private:
 
   void write(const std::string& message) {
     int fd = fd_;
-    ::write(fd >= 0 ? fd : STDERR_FILENO, message.c_str(), message.size());
+    fd = fd >= 0 ? fd : STDERR_FILENO;
+    checkUnixError(::write(fd, message.c_str(), message.size()),
+                   "write log error on fd=", fd);
     if (splitSize_ > 0 && getSize() >= splitSize_) {
       split();
     }
