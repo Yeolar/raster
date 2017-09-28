@@ -52,7 +52,7 @@ bool base64Encode(const InputString& input,
 template <class InputString>
 bool base64Decode(const InputString& input,
                   std::string& output,
-                  Base64EncodeMode mode = Base64EncodeMode::COMMON) {
+                  Base64EncodeMode mode) {
   auto decode = [](unsigned char c) -> char {
     // COMMON and URI mode compatible
     static char kBase64DecTable[] = {
