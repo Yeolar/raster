@@ -26,6 +26,8 @@ addons:
       - openssl
       - libprotobuf-dev
       - zlib1g-dev
+      - protobuf-compiler
+      - thrift-compiler
 
 before_install:
   - eval "${MATRIX_EVAL}"
