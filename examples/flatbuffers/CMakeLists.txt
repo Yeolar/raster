@@ -1,5 +1,9 @@
 # Copyright (C) 2017, Yeolar
 
+include_directories(
+    ${PROJECT_SOURCE_DIR}/examples/flatbuffers
+)
+
 add_executable(flatbuffers
     Server.cpp
 )
