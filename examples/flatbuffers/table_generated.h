@@ -21,6 +21,15 @@ enum ResultCode {
   ResultCode_MAX = ResultCode_E_BACKEND_FAILURE
 };
 
+inline ResultCode (&EnumValuesResultCode())[3] {
+  static ResultCode values[] = {
+    ResultCode_OK,
+    ResultCode_E_SOURCE__UNTRUSTED,
+    ResultCode_E_BACKEND_FAILURE
+  };
+  return values;
+}
+
 struct Query FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_TRACEID = 4,
@@ -38,11 +47,11 @@ struct Query FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TRACEID) &&
+           VerifyOffset(verifier, VT_TRACEID) &&
            verifier.Verify(traceid()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_QUERY) &&
+           VerifyOffset(verifier, VT_QUERY) &&
            verifier.Verify(query()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_FORWARD) &&
+           VerifyOffset(verifier, VT_FORWARD) &&
            verifier.Verify(forward()) &&
            verifier.EndTable();
   }
@@ -109,7 +118,7 @@ struct Result FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TRACEID) &&
+           VerifyOffset(verifier, VT_TRACEID) &&
            verifier.Verify(traceid()) &&
            VerifyField<int32_t>(verifier, VT_CODE) &&
            verifier.EndTable();
