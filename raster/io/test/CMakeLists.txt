@@ -4,6 +4,7 @@ set(RASTER_IO_TEST_SRCS
     CompressionTest.cpp
     FileTest.cpp
     FSUtilTest.cpp
+    IOBufCursorTest.cpp
     IOBufTest.cpp
 )
 

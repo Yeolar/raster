@@ -2,6 +2,7 @@
 
 set(RASTER_IO_SRCS
     Compression.cpp
+    Cursor.cpp
     HugePages.cpp
     IOBuf.cpp
     ZlibStreamCompressor.cpp

@@ -12,3 +12,8 @@ foreach(test_src ${RASTER_ENC_TEST_SRCS})
         ${GTEST_BOTH_LIBRARIES} ${GMOCK_LIBRARIES} raster_static)
     add_test(${test} ${test} CONFIGURATIONS Debug)
 endforeach()
+
+execute_process(
+    COMMAND ln -fs "${PROJECT_SOURCE_DIR}/raster/enc/test/char.pecker.def"
+                   "${PROJECT_BINARY_DIR}/raster/enc/test/char.pecker.def"
+)

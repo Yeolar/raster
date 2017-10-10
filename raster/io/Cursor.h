@@ -21,6 +21,19 @@
 
 /**
  * Cursor class for fast iteration over IOBuf chains.
+ *
+ * Cursor - Read-only access
+ *
+ * RWPrivateCursor - Read-write access, assumes private access to IOBuf chain
+ * RWUnshareCursor - Read-write access, calls unshare on write (COW)
+ * Appender        - Write access, assumes private access to IOBuf chain
+ *
+ * Note that RW cursors write in the preallocated part of buffers (that is,
+ * between the buffer's data() and tail()), while Appenders append to the end
+ * of the buffer (between the buffer's tail() and bufferEnd()).  Appenders
+ * automatically adjust the buffer pointers, so you may only use one
+ * Appender with a buffer chain; for this reason, Appenders assume private
+ * access to the buffer (you need to call unshare() yourself if necessary).
  */
 namespace rdd { namespace io {
 
@@ -551,6 +564,124 @@ class Writable {
 
 } // namespace detail
 
+enum class CursorAccess {
+  PRIVATE,
+  UNSHARE
+};
+
+template <CursorAccess access>
+class RWCursor
+  : public detail::CursorBase<RWCursor<access>, IOBuf>,
+    public detail::Writable<RWCursor<access>> {
+  friend class detail::CursorBase<RWCursor<access>, IOBuf>;
+ public:
+  explicit RWCursor(IOBuf* buf)
+    : detail::CursorBase<RWCursor<access>, IOBuf>(buf),
+      maybeShared_(true) {}
+
+  template <class OtherDerived, class OtherBuf>
+  explicit RWCursor(const detail::CursorBase<OtherDerived, OtherBuf>& cursor)
+    : detail::CursorBase<RWCursor<access>, IOBuf>(cursor),
+      maybeShared_(true) {}
+  /**
+   * Gather at least n bytes contiguously into the current buffer,
+   * by coalescing subsequent buffers from the chain as necessary.
+   */
+  void gather(size_t n) {
+    // Forbid attempts to gather beyond the end of this IOBuf chain.
+    // Otherwise we could try to coalesce the head of the chain and end up
+    // accidentally freeing it, invalidating the pointer owned by external
+    // code.
+    //
+    // If crtBuf_ == head() then IOBuf::gather() will perform all necessary
+    // checking.  We only have to perform an explicit check here when calling
+    // gather() on a non-head element.
+    if (this->crtBuf_ != this->head() && this->totalLength() < n) {
+      throw std::overflow_error("cannot gather() past the end of the chain");
+    }
+    this->crtBuf_->gather(this->offset_ + n);
+  }
+  void gatherAtMost(size_t n) {
+    size_t size = std::min(n, this->totalLength());
+    return this->crtBuf_->gather(this->offset_ + size);
+  }
+
+  using detail::Writable<RWCursor<access>>::pushAtMost;
+  size_t pushAtMost(const uint8_t* buf, size_t len) {
+    size_t copied = 0;
+    for (;;) {
+      // Fast path: the current buffer is big enough.
+      size_t available = this->length();
+      if (LIKELY(available >= len)) {
+        if (access == CursorAccess::UNSHARE) {
+          maybeUnshare();
+        }
+        memcpy(writableData(), buf, len);
+        this->offset_ += len;
+        return copied + len;
+      }
+
+      if (access == CursorAccess::UNSHARE) {
+        maybeUnshare();
+      }
+      memcpy(writableData(), buf, available);
+      copied += available;
+      if (UNLIKELY(!this->tryAdvanceBuffer())) {
+        return copied;
+      }
+      buf += available;
+      len -= available;
+    }
+  }
+
+  void insert(std::unique_ptr<rdd::IOBuf> buf) {
+    rdd::IOBuf* nextBuf;
+    if (this->offset_ == 0) {
+      // Can just prepend
+      nextBuf = this->crtBuf_;
+      this->crtBuf_->prependChain(std::move(buf));
+    } else {
+      std::unique_ptr<rdd::IOBuf> remaining;
+      if (this->crtBuf_->length() - this->offset_ > 0) {
+        // Need to split current IOBuf in two.
+        remaining = this->crtBuf_->cloneOne();
+        remaining->trimStart(this->offset_);
+        nextBuf = remaining.get();
+        buf->prependChain(std::move(remaining));
+      } else {
+        // Can just append
+        nextBuf = this->crtBuf_->next();
+      }
+      this->crtBuf_->trimEnd(this->length());
+      this->crtBuf_->appendChain(std::move(buf));
+    }
+    // Jump past the new links
+    this->offset_ = 0;
+    this->crtBuf_ = nextBuf;
+  }
+
+  uint8_t* writableData() {
+    return this->crtBuf_->writableData() + this->offset_;
+  }
+
+ private:
+  void maybeUnshare() {
+    if (UNLIKELY(maybeShared_)) {
+      this->crtBuf_->unshareOne();
+      maybeShared_ = false;
+    }
+  }
+
+  void advanceDone() {
+    maybeShared_ = true;
+  }
+
+  bool maybeShared_;
+};
+
+typedef RWCursor<CursorAccess::PRIVATE> RWPrivateCursor;
+typedef RWCursor<CursorAccess::UNSHARE> RWUnshareCursor;
+
 /**
  * Append to the end of a buffer chain, growing the chain (by allocating new
  * buffers) in increments of at least growth bytes every time.  Won't grow
@@ -625,20 +756,10 @@ class Appender : public detail::Writable<Appender> {
       len -= available;
     }
   }
+
   /*
    * Append to the end of this buffer, using a printf() style
    * format specifier.
-   *
-   * Note that folly/Format.h provides nicer and more type-safe mechanisms
-   * for formatting strings, which should generally be preferred over
-   * printf-style formatting.  Appender objects can be used directly as an
-   * output argument for Formatter objects.  For example:
-   *
-   *   Appender app(&iobuf);
-   *   format("{} {}", "hello", "world")(app);
-   *
-   * However, printf-style strings are still needed when dealing with existing
-   * third-party code in some cases.
    *
    * This will always add a nul-terminating character after the end
    * of the output.  However, the buffer data length will only be updated to

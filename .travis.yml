@@ -34,5 +34,5 @@ before_install:
 
 script:
   - cd examples && sh gen.sh && cd ..
-  - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make -j4
+  - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make -j4 && make test
 
