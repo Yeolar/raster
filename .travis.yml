@@ -28,6 +28,8 @@ addons:
       - zlib1g-dev
       - protobuf-compiler
       - thrift-compiler
+      - libgtest-dev
+      - google-mock
 
 before_install:
   - eval "${MATRIX_EVAL}"
