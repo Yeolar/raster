@@ -29,7 +29,6 @@ find_package(ZLIB REQUIRED)
 
 # Optional packages
 find_package(GTest)
-find_package(GMock)
 
 # Setup environment
 set(CMAKE_BUILD_TYPE Debug)
@@ -146,7 +145,7 @@ add_subdirectory(examples/pbrpc)
 add_subdirectory(examples/proxy)
 
 # Test
-if(GTEST_FOUND AND GMOCK_FOUND)
+if(GTEST_FOUND)
     enable_testing()
     add_subdirectory(raster/concurrency/test)
     add_subdirectory(raster/enc/test)

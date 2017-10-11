@@ -29,9 +29,15 @@ addons:
       - protobuf-compiler
       - thrift-compiler
       - libgtest-dev
-      - google-mock
 
 before_install:
+  - sudo wget https://github.com/google/googletest/archive/release-1.7.0.tar.gz
+  - sudo tar xf release-1.7.0.tar.gz
+  - cd googletest-release-1.7.0
+  - sudo cmake . && make -j4
+  - sudo cp -a include/gtest /usr/include
+  - sudo cp -a libgtest_main.a libgtest.a /usr/lib/
+  - cd ..
   - eval "${MATRIX_EVAL}"
 
 script:
