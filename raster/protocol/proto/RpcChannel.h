@@ -97,9 +97,9 @@ private:
 
     uint32_t n;
     socket_.recv(&n, sizeof(uint32_t));
+    n = ntohl(n);
     std::unique_ptr<IOBuf> data(IOBuf::create(Protocol::CHUNK_SIZE));
     io::Appender appender(data.get(), Protocol::CHUNK_SIZE);
-    n = ntohl(n);
     appender.ensure(n);
     socket_.recv(appender.writableData(), n);
     process(data);
