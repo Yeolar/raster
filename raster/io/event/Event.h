@@ -89,8 +89,9 @@ public:
   int readData();
   int writeData();
 
-  IOBuf* rbuf() { return rbuf_.get(); }
-  IOBuf* wbuf() { return wbuf_.get(); }
+  std::unique_ptr<IOBuf>& rbuf() { return rbuf_; }
+  std::unique_ptr<IOBuf>& wbuf() { return wbuf_; }
+
   size_t& rlen() { return rlen_; }
   size_t& wlen() { return wlen_; }
 

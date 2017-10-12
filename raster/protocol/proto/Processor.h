@@ -21,16 +21,16 @@ public:
   virtual ~PBProcessor() {}
 
   virtual bool decodeData(Event* event) {
-    return rdd::proto::decodeData(event->rbuf(), &ibuf_);
+    return rdd::proto::decodeData(event->rbuf(), ibuf_);
   }
 
   virtual bool encodeData(Event* event) {
-    return rdd::proto::encodeData(event->wbuf(), &obuf_);
+    return rdd::proto::encodeData(event->wbuf(), obuf_);
   }
 
   virtual bool run() {
     try {
-      std::istringstream in(ibuf_);
+      io::RWPrivateCursor in(ibuf_.get());
       int type = proto::readInt(in);
       switch (type) {
         case proto::REQUEST_MSG:
@@ -112,14 +112,14 @@ private:
   void sendResponse(const std::string& callId,
                     PBRpcController* controller,
                     google::protobuf::Message* response) {
-    std::ostringstream out;
+    obuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
+    io::Appender out(obuf_.get(), Protocol::CHUNK_SIZE);
     proto::serializeResponse(callId, *controller, response, out);
-    obuf_ = out.str();
   }
 
   PBAsyncServer* server_;
-  std::string ibuf_;
-  std::string obuf_;
+  std::unique_ptr<IOBuf> ibuf_;
+  std::unique_ptr<IOBuf> obuf_;
 };
 
 class PBProcessorFactory : public ProcessorFactory {

@@ -19,7 +19,7 @@ namespace rdd {
 namespace thrift {
 
 // buf -> ibuf
-inline bool decodeData(IOBuf* buf,
+inline bool decodeData(std::unique_ptr<IOBuf>& buf,
                        apache::thrift::transport::TMemoryBuffer* ibuf) {
   auto range = buf->coalesce();
   RDDLOG_ON(V4) {
@@ -27,14 +27,14 @@ inline bool decodeData(IOBuf* buf,
     hexlify(range, hex);
     RDDLOG(V4) << "decode thrift data: " << hex;
   }
-  uint32_t header = *TypedIOBuf<uint32_t>(buf).data();
+  uint32_t header = *TypedIOBuf<uint32_t>(buf.get()).data();
   RDDLOG(V3) << "decode thrift size: " << ntohl(header);
   range.advance(sizeof(uint32_t));
   ibuf->resetBuffer((uint8_t*)range.data(), range.size());
   return true;
 }
 
-inline bool decodeZlibData(IOBuf* buf,
+inline bool decodeZlibData(std::unique_ptr<IOBuf>& buf,
                            apache::thrift::transport::TMemoryBuffer* ibuf) {
   RDDLOG_ON(V4) {
     auto range = buf->coalesce();
@@ -45,7 +45,7 @@ inline bool decodeZlibData(IOBuf* buf,
   RDDLOG(V3) << "decode thrift size: " << buf->computeChainDataLength();
   auto codec = make_unique<ZlibStreamDecompressor>(
       ZlibCompressionType::DEFLATE);
-  auto decompressed = codec->decompress(buf);
+  auto decompressed = codec->decompress(buf.get());
   if (!decompressed) {
     return false;
   }
@@ -56,14 +56,14 @@ inline bool decodeZlibData(IOBuf* buf,
 }
 
 // obuf -> buf
-inline bool encodeData(IOBuf* buf,
+inline bool encodeData(std::unique_ptr<IOBuf>& buf,
                        apache::thrift::transport::TMemoryBuffer* obuf) {
   uint8_t* p;
   uint32_t n;
   obuf->getBuffer(&p, &n);
   RDDLOG(V3) << "encode thrift size: " << n;
-  TypedIOBuf<uint32_t>(buf).push(htonl(n));
-  rdd::io::Appender appender(buf, Protocol::CHUNK_SIZE);
+  TypedIOBuf<uint32_t>(buf.get()).push(htonl(n));
+  rdd::io::Appender appender(buf.get(), Protocol::CHUNK_SIZE);
   appender.pushAtMost(p, n);
   RDDLOG_ON(V4) {
     auto range = buf->coalesce();
@@ -74,7 +74,7 @@ inline bool encodeData(IOBuf* buf,
   return true;
 }
 
-inline bool encodeZlibData(IOBuf* buf,
+inline bool encodeZlibData(std::unique_ptr<IOBuf>& buf,
                            apache::thrift::transport::TMemoryBuffer* obuf) {
   uint8_t* p;
   uint32_t n;

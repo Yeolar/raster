@@ -41,7 +41,7 @@ public:
 
   template <class Req>
   void send(const Req& request) {
-    binary::encodeData(wbuf_.get(), (Req*)&request);
+    binary::encodeData(wbuf_, (Req*)&request);
     io::Cursor cursor(wbuf_.get());
     auto p = cursor.peek();
     socket_.send((uint8_t*)p.first, p.second);
@@ -49,14 +49,14 @@ public:
 
   template <class Res>
   void recv(Res& response) {
-    auto appender = io::Appender(rbuf_.get(), Protocol::CHUNK_SIZE);
+    io::Appender appender(rbuf_.get(), Protocol::CHUNK_SIZE);
     uint32_t n = sizeof(uint32_t);
     appender.ensure(n);
     appender.append(socket_.recv(appender.writableData(), n));
     n = ntohl(*TypedIOBuf<uint32_t>(rbuf_.get()).data());
     appender.ensure(n);
     appender.append(socket_.recv(appender.writableData(), n));
-    binary::decodeData(rbuf_.get(), (Res*)&response);
+    binary::decodeData(rbuf_, (Res*)&response);
   }
 
 private:
