@@ -49,6 +49,8 @@ public:
           cancel(callId);
         }
           break;
+        default:
+          RDDLOG(FATAL) << "unknown message type: " << type;
       }
       return true;
     } catch (std::exception& e) {
@@ -88,25 +90,18 @@ private:
   void cancel(const std::string& callId) {
     std::shared_ptr<PBAsyncServer::Handle> handle =
       server_->removeHandle(callId);
-    if (handle) {
-      PBRpcController controller;
-      controller.setCanceled();
-      sendResponse(callId, &controller, nullptr);
-    } else {
-      //
-    }
+    RDDCHECK(handle) << "proto handle not available";
+    PBRpcController controller;
+    controller.setCanceled();
+    sendResponse(callId, &controller, nullptr);
   }
 
   void finish(std::shared_ptr<PBAsyncServer::Handle> handle) {
-    if (handle) {
-      if (server_->removeHandle(handle->callId) == handle) {
-        sendResponse(handle->callId,
-                     handle->controller.get(),
-                     handle->response.get());
-      } else {
-        //
-      }
-    }
+    RDDCHECK_EQ(handle, server_->removeHandle(handle->callId))
+      << "proto handle not available";
+    sendResponse(handle->callId,
+                 handle->controller.get(),
+                 handle->response.get());
   }
 
   void sendResponse(const std::string& callId,

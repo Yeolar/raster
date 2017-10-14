@@ -60,12 +60,11 @@ void PBRpcChannel::startCancel(std::string callId) {
     std::unique_ptr<IOBuf> buf(IOBuf::create(Protocol::CHUNK_SIZE));
     io::Appender out(buf.get(), Protocol::CHUNK_SIZE);
     proto::serializeCancel(callId, out);
-    send(buf,
-         std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
+    send(buf, std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
   }
 }
 
-void PBRpcChannel::process(std::unique_ptr<IOBuf>& buf) {
+void PBRpcChannel::process(const std::unique_ptr<IOBuf>& buf) {
   try {
     io::RWPrivateCursor in(buf.get());
     int type = proto::readInt(in);

@@ -25,8 +25,8 @@ inline bool decodeData(std::unique_ptr<IOBuf>& buf,
                        std::unique_ptr<IOBuf>& ibuf) {
   io::Cursor cursor(buf.get());
   uint32_t header = cursor.read<uint32_t>();
-  RDDLOG(V3) << "decode proto size: " << ntohl(header);
   buf->trimStart(sizeof(uint32_t));
+  RDDLOG(V3) << "decode proto size: " << ntohl(header);
   ibuf.swap(buf);
   return true;
 }

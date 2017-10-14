@@ -28,7 +28,7 @@ public:
       google::protobuf::Message* response,
       google::protobuf::Closure* done);
 
-  void process(std::unique_ptr<IOBuf>& buf);
+  void process(const std::unique_ptr<IOBuf>& buf);
 
 protected:
   virtual void send(
@@ -86,8 +86,10 @@ private:
   virtual void send(
       std::unique_ptr<IOBuf>& buf,
       std::function<void(bool, const std::string&)> resultCb) {
-    uint32_t h = htonl(buf->computeChainDataLength());
-    socket_.send(&h, sizeof(uint32_t));
+    uint32_t n = buf->computeChainDataLength();
+    RDDLOG(INFO) << n;
+    n = htonl(n);
+    socket_.send(&n, sizeof(uint32_t));
     io::Cursor cursor(buf.get());
     while (!cursor.isAtEnd()) {
       auto p = cursor.peek();
@@ -95,7 +97,6 @@ private:
     }
     resultCb(true, "");
 
-    uint32_t n;
     socket_.recv(&n, sizeof(uint32_t));
     n = ntohl(n);
     std::unique_ptr<IOBuf> data(IOBuf::create(Protocol::CHUNK_SIZE));
