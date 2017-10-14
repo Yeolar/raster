@@ -87,13 +87,12 @@ private:
       std::unique_ptr<IOBuf>& buf,
       std::function<void(bool, const std::string&)> resultCb) {
     uint32_t n = buf->computeChainDataLength();
-    RDDLOG(INFO) << n;
     n = htonl(n);
     socket_.send(&n, sizeof(uint32_t));
     io::Cursor cursor(buf.get());
     while (!cursor.isAtEnd()) {
       auto p = cursor.peek();
-      socket_.send((uint8_t*)p.first, p.second);
+      cursor += socket_.send((uint8_t*)p.first, p.second);
     }
     resultCb(true, "");
 
@@ -103,6 +102,7 @@ private:
     io::Appender appender(data.get(), Protocol::CHUNK_SIZE);
     appender.ensure(n);
     socket_.recv(appender.writableData(), n);
+    appender.append(n);
     process(data);
   }
 

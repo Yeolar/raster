@@ -95,6 +95,8 @@ void PBRpcChannel::process(const std::unique_ptr<IOBuf>& buf) {
         }
       }
         break;
+      default:
+        RDDLOG(FATAL) << "unknown message type: " << type;
     }
   } catch (std::exception& e) {
     RDDLOG(WARN) << "catch exception: " << e.what();
