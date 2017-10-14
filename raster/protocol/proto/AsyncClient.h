@@ -59,9 +59,9 @@ public:
     if (!event_ || event_->type() == Event::FAIL) {
       return false;
     }
-    std::string msg;
-    proto::decodeData(event_->rbuf(), &msg);
-    rpcChannel_->process(msg);
+    std::unique_ptr<IOBuf> buf;
+    proto::decodeData(event_->rbuf(), buf);
+    rpcChannel_->process(buf);
     return true;
   }
 

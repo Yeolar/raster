@@ -12,7 +12,7 @@ void serializeRequest(
     const std::string& callId,
     const google::protobuf::MethodDescriptor& method,
     const google::protobuf::Message& request,
-    std::ostream& out) {
+    io::Appender& out) {
   proto::writeInt(REQUEST_MSG, out);
   proto::writeString(callId, out);
   proto::writeMethodDescriptor(method, out);
@@ -20,7 +20,7 @@ void serializeRequest(
 }
 
 void parseRequestFrom(
-    std::istream& in,
+    io::RWPrivateCursor& in,
     std::string& callId,
     const google::protobuf::MethodDescriptor*& method,
     std::shared_ptr<google::protobuf::Message>& request) {
@@ -34,38 +34,38 @@ void serializeResponse(
     const std::string& callId,
     const PBRpcController& controller,
     const google::protobuf::Message* response,
-    std::ostream& out) {
+    io::Appender& out) {
   proto::writeInt(RESPONSE_MSG, out);
   proto::writeString(callId, out);
   controller.serializeTo(out);
   if (response) {
-    out.put('Y');
+    out.write<char>('Y');
     proto::writeMessage(*response, out);
   } else {
-    out.put('N');
+    out.write<char>('N');
   }
 }
 
 void parseResponseFrom(
-    std::istream& in,
+    io::RWPrivateCursor& in,
     std::string& callId,
     PBRpcController& controller,
     std::shared_ptr<google::protobuf::Message>& response) {
   callId = proto::readString(in);
   controller.parseFrom(in);
-  char c = in.get();
+  char c = in.read<char>();
   if (c == 'Y') {
     response.reset();
     proto::readMessage(in, response);
   }
 }
 
-void serializeCancel(const std::string& callId, std::ostream& out) {
+void serializeCancel(const std::string& callId, io::Appender& out) {
   proto::writeInt(CANCEL_MSG, out);
   proto::writeString(callId, out);
 }
 
-void parseCancelFrom(std::istream& in, std::string& callId) {
+void parseCancelFrom(io::RWPrivateCursor& in, std::string& callId) {
   callId = proto::readString(in);
 }
 

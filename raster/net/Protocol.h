@@ -42,7 +42,7 @@ public:
   virtual ~HBinaryProtocol() {}
 
   virtual int readData(Event* event) {
-    IOBuf* buf = event->rbuf();
+    IOBuf* buf = event->rbuf().get();
     if (buf->empty()) {
       event->rlen() = headerSize();
     }
@@ -52,6 +52,8 @@ public:
       size_t n = bodyLength(*header);
       if (n > BODYLEN_LIMIT) {
         RDDLOG(WARN) << *event << " big request, bodyLength=" << n;
+      } else {
+        RDDLOG(V3) << *event << " bodyLength=" << n;
       }
       event->rlen() = n;
       r = Protocol::readData(event);

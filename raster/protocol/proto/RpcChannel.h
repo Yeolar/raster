@@ -28,11 +28,11 @@ public:
       google::protobuf::Message* response,
       google::protobuf::Closure* done);
 
-  void process(const std::string& msg);
+  void process(const std::unique_ptr<IOBuf>& buf);
 
 protected:
   virtual void send(
-      const std::string& msg,
+      std::unique_ptr<IOBuf>& buf,
       std::function<void(bool, const std::string&)> resultCb) = 0;
 
 private:
@@ -84,18 +84,25 @@ public:
 
 private:
   virtual void send(
-      const std::string& msg,
+      std::unique_ptr<IOBuf>& buf,
       std::function<void(bool, const std::string&)> resultCb) {
-    uint32_t h = htonl(msg.size());
-    socket_.send(&h, sizeof(uint32_t));
-    socket_.send((char*)&msg[0], msg.size());
+    uint32_t n = buf->computeChainDataLength();
+    n = htonl(n);
+    socket_.send(&n, sizeof(uint32_t));
+    io::Cursor cursor(buf.get());
+    while (!cursor.isAtEnd()) {
+      auto p = cursor.peek();
+      cursor += socket_.send((uint8_t*)p.first, p.second);
+    }
     resultCb(true, "");
 
-    uint32_t n;
-    std::string data;
     socket_.recv(&n, sizeof(uint32_t));
-    data.resize(ntohl(n));
-    socket_.recv(&data[0], data.size());
+    n = ntohl(n);
+    std::unique_ptr<IOBuf> data(IOBuf::create(Protocol::CHUNK_SIZE));
+    io::Appender appender(data.get(), Protocol::CHUNK_SIZE);
+    appender.ensure(n);
+    socket_.recv(appender.writableData(), n);
+    appender.append(n);
     process(data);
   }
 
@@ -111,9 +118,9 @@ public:
 
 private:
   virtual void send(
-      const std::string& msg,
+      std::unique_ptr<IOBuf>& buf,
       std::function<void(bool, const std::string&)> resultCb) {
-    proto::encodeData(event_->wbuf(), (std::string*)&msg);
+    proto::encodeData(event_->wbuf(), buf);
     resultCb(true, "");
   }
 

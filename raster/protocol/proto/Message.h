@@ -9,6 +9,7 @@
 #include <ostream>
 #include <string>
 #include <google/protobuf/service.h>
+#include "raster/io/Cursor.h"
 #include "raster/protocol/proto/RpcController.h"
 
 namespace rdd {
@@ -25,10 +26,10 @@ void serializeRequest(
     const std::string& callId,
     const google::protobuf::MethodDescriptor& method,
     const google::protobuf::Message& request,
-    std::ostream& out);
+    io::Appender& out);
 
 void parseRequestFrom(
-    std::istream& in,
+    io::RWPrivateCursor& in,
     std::string& callId,
     const google::protobuf::MethodDescriptor*& method,
     std::shared_ptr<google::protobuf::Message>& request);
@@ -37,17 +38,21 @@ void serializeResponse(
     const std::string& callId,
     const PBRpcController& controller,
     const google::protobuf::Message* response,
-    std::ostream& out );
+    io::Appender& out);
 
 void parseResponseFrom(
-    std::istream& in,
+    io::RWPrivateCursor& in,
     std::string& callId,
     PBRpcController& controller,
     std::shared_ptr<google::protobuf::Message>& response);
 
-void serializeCancel(const std::string& callId, std::ostream& out);
+void serializeCancel(
+    const std::string& callId,
+    io::Appender& out);
 
-void parseCancelFrom(std::istream& in, std::string& callId);
+void parseCancelFrom(
+    io::RWPrivateCursor& in,
+    std::string& callId);
 
 } // namespace proto
 } // namespace rdd

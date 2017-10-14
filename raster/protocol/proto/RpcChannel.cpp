@@ -28,9 +28,10 @@ void PBRpcChannel::CallMethod(
   }
   std::shared_ptr<Handle> handle(new Handle(controller, response, done));
   handles_[callId] = handle;
-  std::ostringstream out;
+  std::unique_ptr<IOBuf> buf(IOBuf::create(Protocol::CHUNK_SIZE));
+  io::Appender out(buf.get(), Protocol::CHUNK_SIZE);
   proto::serializeRequest(callId, *method, *request, out);
-  send(out.str(), std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
+  send(buf, std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
 }
 
 void PBRpcChannel::messageSent(
@@ -56,16 +57,16 @@ void PBRpcChannel::messageSent(
 
 void PBRpcChannel::startCancel(std::string callId) {
   if (handles_.contains(callId)) {
-    std::ostringstream out;
+    std::unique_ptr<IOBuf> buf(IOBuf::create(Protocol::CHUNK_SIZE));
+    io::Appender out(buf.get(), Protocol::CHUNK_SIZE);
     proto::serializeCancel(callId, out);
-    send(out.str(),
-         std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
+    send(buf, std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
   }
 }
 
-void PBRpcChannel::process(const std::string& msg) {
+void PBRpcChannel::process(const std::unique_ptr<IOBuf>& buf) {
   try {
-    std::istringstream in(msg);
+    io::RWPrivateCursor in(buf.get());
     int type = proto::readInt(in);
     switch (type) {
       case proto::RESPONSE_MSG:
@@ -94,6 +95,8 @@ void PBRpcChannel::process(const std::string& msg) {
         }
       }
         break;
+      default:
+        RDDLOG(FATAL) << "unknown message type: " << type;
     }
   } catch (std::exception& e) {
     RDDLOG(WARN) << "catch exception: " << e.what();

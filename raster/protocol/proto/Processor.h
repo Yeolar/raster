@@ -21,16 +21,16 @@ public:
   virtual ~PBProcessor() {}
 
   virtual bool decodeData(Event* event) {
-    return rdd::proto::decodeData(event->rbuf(), &ibuf_);
+    return rdd::proto::decodeData(event->rbuf(), ibuf_);
   }
 
   virtual bool encodeData(Event* event) {
-    return rdd::proto::encodeData(event->wbuf(), &obuf_);
+    return rdd::proto::encodeData(event->wbuf(), obuf_);
   }
 
   virtual bool run() {
     try {
-      std::istringstream in(ibuf_);
+      io::RWPrivateCursor in(ibuf_.get());
       int type = proto::readInt(in);
       switch (type) {
         case proto::REQUEST_MSG:
@@ -49,6 +49,8 @@ public:
           cancel(callId);
         }
           break;
+        default:
+          RDDLOG(FATAL) << "unknown message type: " << type;
       }
       return true;
     } catch (std::exception& e) {
@@ -88,38 +90,31 @@ private:
   void cancel(const std::string& callId) {
     std::shared_ptr<PBAsyncServer::Handle> handle =
       server_->removeHandle(callId);
-    if (handle) {
-      PBRpcController controller;
-      controller.setCanceled();
-      sendResponse(callId, &controller, nullptr);
-    } else {
-      //
-    }
+    RDDCHECK(handle) << "proto handle not available";
+    PBRpcController controller;
+    controller.setCanceled();
+    sendResponse(callId, &controller, nullptr);
   }
 
   void finish(std::shared_ptr<PBAsyncServer::Handle> handle) {
-    if (handle) {
-      if (server_->removeHandle(handle->callId) == handle) {
-        sendResponse(handle->callId,
-                     handle->controller.get(),
-                     handle->response.get());
-      } else {
-        //
-      }
-    }
+    RDDCHECK_EQ(handle, server_->removeHandle(handle->callId))
+      << "proto handle not available";
+    sendResponse(handle->callId,
+                 handle->controller.get(),
+                 handle->response.get());
   }
 
   void sendResponse(const std::string& callId,
                     PBRpcController* controller,
                     google::protobuf::Message* response) {
-    std::ostringstream out;
+    obuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
+    io::Appender out(obuf_.get(), Protocol::CHUNK_SIZE);
     proto::serializeResponse(callId, *controller, response, out);
-    obuf_ = out.str();
   }
 
   PBAsyncServer* server_;
-  std::string ibuf_;
-  std::string obuf_;
+  std::unique_ptr<IOBuf> ibuf_;
+  std::unique_ptr<IOBuf> obuf_;
 };
 
 class PBProcessorFactory : public ProcessorFactory {

@@ -8,7 +8,7 @@
 namespace rdd {
 
 int Protocol::readData(Event* event) {
-  auto appender = rdd::io::Appender(event->rbuf(), CHUNK_SIZE);
+  io::Appender appender(event->rbuf().get(), CHUNK_SIZE);
   appender.ensure(event->rlen());
   while (event->rlen() > 0) {
     int r = event->socket()->recv(appender.writableData(), event->rlen());
@@ -35,7 +35,7 @@ int Protocol::readData(Event* event) {
 }
 
 int Protocol::readDataUntil(Event* event, ByteRange bytes) {
-  auto appender = rdd::io::Appender(event->rbuf(), CHUNK_SIZE);
+  io::Appender appender(event->rbuf().get(), CHUNK_SIZE);
   while (true) {
     if (appender.length() == 0) {
       appender.ensure(CHUNK_SIZE);
@@ -66,7 +66,7 @@ int Protocol::readDataUntil(Event* event, ByteRange bytes) {
 }
 
 int Protocol::writeData(Event* event) {
-  rdd::io::Cursor cursor(event->wbuf());
+  rdd::io::Cursor cursor(event->wbuf().get());
   cursor += event->wlen();
   while (!cursor.isAtEnd()) {
     auto p = cursor.peek();

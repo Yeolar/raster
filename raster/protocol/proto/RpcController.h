@@ -8,6 +8,7 @@
 #include <set>
 #include <string>
 #include <google/protobuf/service.h>
+#include "raster/io/Cursor.h"
 #include "raster/util/Function.h"
 
 namespace rdd {
@@ -28,8 +29,8 @@ public:
   virtual bool IsCanceled() const;
   virtual void NotifyOnCancel(google::protobuf::Closure* closure);
 
-  void serializeTo(std::ostream& out) const;
-  void parseFrom(std::istream& in);
+  void serializeTo(io::Appender& out) const;
+  void parseFrom(io::RWPrivateCursor& in);
 
   void copyFrom(const PBRpcController& o);
 
