@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string>
+#include "raster/io/FileUtil.h"
 #include "raster/util/Exception.h"
 #include "raster/util/Logging.h"
 #include "raster/util/noncopyable.h"
@@ -85,6 +86,22 @@ public:
   void swap(File& other) {
     std::swap(fd_, other.fd_);
     std::swap(ownsFd_, other.ownsFd_);
+  }
+
+  void lock() {
+    checkUnixError(flockNoInt(fd_, LOCK_EX), "flock() failed (lock)");
+  }
+
+  bool try_lock() {
+    int r = flockNoInt(fd_, LOCK_EX | LOCK_NB);
+    // flock returns EWOULDBLOCK if already locked
+    if (r == -1 && errno == EWOULDBLOCK) return false;
+    checkUnixError(r, "flock() failed (try_lock)");
+    return true;
+  }
+
+  void unlock() {
+    checkUnixError(flockNoInt(fd_, LOCK_UN), "flock() failed (unlock)");
   }
 
 private:

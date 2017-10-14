@@ -7,8 +7,10 @@
 
 #include <cassert>
 #include <limits>
+#include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/uio.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include "raster/util/Conv.h"
@@ -65,6 +67,41 @@ ssize_t wrapFull(F f, int fd, void* buf, size_t count, Offset... offset) {
   return totalBytes;
 }
 
+template <class F, class... Offset>
+ssize_t wrapvFull(F f, int fd, iovec* iov, int count, Offset... offset) {
+  ssize_t totalBytes = 0;
+  ssize_t r;
+  do {
+    r = f(fd, iov, std::min<int>(count, IOV_MAX), offset...);
+    if (r == -1) {
+      if (errno == EINTR) {
+        continue;
+      }
+      return r;
+    }
+
+    if (r == 0) {
+      break;  // EOF
+    }
+
+    totalBytes += r;
+    incr(r, offset...);
+    while (r != 0 && count != 0) {
+      if (r >= ssize_t(iov->iov_len)) {
+        r -= ssize_t(iov->iov_len);
+        ++iov;
+        --count;
+      } else {
+        iov->iov_base = static_cast<char*>(iov->iov_base) + r;
+        iov->iov_len -= r;
+        r = 0;
+      }
+    }
+  } while (count);
+
+  return totalBytes;
+}
+
 } // namespace detail
 
 inline int openNoInt(const char* name, int flags, mode_t mode = 0666) {
@@ -79,28 +116,56 @@ inline int closeNoInt(int fd) {
   return r;
 }
 
+inline int flockNoInt(int fd, int operation) {
+  return int(detail::wrapNoInt(flock, fd, operation));
+}
+
 inline ssize_t readNoInt(int fd, void* buf, size_t count) {
   return detail::wrapNoInt(read, fd, buf, count);
+}
+
+inline ssize_t readvNoInt(int fd, const iovec* iov, int count) {
+  return detail::wrapNoInt(readv, fd, iov, count);
 }
 
 inline ssize_t writeNoInt(int fd, const void* buf, size_t count) {
   return detail::wrapNoInt(write, fd, buf, count);
 }
 
+inline ssize_t writevNoInt(int fd, const iovec* iov, int count) {
+  return detail::wrapNoInt(writev, fd, iov, count);
+}
+
 inline ssize_t readFull(int fd, void* buf, size_t n) {
   return detail::wrapFull(read, fd, buf, n);
+}
+
+inline ssize_t preadFull(int fd, void* buf, size_t count, off_t offset) {
+  return detail::wrapFull(pread, fd, buf, count, offset);
 }
 
 inline ssize_t writeFull(int fd, const void* buf, size_t n) {
   return detail::wrapFull(write, fd, const_cast<void*>(buf), n);
 }
 
-inline bool readBlock(int fd, void* buf, size_t n) {
-  return readFull(fd, buf, n) == (ssize_t)n;
+inline ssize_t pwriteFull(int fd, const void* buf, size_t count, off_t offset) {
+  return detail::wrapFull(pwrite, fd, const_cast<void*>(buf), count, offset);
 }
 
-inline bool writeBlock(int fd, void* buf, size_t n) {
-  return writeFull(fd, buf, n) == (ssize_t)n;
+inline ssize_t readvFull(int fd, iovec* iov, int count) {
+  return detail::wrapvFull(readv, fd, iov, count);
+}
+
+inline ssize_t preadvFull(int fd, iovec* iov, int count, off_t offset) {
+  return detail::wrapvFull(preadv, fd, iov, count, offset);
+}
+
+inline ssize_t writevFull(int fd, iovec* iov, int count) {
+  return detail::wrapvFull(writev, fd, iov, count);
+}
+
+inline ssize_t pwritevFull(int fd, iovec* iov, int count, off_t offset) {
+  return detail::wrapvFull(pwritev, fd, iov, count, offset);
 }
 
 template <class Container>
