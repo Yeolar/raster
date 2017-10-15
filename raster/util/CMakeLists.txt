@@ -9,6 +9,7 @@ set(RASTER_UTIL_SRCS
     Futex.cpp
     json.cpp
     MemoryMapping.cpp
+    Random.cpp
     Range.cpp
     Signal.cpp
     SpookyHashV2.cpp
@@ -26,6 +27,7 @@ install(FILES
     Algorithm.h
     Arena.h
     AtomicBitSet.h
+    AtomicUnorderedMap.h
     Backtrace.h
     Base64.h
     Base64-inl.h
@@ -60,6 +62,7 @@ install(FILES
     noncopyable.h
     Optional.h
     ProducerConsumerQueue.h
+    Random.h
     Range.h
     ReflectObject.h
     RWLock.h

@@ -17,6 +17,7 @@ install(FILES
     Descriptor.h
     File.h
     FileUtil.h
+    FlatDict.h
     FSUtil.h
     HugePages.h
     IOBuf.h

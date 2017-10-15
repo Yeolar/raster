@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include "raster/util/RWLock.h"
 #include <mutex>
 
 namespace rdd {
@@ -18,12 +19,12 @@ public:
   LockedMap() {}
 
   V& operator[](const K& k) {
-    std::lock_guard<std::mutex> guard(lock_);
+    WLockGuard guard(lock_);
     return map_[k];
   }
 
   const V& operator[](const K& k) const {
-    std::lock_guard<std::mutex> guard(lock_);
+    RLockGuard guard(lock_);
     return map_[k];
   }
 
@@ -32,7 +33,7 @@ public:
   }
 
   std::pair<V, bool> insert(const value_type& v) {
-    std::lock_guard<std::mutex> guard(lock_);
+    WLockGuard guard(lock_);
     std::pair<iterator, bool> r = map_.insert(v);
     if (r.second) {
       return std::make_pair(r.first->second, true);
@@ -42,7 +43,7 @@ public:
   }
 
   V erase(const K& k) {
-    std::lock_guard<std::mutex> guard(lock_);
+    WLockGuard guard(lock_);
     iterator it = map_.find(k);
     if (it == map_.end()) {
       return V();
@@ -53,40 +54,40 @@ public:
   }
 
   const V& get(const K& k) const {
-    std::lock_guard<std::mutex> guard(lock_);
+    RLockGuard guard(lock_);
     iterator it = map_.find(k);
     return it != map_.end() ? it->second : V();
   }
 
   bool contains(const K& k) const {
-    std::lock_guard<std::mutex> guard(lock_);
+    RLockGuard guard(lock_);
     return map_.find(k) != map_.end();
   }
 
   size_t size() const {
-    std::lock_guard<std::mutex> guard(lock_);
+    RLockGuard guard(lock_);
     return map_.size();
   }
 
   bool empty() const {
-    std::lock_guard<std::mutex> guard(lock_);
+    RLockGuard guard(lock_);
     return map_.empty();
   }
 
   void clear() {
-    std::lock_guard<std::mutex> guard(lock_);
+    WLockGuard guard(lock_);
     map_.clear();
   }
 
   void for_each(std::function<void(K& k, V& v)> func) {
-    std::lock_guard<std::mutex> guard(lock_);
+    WLockGuard guard(lock_);
     for (auto& kv : map_) {
       func(kv.first, kv.second);
     }
   }
 
-  void for_each(std::function<void(const K& k, const V& v)> func) {
-    std::lock_guard<std::mutex> guard(lock_);
+  void for_each(std::function<void(const K& k, const V& v)> func) const {
+    RLockGuard guard(lock_);
     for (auto& kv : map_) {
       func(kv.first, kv.second);
     }
@@ -94,7 +95,7 @@ public:
 
 private:
   std::map<K, V> map_;
-  mutable std::mutex lock_;
+  mutable RWLock lock_;
 };
 
 } // namespace rdd

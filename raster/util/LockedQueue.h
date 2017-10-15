@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <mutex>
 #include <queue>
+#include "raster/util/RWLock.h"
 
 namespace rdd {
 
@@ -15,16 +15,16 @@ public:
   LockedQueue() {}
 
   void push(const T& value) {
-    std::lock_guard<std::mutex> guard(lock_);
+    WLockGuard guard(lock_);
     queue_.push(value);
   }
   void push(T&& value) {
-    std::lock_guard<std::mutex> guard(lock_);
+    WLockGuard guard(lock_);
     queue_.push(std::move(value));
   }
 
   bool pop(T& value) {
-    std::lock_guard<std::mutex> guard(lock_);
+    WLockGuard guard(lock_);
     if (queue_.empty()) {
       return false;
     }
@@ -40,13 +40,13 @@ public:
   }
 
   size_t size() const {
-    std::lock_guard<std::mutex> guard(lock_);
+    RLockGuard guard(lock_);
     return queue_.size();
   }
 
 private:
   std::queue<T> queue_;
-  mutable std::mutex lock_;
+  mutable RWLock lock_;
 };
 
 } // namespace rdd
