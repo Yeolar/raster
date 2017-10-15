@@ -32,6 +32,25 @@
 // MyExpensiveService* svc1 = s1.get();
 // MyExpensiveService* svc2 = s2.get();
 //
+// By default, the singleton instance is constructed via new and
+// deleted via delete, but this is configurable:
+//
+// namespace {
+// rdd::Singleton<MyExpensiveService> the_singleton(create, destroy);
+// }
+//
+// Where create and destroy are functions, Singleton<T>::CreateFunc
+// Singleton<T>::TeardownFunc.
+//
+// For example, if you need to pass arguments to your class's constructor:
+//   class X {
+//    public:
+//      X(int a1, std::string a2);
+//    // ...
+//   }
+// Make your singleton like this:
+//   rdd::Singleton<X> singleton_x([]() { return new X(42, "foo"); });
+//
 
 #pragma once
 
@@ -51,6 +70,9 @@ struct DefaultTag {};
 template <typename T>
 struct SingletonHolder : noncopyable {
 public:
+  typedef std::function<void(T*)> TeardownFunc;
+  typedef std::function<T*(void)> CreateFunc;
+
   template <typename Tag>
   inline static SingletonHolder<T>& singleton() {
     static auto entry = new SingletonHolder<T>();
@@ -58,32 +80,49 @@ public:
   }
 
   inline T* get() {
-    if (LIKELY(state_ == LIVING)) {
+    if (LIKELY(state_.load(std::memory_order_acquire) == LIVING)) {
       return instance_ptr_;
     }
     createInstance();
     return instance_ptr_;
   }
 
+  void registerSingleton(CreateFunc c, TeardownFunc t) {
+    std::lock_guard<std::mutex> guard(lock_);
+    create_ = std::move(c);
+    teardown_ = std::move(t);
+    state_ = DEAD;
+  }
+
 private:
   enum {
     UNREGISTERED,
+    DEAD,
     LIVING,
   };
 
-  SingletonHolder() : state_(UNREGISTERED) {}
+  SingletonHolder() {}
 
   void createInstance() {
     std::lock_guard<std::mutex> guard(lock_);
-    instance_ = std::make_shared<T>();
-    instance_ptr_ = instance_.get();
-    state_.store(LIVING);
+    if (state_.load(std::memory_order_acquire) == LIVING) {
+      return;
+    }
+    std::shared_ptr<T> instance(
+        create_ ? create_() : new T,
+        teardown_ ? teardown_ : [](T* v) { delete v; });
+
+    instance_ptr_ = instance.get();
+    instance_ = std::move(instance);
+    state_.store(LIVING, std::memory_order_release);
   }
 
   std::mutex lock_;
-  std::atomic<int> state_;
+  std::atomic<int> state_{UNREGISTERED};
   std::shared_ptr<T> instance_;
   T* instance_ptr_{nullptr};
+  CreateFunc create_{nullptr};
+  TeardownFunc teardown_{nullptr};
 };
 
 } // namespace detail
@@ -91,9 +130,15 @@ private:
 template <typename T, typename Tag = detail::DefaultTag>
 class Singleton {
 public:
+  typedef std::function<T*(void)> CreateFunc;
+  typedef std::function<void(T*)> TeardownFunc;
+
   static T* get() { return getEntry().get(); }
 
-  Singleton() {}
+  explicit Singleton(typename Singleton::CreateFunc c = nullptr,
+                     typename Singleton::TeardownFunc t = nullptr) {
+    getEntry().registerSingleton(c, t);
+  }
 
 private:
   inline static detail::SingletonHolder<T>& getEntry() {

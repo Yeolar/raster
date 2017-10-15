@@ -26,7 +26,7 @@ struct MutableLockedIOBuf {
 
   void reset(std::unique_ptr<IOBuf>&& other) const {
     SpinLockGuard guard(lock_);
-    buf_.swap(other);
+    buf_ = std::move(other);
   }
 
 private:

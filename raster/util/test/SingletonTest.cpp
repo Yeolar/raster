@@ -9,7 +9,7 @@ using namespace rdd;
 
 class MyExpensiveService {
 public:
-  MyExpensiveService() : counter_(0) {}
+  MyExpensiveService(int init = 0) : counter_(init) {}
 
   int counter() { return counter_++; }
 
@@ -22,10 +22,11 @@ namespace {
 struct Tag1 {};
 struct Tag2 {};
 struct Tag3 {};
-struct Tag4 {};
 rdd::Singleton<MyExpensiveService> s_default;
 rdd::Singleton<MyExpensiveService, Tag1> s1;
 rdd::Singleton<MyExpensiveService, Tag2> s2;
+rdd::Singleton<MyExpensiveService, Tag3> s_arg(
+    []() { return new MyExpensiveService(10); });
 
 }
 
@@ -45,4 +46,10 @@ TEST(Singleton, tagged) {
   MyExpensiveService* svc4 = Singleton<MyExpensiveService, Tag2>::get();
   EXPECT_EQ(1, svc3->counter());
   EXPECT_EQ(1, svc4->counter());
+}
+
+TEST(Singleton, arg) {
+  MyExpensiveService* svc_arg = s_arg.get();
+  EXPECT_EQ(10, svc_arg->counter());
+  EXPECT_EQ(11, svc_arg->counter());
 }
