@@ -76,7 +76,7 @@ public:
   };
 
 public:
-  explicit FlatDict(size_t maxSize, fs::path path)
+  explicit FlatDict(size_t maxSize, fs::path path = "")
     : map_(maxSize),
       path_(path),
       sync_(false) {
@@ -94,7 +94,9 @@ public:
     if (!sync_.exchange(true)) {
       RecordIOReader reader(File(path.string()));
       for (auto& record : reader) {
-        std::unique_ptr<IOBuf> buf(IOBuf::copyBuffer(record.first));
+        std::unique_ptr<IOBuf> buf(IOBuf::createCombined(record.first.size()));
+        io::Appender appender(buf.get(), 0);
+        appender.push(record.first);
         Key key = *TypedIOBuf<Key>(buf.get()).data();
         update(key, std::move(buf));
       }
@@ -104,7 +106,7 @@ public:
 
   void sync() {
     if (!path_.empty() && !sync_.exchange(true)) {
-      std::unique_ptr<IOBuf> head(IOBuf::create(1));
+      std::unique_ptr<IOBuf> head(IOBuf::createCombined(1));
       auto it = map_.cbegin();
       while (it != map_.cend()) {
         auto buf = (it++)->second.clone();
@@ -136,7 +138,8 @@ public:
   }
 
   void update(Key key, ByteRange range, uint64_t ts = timestampNow()) {
-    std::unique_ptr<IOBuf> buf(IOBuf::create(Block::kHeadSize + range.size()));
+    std::unique_ptr<IOBuf> buf(
+        IOBuf::createCombined(Block::kHeadSize + range.size()));
     io::Appender appender(buf.get(), 0);
     appender.write(key);
     appender.write(ts);
