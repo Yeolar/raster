@@ -114,7 +114,7 @@ public:
           head->prependChain(std::move(buf));
         }
       }
-      RecordIOWriter writer(File(path_.string(), O_RDWR | O_CREAT));
+      RecordIOWriter writer(File(path_.string(), O_WRONLY | O_CREAT | O_TRUNC));
       writer.write(std::move(head->pop()));
       sync_ = false;
     }
@@ -145,6 +145,16 @@ public:
     appender.write(ts);
     appender.push(range);
     update(key, std::move(buf));
+  }
+
+  size_t size() {
+    size_t n = 0;
+    auto it = map_.cbegin();
+    while (it != map_.cend()) {
+      ++n;
+      ++it;
+    }
+    return n;
   }
 
 private:

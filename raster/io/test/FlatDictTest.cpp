@@ -23,6 +23,7 @@ TEST(FlatDict, Simple) {
     EXPECT_EQ(dict.get(1).data, range);
     dict.erase(1);
     EXPECT_FALSE(!!dict.get(1));
+    EXPECT_EQ(dict.size(), 2);
   }
   {
     FlatDict<int64_t> dict(100, "flatdicttest.dump");
@@ -30,6 +31,7 @@ TEST(FlatDict, Simple) {
     auto person = ::flatbuffers::GetRoot<fbs::Person>(dict.get(2).data.data());
     EXPECT_STREQ(person->name()->c_str(), "Yeolar");
     EXPECT_STREQ(person->city()->c_str(), "Beijing");
+    EXPECT_EQ(dict.size(), 1);
   }
 }
 
@@ -76,4 +78,5 @@ TEST(FlatDict, Conflict) {
     EXPECT_STREQ(person->name()->c_str(), "Yeolar");
     EXPECT_STREQ(person->city()->c_str(), "Shanghai");
   }
+  EXPECT_EQ(dict.size(), 10000);
 }
