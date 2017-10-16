@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <string.h>
 #include <cassert>
 #include <functional>
 #include <limits>
@@ -15,6 +16,10 @@
 #include "raster/util/ScopeGuard.h"
 #include "raster/util/Time.h"
 #include "raster/util/Traits.h"
+
+#ifndef __FILENAME__
+#define __FILENAME__ ((strrchr(__FILE__, '/') ?: __FILE__ - 1) + 1)
+#endif
 
 namespace rdd {
 

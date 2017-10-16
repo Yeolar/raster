@@ -5,13 +5,6 @@
 #pragma once
 
 /**
- * File name from __FILE__. Requires strrchr.
- */
-#ifndef __FILENAME__
-#define __FILENAME__ ((strrchr(__FILE__, '/') ?: __FILE__ - 1) + 1)
-#endif
-
-/**
  * Array size.
  */
 #ifndef NELEMS
