@@ -6,13 +6,32 @@
 
 #include <limits.h>
 #include <stdint.h>
+#include <chrono>
 #include <string>
 #include <time.h>
-#include <sys/time.h>
 #include <boost/operators.hpp>
 #include "raster/util/Conv.h"
 
 namespace rdd {
+
+typedef std::chrono::system_clock Clock;
+
+inline uint64_t nanoTimestampNow() {
+  return Clock::now().time_since_epoch().count();
+}
+
+inline uint64_t nanoTimePassed(uint64_t nts) {
+  return nanoTimestampNow() - nts;
+}
+
+inline uint64_t timestampNow() {
+  return std::chrono::duration_cast<std::chrono::microseconds>(
+      Clock::now().time_since_epoch()).count();
+}
+
+inline uint64_t timePassed(uint64_t ts) {
+  return timestampNow() - ts;
+}
 
 std::string timePrintf(time_t t, const char *format);
 
@@ -21,21 +40,11 @@ inline std::string timeNowPrintf(const char *format) {
   return timePrintf(t, format);
 }
 
-inline uint64_t timestampNow() {
-  timespec tv;
-  clock_gettime(CLOCK_REALTIME, &tv);
-  return tv.tv_sec * 1000000 + tv.tv_nsec / 1000;
-}
-
 inline struct timeval toTimeval(uint64_t t) {
   return {
     (__time_t)(t / 1000000),
     (__suseconds_t)(t % 1000000)
   };
-}
-
-inline uint64_t timePassed(uint64_t ts) {
-  return timestampNow() - ts;
 }
 
 struct Timestamp {

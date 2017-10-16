@@ -23,10 +23,6 @@
 #include "raster/util/ThreadUtil.h"
 #include "raster/util/Time.h"
 
-#ifndef __FILENAME__
-#define __FILENAME__ ((strrchr(__FILE__, '/') ?: __FILE__ - 1) + 1)
-#endif
-
 namespace rdd {
 namespace logging {
 

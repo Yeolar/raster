@@ -2,6 +2,7 @@
 
 set(RASTER_UTIL_SRCS
     Arena.cpp
+    Benchmark.cpp
     Checksum.cpp
     Conv.cpp
     Demangle.cpp
@@ -32,6 +33,7 @@ install(FILES
     Base64.h
     Base64-inl.h
     Baton.h
+    Benchmark.h
     Bits.h
     BlockingQueue.h
     Checksum.h

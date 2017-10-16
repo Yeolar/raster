@@ -4,32 +4,22 @@
 
 #pragma once
 
-#define RDD_CONCATENATE_IMPL(s1, s2) s1##s2
-#define RDD_CONCATENATE(s1, s2) RDD_CONCATENATE_IMPL(s1, s2)
-
-/*
- * Introduces an identifier starting with str and ending with a number
- * that varies with the line.
+/**
+ * File name from __FILE__. Requires strrchr.
  */
-#ifdef __COUNTER__
-#define RDD_ANONYMOUS_VARIABLE(str) RDD_CONCATENATE(str, __COUNTER__)
-#else
-#define RDD_ANONYMOUS_VARIABLE(str) RDD_CONCATENATE(str, __LINE__)
+#ifndef __FILENAME__
+#define __FILENAME__ ((strrchr(__FILE__, '/') ?: __FILE__ - 1) + 1)
 #endif
 
-/*
- * Stringize
+/**
+ * Array size.
  */
-#define RDD_STRINGIZE(x) #x
-#define RDD_STRINGIZE2(x) RDD_STRINGIZE(x)
+#ifndef NELEMS
+#define NELEMS(v) (sizeof(v) / sizeof((v)[0]))
+#endif
 
-/*
- * ALIGNED
- */
-#define RDD_ALIGNED(size) __attribute__((__aligned__(size)))
-
-/*
- * LIKELY
+/**
+ * Likely.
  */
 #undef LIKELY
 #undef UNLIKELY
@@ -42,17 +32,62 @@
 #define UNLIKELY(x) (x)
 #endif
 
-/*
- * Array size.
+/**
+ * Shortcut.
  */
-#define NELEMS(v) (sizeof(v) / sizeof((v)[0]))
+#undef NOCOPY
+#undef NOMOVE
 
-/*
- * Unit conversion.
+#define NOCOPY(type) \
+  type(const type&) = delete; \
+  type& operator=(const type&) = delete
+
+#define NOMOVE(type) \
+  type(type&& rhs) = delete; \
+  type& operator=(type&& rhs) = delete
+
+/**
+ * Conditional arg.
+ *
+ * RDD_ARG_1_OR_NONE(a)    => NONE
+ * RDD_ARG_1_OR_NONE(a, b) => a
+ * RDD_ARG_2_OR_1(a)       => a
+ * RDD_ARG_2_OR_1(a, b)    => b
  */
-#define B2G(i) (float(i) / 1073741824L) // 1024*1024*1024
+#define RDD_ARG_1_OR_NONE(a, ...) RDD_THIRD(a, ## __VA_ARGS__, a)
+#define RDD_THIRD(a, b, ...) __VA_ARGS__
 
-/*
+#define RDD_ARG_2_OR_1(...) RDD_ARG_2_OR_1_IMPL(__VA_ARGS__, __VA_ARGS__)
+#define RDD_ARG_2_OR_1_IMPL(a, b, ...) b
+
+/**
+ * Concatenate.
+ */
+#define RDD_CONCATENATE_IMPL(s1, s2) s1##s2
+#define RDD_CONCATENATE(s1, s2) RDD_CONCATENATE_IMPL(s1, s2)
+
+/**
+ * Anonymous variable. Introduces an identifier starting with str
+ * and ending with a number that varies with the line.
+ */
+#ifdef __COUNTER__
+#define RDD_ANONYMOUS_VARIABLE(str) RDD_CONCATENATE(str, __COUNTER__)
+#else
+#define RDD_ANONYMOUS_VARIABLE(str) RDD_CONCATENATE(str, __LINE__)
+#endif
+
+/**
+ * Stringize.
+ */
+#define RDD_STRINGIZE(x) #x
+#define RDD_STRINGIZE2(x) RDD_STRINGIZE(x)
+
+/**
+ * Aligned.
+ */
+#define RDD_ALIGNED(size) __attribute__((__aligned__(size)))
+
+/**
  * The RDD_NARG macro evaluates to the number of arguments that have been
  * passed to it.
  *
@@ -73,7 +108,7 @@
   31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16, \
   15,14,13,12,11,10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
 
-/*
+/**
  * APPLYXn variadic X-Macro by M Joshua Ryan
  * Free for all uses. Don't be a jerk.
  */
