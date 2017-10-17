@@ -229,7 +229,7 @@ auto doNotOptimizeAway(const T& datum) -> typename std::enable_if<
  *
  * BENCHMARK(insertVectorBegin, n) {
  *   vector<int> v;
- *   FOR_EACH_RANGE (i, 0, n) {
+ *   for (unsigned i = 0; i < n; ++i) {
  *     v.insert(v.begin(), 42);
  *   }
  * }
@@ -252,7 +252,7 @@ auto doNotOptimizeAway(const T& datum) -> typename std::enable_if<
  *   BENCHMARK_SUSPEND {
  *     v.resize(initialSize);
  *   }
- *   FOR_EACH_RANGE (i, 0, n) {
+ *   for (unsigned i = 0; i < n; ++i) {
  *    v.push_back(i);
  *   }
  * }
@@ -279,7 +279,7 @@ auto doNotOptimizeAway(const T& datum) -> typename std::enable_if<
  * void addValue(uint n, int64_t bucketSize, int64_t min, int64_t max) {
  *   Histogram<int64_t> hist(bucketSize, min, max);
  *   int64_t num = min;
- *   FOR_EACH_RANGE (i, 0, n) {
+ *   for (unsigned i = 0; i < n; ++i) {
  *     hist.addValue(num);
  *     ++num;
  *     if (num > max) { num = min; }
@@ -308,14 +308,14 @@ auto doNotOptimizeAway(const T& datum) -> typename std::enable_if<
  * // This is the baseline
  * BENCHMARK(insertVectorBegin, n) {
  *   vector<int> v;
- *   FOR_EACH_RANGE (i, 0, n) {
+ *   for (unsigned i = 0; i < n; ++i) {
  *     v.insert(v.begin(), 42);
  *   }
  * }
  *
  * BENCHMARK_RELATIVE(insertListBegin, n) {
  *   list<int> s;
- *   FOR_EACH_RANGE (i, 0, n) {
+ *   for (unsigned i = 0; i < n; ++i) {
  *     s.insert(s.begin(), 42);
  *   }
  * }
@@ -364,12 +364,12 @@ auto doNotOptimizeAway(const T& datum) -> typename std::enable_if<
  * Allows execution of code that doesn't count torward the benchmark's
  * time budget. Example:
  *
- * BENCHMARK_START_GROUP(insertVectorBegin, n) {
+ * BENCHMARK(insertVectorBegin, n) {
  *   vector<int> v;
  *   BENCHMARK_SUSPEND {
  *     v.reserve(n);
  *   }
- *   FOR_EACH_RANGE (i, 0, n) {
+ *   for (unsigned i = 0; i < n; ++i) {
  *     v.insert(v.begin(), 42);
  *   }
  * }

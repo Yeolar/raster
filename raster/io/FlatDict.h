@@ -9,7 +9,7 @@
 #include "raster/io/RecordIO.h"
 #include "raster/io/TypedIOBuf.h"
 #include "raster/util/AtomicUnorderedMap.h"
-#include "raster/util/SpinLock.h"
+#include "raster/util/RWSpinLock.h"
 
 namespace rdd {
 
@@ -20,18 +20,18 @@ struct MutableLockedIOBuf {
     : buf_(std::move(init)) {}
 
   std::unique_ptr<IOBuf> clone() const {
-    SpinLockGuard guard(lock_);
+    RWSpinLock::ReadHolder guard(lock_);
     return buf_ ? buf_->cloneOne() : nullptr;
   }
 
   void reset(std::unique_ptr<IOBuf>&& other) const {
-    SpinLockGuard guard(lock_);
+    RWSpinLock::WriteHolder guard(lock_);
     buf_ = std::move(other);
   }
 
 private:
   mutable std::unique_ptr<IOBuf> buf_;
-  mutable SpinLock lock_;
+  mutable RWSpinLock lock_;
 };
 
 } // namespace detail
@@ -39,17 +39,13 @@ private:
 /**
  * A synchronized buffer dictionary based on AtomicUnorderedMap.
  */
-template <class Key, class IndexType = uint32_t>
+template <
+  typename Key,
+  typename Hash = std::hash<Key>,
+  typename KeyEqual = std::equal_to<Key>,
+  typename IndexType = uint32_t,
+  typename Allocator = MMapAlloc>
 class FlatDict {
-  typedef AtomicUnorderedInsertMap<
-    Key,
-    detail::MutableLockedIOBuf,
-    std::hash<Key>,
-    std::equal_to<Key>,
-    (boost::has_trivial_destructor<Key>::value &&
-     boost::has_trivial_destructor<detail::MutableLockedIOBuf>::value),
-    IndexType> Map;
-
 public:
   struct Block {
     Block(std::unique_ptr<IOBuf>&& buf) : buf_(std::move(buf)) {
@@ -165,9 +161,24 @@ private:
     }
   }
 
-  Map map_;
+  AtomicUnorderedInsertMap<
+    Key,
+    detail::MutableLockedIOBuf,
+    Hash,
+    KeyEqual,
+    (boost::has_trivial_destructor<Key>::value &&
+     boost::has_trivial_destructor<detail::MutableLockedIOBuf>::value),
+    IndexType,
+    Allocator> map_;
   fs::path path_;
   std::atomic<bool> sync_;
 };
+
+template <
+  typename Key,
+  typename Hash = std::hash<Key>,
+  typename KeyEqual = std::equal_to<Key>,
+  typename Allocator = MMapAlloc>
+using FlatDict64 = FlatDict<Key, Hash, KeyEqual, uint64_t, Allocator>;
 
 } // namespace rdd

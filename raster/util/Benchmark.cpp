@@ -257,12 +257,13 @@ void runBenchmarks() {
       continue;
     }
     double elapsed = 0.0;
-    if (get<1>(benchmarks()[i]) != "-") { // skip separators
-      elapsed = runBenchmarkGetNSPerIteration(get<2>(benchmarks()[i]),
+    auto& benchmark = benchmarks()[i];
+    if (get<1>(benchmark) != "-") { // skip separators
+      RDDRLOG(INFO) << "run benchmark: " << get<1>(benchmark);
+      elapsed = runBenchmarkGetNSPerIteration(get<2>(benchmark),
                                               globalBaseline);
     }
-    results.emplace_back(get<0>(benchmarks()[i]),
-                         get<1>(benchmarks()[i]), elapsed);
+    results.emplace_back(get<0>(benchmark), get<1>(benchmark), elapsed);
   }
 
   // PLEASE MAKE NOISE. MEASUREMENTS DONE.

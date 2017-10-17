@@ -53,12 +53,6 @@ public:
     return r;
   }
 
-  const V& get(const K& k) const {
-    RLockGuard guard(lock_);
-    iterator it = map_.find(k);
-    return it != map_.end() ? it->second : V();
-  }
-
   bool contains(const K& k) const {
     RLockGuard guard(lock_);
     return map_.find(k) != map_.end();

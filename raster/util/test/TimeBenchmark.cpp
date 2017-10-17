@@ -21,14 +21,25 @@ inline uint64_t systemTimestampNow() {
   return tv.tv_sec * 1000000 + tv.tv_nsec / 1000;
 }
 
-BENCHMARK(systemNano, n) {
+// sudo nice -n -20 ./raster/util/test/raster_util_TimeBenchmark -bm_min_iters 1000000
+// ============================================================================
+// TimeBenchmark.cpp                               relative  time/iter  iters/s
+// ============================================================================
+// system_nano                                                 16.15ns   61.92M
+// chrono_nano                                       95.08%    16.99ns   58.87M
+// ----------------------------------------------------------------------------
+// system_micro                                                17.26ns   57.92M
+// chrono_micro                                      96.88%    17.82ns   56.11M
+// ============================================================================
+
+BENCHMARK(system_nano, n) {
   for (unsigned i = 0; i < n; ++i) {
     auto t = systemNanoTimestampNow();
     rdd::doNotOptimizeAway(t);
   }
 }
 
-BENCHMARK_RELATIVE(chronoNano, n) {
+BENCHMARK_RELATIVE(chrono_nano, n) {
   for (unsigned i = 0; i < n; ++i) {
     auto t = nanoTimestampNow();
     rdd::doNotOptimizeAway(t);
@@ -37,14 +48,14 @@ BENCHMARK_RELATIVE(chronoNano, n) {
 
 BENCHMARK_DRAW_LINE();
 
-BENCHMARK(systemMicro, n) {
+BENCHMARK(system_micro, n) {
   for (unsigned i = 0; i < n; ++i) {
     auto t = systemTimestampNow();
     rdd::doNotOptimizeAway(t);
   }
 }
 
-BENCHMARK_RELATIVE(chronoMicro, n) {
+BENCHMARK_RELATIVE(chrono_micro, n) {
   for (unsigned i = 0; i < n; ++i) {
     auto t = timestampNow();
     rdd::doNotOptimizeAway(t);

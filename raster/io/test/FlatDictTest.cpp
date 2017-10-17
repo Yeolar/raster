@@ -43,15 +43,22 @@ TEST(FlatDict, Thread) {
                         fbb.CreateString("Yeolar"),
                         fbb.CreateString("Beijing")));
   ByteRange range(fbb.GetBufferPointer(), fbb.GetSize());
-  auto update = [&]() {
-    for (int i = 0; i < 1000000; i++) {
-      dict.update(Random::rand64(), range);
-    }
-  };
+
+  std::atomic<bool> go;
   std::vector<std::thread> threads;
-  for (int i = 0; i < 8; i++) {
-    threads.push_back(std::thread(update));
+
+  while (threads.size() < 8) {
+    threads.emplace_back([&]() {
+      while (!go) {
+        std::this_thread::yield();
+      }
+      for (int i = 0; i < 1000000; i++) {
+        dict.update(Random::rand64(), range);
+      }
+    });
   }
+  go = true;
+
   for (auto& t : threads) {
     t.join();
   }
