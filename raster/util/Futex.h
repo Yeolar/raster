@@ -9,7 +9,6 @@
 #include <limits>
 #include <assert.h>
 #include <unistd.h>
-#include "raster/util/noncopyable.h"
 #include "raster/util/Time.h"
 
 namespace rdd {
@@ -30,7 +29,7 @@ enum class FutexResult {
  * this class.  Even if you do know how, you should have a good reason
  * (and benchmarks to back you up).
  */
-struct Futex : std::atomic<uint32_t>, noncopyable {
+struct Futex : std::atomic<uint32_t> {
 
   explicit Futex(uint32_t init = 0) : std::atomic<uint32_t>(init) {}
 
@@ -63,6 +62,8 @@ struct Futex : std::atomic<uint32_t>, noncopyable {
    *  See https://sourceware.org/bugzilla/show_bug.cgi?id=13690 */
   int futexWake(int count = std::numeric_limits<int>::max(),
                 uint32_t wakeMask = -1);
+
+  NOCOPY(Futex);
 
  private:
 

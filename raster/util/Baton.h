@@ -10,7 +10,6 @@
 #include <errno.h>
 #include <assert.h>
 #include "raster/util/Futex.h"
-#include "raster/util/noncopyable.h"
 #include "raster/util/SysUtil.h"
 
 namespace rdd {
@@ -30,7 +29,7 @@ namespace rdd {
 /// won't change, and compatibility with DeterministicSchedule.  By having
 /// a much more restrictive lifecycle we can also add a bunch of assertions
 /// that can help to catch race conditions ahead of time.
-struct Baton : noncopyable {
+struct Baton {
   Baton() : state_(INIT) {}
 
   /// It is an error to destroy a Baton on which a thread is currently
@@ -216,6 +215,8 @@ struct Baton : noncopyable {
     assert(s == INIT || s == EARLY_DELIVERY);
     return s == EARLY_DELIVERY;
   }
+
+  NOCOPY(Baton);
 
  private:
   enum State : uint32_t {

@@ -10,12 +10,12 @@
 #include <array>
 #include <atomic>
 #include <limits>
-#include "raster/util/noncopyable.h"
+#include "raster/util/Macro.h"
 
 namespace rdd {
 
 template <size_t N>
-class AtomicBitSet : noncopyable {
+class AtomicBitSet {
 public:
   typedef unsigned long long BlockType;   // lock free type
 
@@ -49,6 +49,8 @@ public:
 
   constexpr size_t size() const { return N; }
   constexpr size_t maskSize() const { return N * BLOCK_BITS; }
+
+  NOCOPY(AtomicBitSet);
 
 private:
   typedef std::atomic<BlockType> AtomicBlockType;

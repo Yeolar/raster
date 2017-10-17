@@ -29,7 +29,6 @@
 #include <type_traits>
 #include <atomic>
 #include "raster/util/Logging.h"
-#include "raster/util/noncopyable.h"
 #include "raster/util/SysUtil.h"
 
 namespace rdd {
@@ -146,7 +145,7 @@ private:
 };
 
 template <class LOCK>
-class SpinLockGuardImpl : noncopyable {
+class SpinLockGuardImpl {
 public:
   explicit SpinLockGuardImpl(LOCK& lock) : lock_(lock) {
     lock_.lock();
@@ -155,6 +154,8 @@ public:
   ~SpinLockGuardImpl() {
     lock_.unlock();
   }
+
+  NOCOPY(SpinLockGuardImpl);
 
 private:
   LOCK& lock_;

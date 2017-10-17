@@ -8,11 +8,11 @@
 #include <algorithm>
 #include <exception>
 #include <functional>
-
 #include <boost/utility.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/unordered_set.hpp>
 #include <boost/iterator/iterator_adaptor.hpp>
+#include "raster/util/noncopyable.h"
 
 namespace rdd {
 
@@ -79,7 +79,7 @@ namespace rdd {
  * (using their own eviction criteria).
  */
 template <class TKey, class TValue, class THash = std::hash<TKey> >
-class EvictingCacheMap : private boost::noncopyable {
+class EvictingCacheMap : noncopyable {
 
  private:
   // typedefs for brevity

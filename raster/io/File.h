@@ -13,11 +13,10 @@
 #include "raster/io/FileUtil.h"
 #include "raster/util/Exception.h"
 #include "raster/util/Logging.h"
-#include "raster/util/noncopyable.h"
 
 namespace rdd {
 
-class File : private noncopyable {
+class File {
 public:
   File() : fd_(-1), ownsFd_(false) {}
 
@@ -103,6 +102,8 @@ public:
   void unlock() {
     checkUnixError(flockNoInt(fd_, LOCK_UN), "flock() failed (unlock)");
   }
+
+  NOCOPY(File);
 
 private:
   void init(const char* name, int flags, mode_t mode) {

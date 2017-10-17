@@ -6,11 +6,10 @@
 
 #include <semaphore.h>
 #include "raster/util/Exception.h"
-#include "raster/util/noncopyable.h"
 
 namespace rdd {
 
-class Sem : noncopyable {
+class Sem {
 public:
   Sem(unsigned int value = 0) {
     checkUnixError(sem_init(&sem_, 0, value), "failed to init sem");

@@ -6,11 +6,11 @@
 
 #include <errno.h>
 #include <pthread.h>
-#include "raster/util/noncopyable.h"
+#include "raster/util/Macro.h"
 
 namespace rdd {
 
-class RWLock : noncopyable {
+class RWLock {
 public:
   RWLock() {
     pthread_rwlock_init(&lock_, nullptr);
@@ -34,7 +34,7 @@ private:
 };
 
 template <bool write>
-class RWLockGuardImpl : noncopyable {
+class RWLockGuardImpl {
 public:
   explicit RWLockGuardImpl(RWLock& lock)
     : lock_(lock) {
@@ -47,6 +47,8 @@ public:
   ~RWLockGuardImpl() {
     lock_.unlock();
   }
+
+  NOCOPY(RWLockGuardImpl);
 
 private:
   RWLock& lock_;

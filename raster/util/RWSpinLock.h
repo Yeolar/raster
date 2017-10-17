@@ -6,15 +6,13 @@
 #pragma once
 
 #include <atomic>
+#include <thread>
 #include <utility>
-#include <sched.h>
-
 #include "raster/util/Macro.h"
-#include "raster/util/noncopyable.h"
 
 namespace rdd {
 
-class RWSpinLock : noncopyable {
+class RWSpinLock {
   enum : int32_t { READER = 2, WRITER = 1 };
 
 public:
@@ -23,16 +21,14 @@ public:
   void lock() {
     int count = 0;
     while (!LIKELY(try_lock())) {
-      if (++count > 1000)
-        sched_yield();
+      if (++count > 1000) std::this_thread::yield();
     }
   }
 
   void lock_shared() {
     int count = 0;
     while (!LIKELY(try_lock_shared())) {
-      if (++count > 1000)
-        sched_yield();
+      if (++count > 1000) std::this_thread::yield();
     }
   }
 
@@ -61,14 +57,15 @@ public:
 
   class ReadHolder {
   public:
-    explicit ReadHolder(RWSpinLock* lock = nullptr) : lock_(lock) {
-      if (lock_)
-        lock_->lock_shared();
+    explicit ReadHolder(RWSpinLock* lock) : lock_(lock) {
+      if (lock_) lock_->lock_shared();
     }
+
     explicit ReadHolder(RWSpinLock& lock) : lock_(&lock) {
       lock_->lock_shared();
     }
-    ReadHolder(ReadHolder&& other) : lock_(other.lock_) {
+
+    ReadHolder(ReadHolder&& other) noexcept : lock_(other.lock_) {
       other.lock_ = nullptr;
     }
 
@@ -78,39 +75,37 @@ public:
     }
 
     ~ReadHolder() {
-      if (lock_)
-        lock_->unlock_shared();
+      if (lock_) lock_->unlock_shared();
     }
 
     void reset(RWSpinLock* lock = nullptr) {
-      if (lock == lock_)
-        return;
-      if (lock_)
-        lock_->unlock_shared();
+      if (lock == lock_) return;
+      if (lock_) lock_->unlock_shared();
       lock_ = lock;
-      if (lock_)
-        lock_->lock_shared();
+      if (lock_) lock_->lock_shared();
     }
 
-    void swap(ReadHolder* other) { std::swap(lock_, other->lock_); }
+    void swap(ReadHolder* other) {
+      std::swap(lock_, other->lock_);
+    }
+
+    NOCOPY(ReadHolder);
 
   private:
-    ReadHolder(const ReadHolder& other);
-    ReadHolder& operator=(const ReadHolder& other);
-
     RWSpinLock* lock_;
   };
 
   class WriteHolder {
   public:
-    explicit WriteHolder(RWSpinLock* lock = nullptr) : lock_(lock) {
-      if (lock_)
-        lock_->lock();
+    explicit WriteHolder(RWSpinLock* lock) : lock_(lock) {
+      if (lock_) lock_->lock();
     }
+
     explicit WriteHolder(RWSpinLock& lock) : lock_(&lock) {
       lock_->lock();
     }
-    WriteHolder(WriteHolder&& other) : lock_(other.lock_) {
+
+    WriteHolder(WriteHolder&& other) noexcept : lock_(other.lock_) {
       other.lock_ = nullptr;
     }
 
@@ -120,28 +115,27 @@ public:
     }
 
     ~WriteHolder() {
-      if (lock_)
-        lock_->unlock();
+      if (lock_) lock_->unlock();
     }
 
     void reset(RWSpinLock* lock = nullptr) {
-      if (lock == lock_)
-        return;
-      if (lock_)
-        lock_->unlock();
+      if (lock == lock_) return;
+      if (lock_) lock_->unlock();
       lock_ = lock;
-      if (lock_)
-        lock_->lock();
+      if (lock_) lock_->lock();
     }
 
-    void swap(WriteHolder* other) { std::swap(lock_, other->lock_); }
+    void swap(WriteHolder* other) {
+      std::swap(lock_, other->lock_);
+    }
+
+    NOCOPY(WriteHolder);
 
   private:
-    WriteHolder(const WriteHolder& other);
-    WriteHolder& operator=(const WriteHolder& other);
-
     RWSpinLock* lock_;
   };
+
+  NOCOPY(RWSpinLock);
 
 private:
   std::atomic<int32_t> bits_;

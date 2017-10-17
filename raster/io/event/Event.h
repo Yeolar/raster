@@ -19,7 +19,7 @@ namespace rdd {
 class Channel;
 class Processor;
 
-class Event : private noncopyable {
+class Event {
 public:
   enum {
     INIT = 0, // 0
@@ -147,6 +147,8 @@ public:
   T& userContext() { return *((T*)userCtx_.ptr); }
   template <class T>
   const T& userContext() const { return *((T*)userCtx_.ptr); }
+
+  NOCOPY(Event);
 
 private:
   uint64_t timeout() const {

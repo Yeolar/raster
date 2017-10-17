@@ -9,7 +9,6 @@
 #include <pthread.h>
 #include <sys/syscall.h>
 #include "raster/util/Macro.h"
-#include "raster/util/noncopyable.h"
 
 namespace rdd {
 
@@ -56,7 +55,7 @@ private:
 };
 
 template <class T>
-class ThreadLocal : noncopyable {
+class ThreadLocal {
 public:
   ThreadLocal() {}
 
@@ -74,6 +73,8 @@ public:
 
   T* operator->() const { return get(); }
   T& operator*() const { return *get(); }
+
+  NOCOPY(ThreadLocal);
 
 private:
   T* makeTlp() const {

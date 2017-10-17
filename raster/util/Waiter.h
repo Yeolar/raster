@@ -6,11 +6,10 @@
 
 #include <condition_variable>
 #include <mutex>
-#include "raster/util/noncopyable.h"
 
 namespace rdd {
 
-class Waiter : noncopyable {
+class Waiter {
 public:
   void wait() const {
     std::unique_lock<std::mutex> lock(mtx_);

@@ -28,7 +28,7 @@ struct LinkedListHook {
 };
 
 template <class T, LinkedListHook<T> T::*HookMember>
-class LinkedList : noncopyable {
+class LinkedList {
 public:
   LinkedList() {}
   ~LinkedList() {
@@ -74,6 +74,8 @@ public:
       func(t);
     }
   }
+
+  NOCOPY(LinkedList);
 
 private:
   T* head_{nullptr};

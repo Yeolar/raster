@@ -8,12 +8,11 @@
 #include <set>
 #include <stdexcept>
 #include "raster/io/event/EventLoop.h"
-#include "raster/util/noncopyable.h"
 #include "raster/util/ThreadUtil.h"
 
 namespace rdd {
 
-class EventLoopManager : noncopyable {
+class EventLoopManager {
 public:
   EventLoopManager() {}
   ~EventLoopManager() {}
@@ -55,6 +54,8 @@ public:
     const std::set<EventLoop*>& constSet = loops_;
     runnable(constSet);
   }
+
+  NOCOPY(EventLoopManager);
 
 private:
   struct EventLoopInfo {

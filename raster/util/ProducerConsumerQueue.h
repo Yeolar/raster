@@ -15,7 +15,7 @@
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
-#include "raster/util/noncopyable.h"
+#include "raster/util/Macro.h"
 
 namespace rdd {
 
@@ -24,8 +24,10 @@ namespace rdd {
  * without locks.
  */
 template<class T>
-struct ProducerConsumerQueue : noncopyable {
+struct ProducerConsumerQueue {
   typedef T value_type;
+
+  NOCOPY(ProducerConsumerQueue);
 
   // size must be >= 2.
   //

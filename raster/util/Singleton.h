@@ -58,7 +58,6 @@
 #include <memory>
 #include <mutex>
 #include "raster/util/Macro.h"
-#include "raster/util/noncopyable.h"
 
 namespace rdd {
 
@@ -68,7 +67,7 @@ struct DefaultTag {};
 
 // An actual instance of a singleton, tracking the instance itself
 template <typename T>
-struct SingletonHolder : noncopyable {
+struct SingletonHolder {
 public:
   typedef std::function<void(T*)> TeardownFunc;
   typedef std::function<T*(void)> CreateFunc;
@@ -93,6 +92,8 @@ public:
     teardown_ = std::move(t);
     state_ = DEAD;
   }
+
+  NOCOPY(SingletonHolder);
 
 private:
   enum {

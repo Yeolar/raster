@@ -9,7 +9,7 @@
 
 namespace rdd {
 
-class FiberManager : noncopyable {
+class FiberManager {
 public:
   static void update(Fiber* fiber) {
     fiber_ = fiber;
@@ -56,6 +56,8 @@ public:
     }
     return false;
   }
+
+  NOCOPY(FiberManager);
 
 private:
   FiberManager() {}

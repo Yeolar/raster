@@ -8,12 +8,11 @@
 #include <limits>
 #include <stdexcept>
 #include <boost/intrusive/slist.hpp>
-#include "raster/util/noncopyable.h"
 #include "raster/util/ThreadUtil.h"
 
 namespace rdd {
 
-class Arena : noncopyable {
+class Arena {
 private:
   typedef boost::intrusive::slist_member_hook<boost::intrusive::tag<Arena>>
     BlockLink;
@@ -71,6 +70,8 @@ public:
   size_t totalSize() const { return totalAllocatedSize_ + sizeof(Arena); }
   size_t bytesUsed() const { return bytesUsed_; }
 
+  NOCOPY(Arena);
+
 private:
   size_t roundUp(size_t size) const {
     return (size + 15) & ~15;
@@ -93,7 +94,7 @@ private:
   const size_t minBlockSize_;
 };
 
-class ThreadArena : noncopyable {
+class ThreadArena {
 public:
   explicit ThreadArena(size_t minBlockSize = Arena::MIN_BLOCK_SIZE)
     : minBlockSize_(minBlockSize) {}
@@ -107,6 +108,9 @@ public:
   }
 
   void deallocate(void* p) {}
+
+  NOCOPY(ThreadArena);
+  NOMOVE(ThreadArena);
 
 private:
   Arena* allocateThreadLocalArena() {

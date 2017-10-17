@@ -45,8 +45,6 @@ struct BenchmarkSuspender {
     start = nanoTimestampNow();
   }
 
-  NOCOPY(BenchmarkSuspender);
-
   BenchmarkSuspender(BenchmarkSuspender && rhs) noexcept {
     start = rhs.start;
     rhs.start = 0;
@@ -88,6 +86,8 @@ struct BenchmarkSuspender {
   explicit operator bool() const {
     return false;
   }
+
+  NOCOPY(BenchmarkSuspender);
 
   static uint64_t timeSpent;
 

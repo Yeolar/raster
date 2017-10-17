@@ -9,14 +9,13 @@
 #include "raster/coroutine/BoostContext.h"
 #include "raster/coroutine/Executor.h"
 #include "raster/util/Logging.h"
-#include "raster/util/noncopyable.h"
 #include "raster/util/Time.h"
 
 namespace rdd {
 
 std::ostream& operator<<(std::ostream& os, const Fiber& fiber);
 
-class Fiber : noncopyable {
+class Fiber {
 public:
   enum {
     INIT,     // I
@@ -98,6 +97,8 @@ public:
   std::string timestampStr() const {
     return join("-", timestamps_);
   }
+
+  NOCOPY(Fiber);
 
 private:
   static std::atomic<size_t> count_;

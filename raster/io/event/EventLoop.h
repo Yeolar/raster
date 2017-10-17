@@ -39,7 +39,7 @@ public:
 
   void waitUntilRunning() {
     while (!isRunning()) {
-      sched_yield();
+      std::this_thread::yield();
     }
   }
 
