@@ -5,6 +5,5 @@ install(FILES
     Graph.h
     Group.h
     JobExecutor.h
-    Parallel.h
     Scheduler.h
     DESTINATION include/raster/parallel)
