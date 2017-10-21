@@ -6,6 +6,7 @@
 #include "FlatDictTest_generated.h"
 #include <unordered_map>
 #include "raster/util/Benchmark.h"
+#include "raster/util/Range.h"
 #include "raster/util/RWLock.h"
 
 using namespace rdd;
@@ -181,6 +182,29 @@ BENCHMARK(flatdict_64) {
     auto a = m.get(i);
     rdd::doNotOptimizeAway(a);
   }
+}
+
+BENCHMARK_DRAW_LINE();
+
+const char* sample =
+  "0123456789abcdefghijklmnopqrstuv"
+  "wxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_=";
+FlatDict64<long> m(16777216, "flatdict.dump");
+
+// ./raster/io/test/raster_io_FlatDictBenchmark -bm_min_iters 1 -bm_max_iters 2
+// ============================================================================
+// FlatDictBenchmark.cpp                           relative  time/iter  iters/s
+// ============================================================================
+// flatdict_sync                                                 9.99s  100.13m
+// ============================================================================
+
+BENCHMARK(flatdict_sync) {
+  BENCHMARK_SUSPEND {
+    for (int i=0; i<16777216; ++i) {
+      m.update(i,ByteRange(StringPiece(sample)));
+    }
+  }
+  m.sync();
 }
 
 int main(int argc, char ** argv) {

@@ -5,6 +5,7 @@ set(RASTER_IO_SRCS
     Cursor.cpp
     HugePages.cpp
     IOBuf.cpp
+    MMapIOAlloc.cpp
     RecordIO.cpp
     ZlibStreamCompressor.cpp
     ZlibStreamDecompressor.cpp
@@ -21,6 +22,8 @@ install(FILES
     FSUtil.h
     HugePages.h
     IOBuf.h
+    MMapFlatDict.h
+    MMapIOAlloc.h
     RecordIO.h
     TypedIOBuf.h
     Waker.h

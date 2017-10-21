@@ -22,10 +22,10 @@ namespace {
 struct Tag1 {};
 struct Tag2 {};
 struct Tag3 {};
-rdd::Singleton<MyExpensiveService> s_default;
-rdd::Singleton<MyExpensiveService, Tag1> s1;
-rdd::Singleton<MyExpensiveService, Tag2> s2;
-rdd::Singleton<MyExpensiveService, Tag3> s_arg(
+Singleton<MyExpensiveService> s_default;
+Singleton<MyExpensiveService, Tag1> s1;
+Singleton<MyExpensiveService, Tag2> s2;
+Singleton<MyExpensiveService, Tag3> s_arg(
     []() { return new MyExpensiveService(10); });
 
 }
