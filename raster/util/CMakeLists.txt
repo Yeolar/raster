@@ -28,6 +28,7 @@ install(FILES
     Algorithm.h
     Arena.h
     AtomicBitSet.h
+    AtomicPtr.h
     AtomicUnorderedMap.h
     Backtrace.h
     Base64.h

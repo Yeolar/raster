@@ -8,9 +8,14 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/syscall.h>
+#include "raster/util/Exception.h"
 #include "raster/util/Macro.h"
 
 namespace rdd {
+
+inline void initOnce(pthread_once_t* once, void (*initializer)()) {
+  checkPosixError(pthread_once(once, initializer), "failed to init once");
+}
 
 inline pid_t localThreadId() {
   // __thread doesn't allow non-const initialization.

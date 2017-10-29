@@ -21,7 +21,7 @@ class FlumeClient {
 public:
   FlumeClient(const ClientOption& option,
               const std::string& category,
-              const std::string& logDir = "/opt/logs/logs/flume_delay");
+              const std::string& logDir);
 
   ~FlumeClient();
 

@@ -2,6 +2,7 @@
 
 set(RASTER_UTIL_TEST_SRCS
     ArenaTest.cpp
+    AtomicPtrBenchmark.cpp
     Base64Test.cpp
     ChecksumTest.cpp
     FixedStreamTest.cpp
