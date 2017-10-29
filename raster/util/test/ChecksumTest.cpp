@@ -7,6 +7,11 @@
 
 using namespace rdd;
 
+TEST(crc32c, all) {
+  // leveldb crc32c
+  EXPECT_EQ(3703331322, crc32c((uint8_t*)"TestCRCBuffer", 13) ^ 0xffffffff);
+}
+
 TEST(crc32_type, all) {
   EXPECT_EQ(0,          crc32_type((uint8_t*)"", 0));
   EXPECT_EQ(4108050209, crc32_type((uint8_t*)"0", 1));
