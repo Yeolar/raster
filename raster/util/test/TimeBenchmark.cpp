@@ -30,6 +30,8 @@ inline uint64_t systemTimestampNow() {
 // ----------------------------------------------------------------------------
 // system_micro                                                17.26ns   57.92M
 // chrono_micro                                      96.88%    17.82ns   56.11M
+// ----------------------------------------------------------------------------
+// time                                                         2.51ns  399.09M
 // ============================================================================
 
 BENCHMARK(system_nano, n) {
@@ -58,6 +60,15 @@ BENCHMARK(system_micro, n) {
 BENCHMARK_RELATIVE(chrono_micro, n) {
   for (unsigned i = 0; i < n; ++i) {
     auto t = timestampNow();
+    rdd::doNotOptimizeAway(t);
+  }
+}
+
+BENCHMARK_DRAW_LINE();
+
+BENCHMARK(time, n) {
+  for (unsigned i = 0; i < n; ++i) {
+    auto t = time(nullptr);
     rdd::doNotOptimizeAway(t);
   }
 }
