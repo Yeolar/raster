@@ -12,7 +12,6 @@ set(RASTER_UTIL_SRCS
     MemoryMapping.cpp
     Random.cpp
     Range.cpp
-    Signal.cpp
     SpookyHashV2.cpp
     String.cpp
     SysUtil.cpp
@@ -73,7 +72,6 @@ install(FILES
     SArray.h
     ScopeGuard.h
     Sem.h
-    Signal.h
     Singleton.h
     SpinLock.h
     SpookyHashV2.h

@@ -13,8 +13,10 @@
 #include "raster/framework/Degrader.h"
 #include "raster/framework/FalconSender.h"
 #include "raster/framework/Monitor.h"
+#include "raster/framework/Process.h"
 #include "raster/framework/Sampler.h"
 #include "raster/util/Logging.h"
+#include "raster/util/ThreadUtil.h"
 
 namespace rdd {
 
@@ -28,7 +30,7 @@ static dynamic defaultLogging() {
       ("async", true));
 }
 
-void configLogging(const dynamic& j) {
+void configLogging(const dynamic& j, bool reload) {
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config logging error: " << j;
     return;
@@ -43,6 +45,23 @@ void configLogging(const dynamic& j) {
   Singleton<logging::RDDLogger>::get()->setOptions(opts);
 }
 
+static dynamic defaultProcess() {
+  return dynamic::object
+    ("process", dynamic::object
+      ("pidfile", "/tmp/rdd.pid"));
+}
+
+void configProcess(const dynamic& j, bool reload) {
+  if (reload) return;
+  if (!j.isObject()) {
+    RDDLOG(FATAL) << "config process error: " << j;
+    return;
+  }
+  RDDLOG(INFO) << "config process";
+  auto pidfile = json::get(j, "pidfile", "/tmp/rdd.pid");
+  ProcessUtil::writePid(pidfile.c_str(), localThreadId());
+}
+
 static dynamic defaultActor() {
   return dynamic::object
     ("actor", dynamic::object
@@ -54,7 +73,8 @@ static dynamic defaultActor() {
       ("forwarding", false));
 }
 
-void configActor(const dynamic& j) {
+void configActor(const dynamic& j, bool reload) {
+  if (reload) return;
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config actor error: " << j;
     return;
@@ -80,7 +100,8 @@ static dynamic defaultService() {
         ("send_timeout", 1000000)));
 }
 
-void configService(const dynamic& j) {
+void configService(const dynamic& j, bool reload) {
+  if (reload) return;
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config service error: " << j;
     return;
@@ -110,7 +131,8 @@ static dynamic defaultThreadPool() {
         ("bindcpu", false)));
 }
 
-void configThreadPool(const dynamic& j) {
+void configThreadPool(const dynamic& j, bool reload) {
+  if (reload) return;
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config thread error: " << j;
     return;
@@ -132,7 +154,7 @@ static dynamic defaultNet() {
       ("copy", dynamic::array()));
 }
 
-void configNetCopy(const dynamic& j) {
+void configNetCopy(const dynamic& j, bool reload) {
   if (!j.isArray()) {
     RDDLOG(FATAL) << "config net.copy error: " << j;
     return;
@@ -155,7 +177,7 @@ static dynamic defaultMonitor() {
       ("sender", "falcon"));
 }
 
-void configMonitor(const dynamic& j) {
+void configMonitor(const dynamic& j, bool reload) {
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config monitor error: " << j;
     return;
@@ -180,7 +202,7 @@ static dynamic defaultDegrader() {
         ("gap", 0)));
 }
 
-void configDegrader(const dynamic& j) {
+void configDegrader(const dynamic& j, bool reload) {
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config degrader error: " << j;
     return;
@@ -210,7 +232,7 @@ static dynamic defaultSampler() {
         ("percent", 0.0)));
 }
 
-void configSampler(const dynamic& j) {
+void configSampler(const dynamic& j, bool reload) {
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config sampler error: " << j;
     return;
@@ -237,7 +259,7 @@ static dynamic defaultJob() {
       ("graph", dynamic::object()));
 }
 
-void configJobGraph(const dynamic& j) {
+void configJobGraph(const dynamic& j, bool reload) {
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config job.graph error: " << j;
     return;
@@ -259,6 +281,7 @@ void configJobGraph(const dynamic& j) {
 std::string generateDefault() {
   dynamic d = dynamic::object;
   d.update(defaultLogging());
+  d.update(defaultProcess());
   d.update(defaultActor());
   d.update(defaultService());
   d.update(defaultThreadPool());
@@ -270,12 +293,12 @@ std::string generateDefault() {
   return toPrettyJson(d);
 }
 
-void config(const char* name, std::initializer_list<ConfigTask> confs) {
-  RDDLOG(INFO) << "config rdd by conf: " << name;
+void ConfigManager::load() {
+  RDDLOG(INFO) << "config rdd by conf: " << conf_;
 
   std::string s;
-  if (!readFile(name, s)) {
-    RDDLOG(FATAL) << "config error: file read error: " << name;
+  if (!readFile(conf_, s)) {
+    RDDLOG(FATAL) << "config error: file read error: " << conf_;
     return;
   }
   dynamic j = parseJson(json::stripComments(s));
@@ -285,9 +308,19 @@ void config(const char* name, std::initializer_list<ConfigTask> confs) {
   }
   RDDLOG(DEBUG) << j;
 
-  for (auto& conf : confs) {
-    conf.first(json::resolve(j, conf.second));
+  for (auto& task : tasks_) {
+    task.first(json::resolve(j, task.second), inited_);
   }
+  inited_ = true;
+}
+
+void config(const char* name, std::initializer_list<ConfigTask> confs) {
+  ConfigManager* cm = Singleton<ConfigManager>::get();
+  cm->setConfFile(name);
+  for (auto& conf : confs) {
+    cm->addTask(conf);
+  }
+  cm->load();
 }
 
 } // namespace rdd

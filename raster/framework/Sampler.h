@@ -48,7 +48,7 @@ public:
     if (!contain(samplers_, name)) {
       samplers_[name].reset(new Sam());
     }
-    Sampler* d = get_ptr(samplers_, name)->get();
+    Sampler* d = samplers_[name].get();
     DCHECK(typeid(*d) == typeid(Sam));
     ((Sam*)d)->setup(std::forward<Args>(args)...);
   }

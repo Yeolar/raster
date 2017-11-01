@@ -4,6 +4,7 @@ set(RASTER_FRAMEWORK_SRCS
     Config.cpp
     FalconSender.cpp
     Monitor.cpp
+    Signal.cpp
 )
 add_library(raster_framework OBJECT ${RASTER_FRAMEWORK_SRCS})
 
@@ -12,6 +13,7 @@ install(FILES
     Config.h
     FalconSender.h
     Monitor.h
+    Signal.h
     DESTINATION include/raster/framework)
 
 add_executable(configutil

@@ -2,9 +2,10 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/util/Signal.h"
+#include "raster/framework/Signal.h"
 #include <signal.h>
 #include <string.h>
+#include "raster/framework/Config.h"
 #include "raster/util/Backtrace.h"
 #include "raster/util/Logging.h"
 #include "raster/util/MemoryProtect.h"
@@ -14,6 +15,11 @@ namespace rdd {
 
 static void ignoreSignalHandler(int signo) {
   RDDLOG(INFO) << "signal '" << strsignal(signo) << "' received, ignore it";
+}
+
+static void reloadSignalHandler(int signo) {
+  RDDLOG(INFO) << "signal '" << strsignal(signo) << "' received, reload";
+  Singleton<ConfigManager>::get()->load();
 }
 
 static void shutdownSignalHandler(int signo) {
@@ -55,12 +61,20 @@ void setupIgnoreSignal(int signo) {
   setupSignal(signo, ignoreSignalHandler);
 }
 
+void setupReloadSignal(int signo) {
+  setupSignal(signo, reloadSignalHandler);
+}
+
 void setupShutdownSignal(int signo) {
   setupSignal(signo, shutdownSignalHandler);
 }
 
 void setupMemoryProtectSignal() {
   setupSignal(SIGSEGV, memoryProtectSignalHandler);
+}
+
+void sendSignal(int signo, const char* pidfile) {
+  checkUnixError(kill(ProcessUtil::readPid(pidfile), signo));
 }
 
 } // namespace rdd

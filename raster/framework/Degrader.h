@@ -61,7 +61,7 @@ public:
     if (!contain(degraders_, name)) {
       degraders_[name].reset(new Deg());
     }
-    Degrader* d = get_ptr(degraders_, name)->get();
+    Degrader* d = degraders_[name].get();
     DCHECK(typeid(*d) == typeid(Deg));
     ((Deg*)d)->setup(std::forward<Args>(args)...);
   }
