@@ -25,6 +25,7 @@ public:
   LimitDegrader() {}
 
   void setup(uint32_t limit, uint32_t gap) {
+    RDDLOG(INFO) << "Degrader: setup limit=" << limit << ", gap=" << gap;
     limit_ = limit;
     gap_ = gap;
   }
