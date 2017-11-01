@@ -13,3 +13,8 @@ install(FILES
     FalconSender.h
     Monitor.h
     DESTINATION include/raster/framework)
+
+add_executable(configutil
+    ConfigUtil.cpp
+)
+target_link_libraries(configutil raster_static)

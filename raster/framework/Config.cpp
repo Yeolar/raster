@@ -10,11 +10,23 @@
 #include "raster/io/FileUtil.h"
 #include "raster/net/Actor.h"
 #include "raster/parallel/Scheduler.h"
+#include "raster/framework/Degrader.h"
 #include "raster/framework/FalconSender.h"
 #include "raster/framework/Monitor.h"
+#include "raster/framework/Sampler.h"
 #include "raster/util/Logging.h"
 
 namespace rdd {
+
+static dynamic defaultLogging() {
+  return dynamic::object
+    ("logging", dynamic::object
+      ("logFile", "rdd.log")
+      ("level", 1)
+      ("rotate", 0)
+      ("splitSize", 0)
+      ("async", true));
+}
 
 void configLogging(const dynamic& j) {
   if (!j.isObject()) {
@@ -31,6 +43,17 @@ void configLogging(const dynamic& j) {
   Singleton<logging::RDDLogger>::get()->setOptions(opts);
 }
 
+static dynamic defaultActor() {
+  return dynamic::object
+    ("actor", dynamic::object
+      ("stack_size", 64*1024)
+      ("conn_limit", 100000)
+      ("task_limit", 4000)
+      ("poll_size", 1024)
+      ("poll_timeout", 1000)
+      ("forwarding", false));
+}
+
 void configActor(const dynamic& j) {
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config actor error: " << j;
@@ -45,6 +68,16 @@ void configActor(const dynamic& j) {
   opts.pollTimeout     = json::get(j, "poll_timeout", 1000);
   opts.forwarding      = json::get(j, "forwarding", false);
   Singleton<Actor>::get()->setOptions(opts);
+}
+
+static dynamic defaultService() {
+  return dynamic::object
+    ("service", dynamic::object
+      ("8888", dynamic::object
+        ("service", "")
+        ("conn_timeout", 100000)
+        ("recv_timeout", 300000)
+        ("send_timeout", 1000000)));
 }
 
 void configService(const dynamic& j) {
@@ -66,6 +99,17 @@ void configService(const dynamic& j) {
   }
 }
 
+static dynamic defaultThreadPool() {
+  return dynamic::object
+    ("thread", dynamic::object
+      ("io", dynamic::object
+        ("thread_count", 4)
+        ("bindcpu", false))
+      ("0", dynamic::object
+        ("thread_count", 4)
+        ("bindcpu", false)));
+}
+
 void configThreadPool(const dynamic& j) {
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config thread error: " << j;
@@ -80,6 +124,12 @@ void configThreadPool(const dynamic& j) {
     bool bindCpu = json::get(v, "bind_cpu", false);
     Singleton<Actor>::get()->configThreads(name, threadCount, bindCpu);
   }
+}
+
+static dynamic defaultNet() {
+  return dynamic::object
+    ("net", dynamic::object
+      ("copy", dynamic::array()));
 }
 
 void configNetCopy(const dynamic& j) {
@@ -97,6 +147,14 @@ void configNetCopy(const dynamic& j) {
   }
 }
 
+static dynamic defaultMonitor() {
+  return dynamic::object
+    ("monitor", dynamic::object
+      ("open", false)
+      ("prefix", "rdd")
+      ("sender", "falcon"));
+}
+
 void configMonitor(const dynamic& j) {
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config monitor error: " << j;
@@ -105,13 +163,78 @@ void configMonitor(const dynamic& j) {
   RDDLOG(INFO) << "config monitor";
   if (json::get(j, "open", false)) {
     Singleton<Monitor>::get()->setPrefix(json::get(j, "prefix", "rdd"));
-    auto sender = json::get(j, "sender", "falcon");
-    if (sender == "falcon") {
+    if (json::get(j, "sender", "falcon") == "falcon") {
       Singleton<Monitor>::get()->setSender(
           std::unique_ptr<Monitor::Sender>(new FalconSender()));
     }
     Singleton<Monitor>::get()->start();
   }
+}
+
+static dynamic defaultDegrader() {
+  return dynamic::object
+    ("degrader", dynamic::object
+      ("rdd", dynamic::object
+        ("type", "limit")
+        ("limit", 0)
+        ("gap", 0)));
+}
+
+void configDegrader(const dynamic& j) {
+  if (!j.isObject()) {
+    RDDLOG(FATAL) << "config degrader error: " << j;
+    return;
+  }
+  RDDLOG(INFO) << "config degrader";
+  for (auto& kv : j.items()) {
+    const dynamic& k = kv.first;
+    const dynamic& v = kv.second;
+    RDDLOG(INFO) << "config degrader." << k;
+    for (auto& i : v) {
+      if (json::get(i, "type", "") == "limit") {
+        auto limit = json::get(i, "limit", 0);
+        auto gap = json::get(i, "gap", 0);
+        Singleton<DegraderManager>::get()->setupDegrader<LimitDegrader>(
+            k.asString(), limit, gap);
+      }
+      // other types
+    }
+  }
+}
+
+static dynamic defaultSampler() {
+  return dynamic::object
+    ("sampler", dynamic::object
+      ("rdd", dynamic::object
+        ("type", "percent")
+        ("percent", 0.0)));
+}
+
+void configSampler(const dynamic& j) {
+  if (!j.isObject()) {
+    RDDLOG(FATAL) << "config sampler error: " << j;
+    return;
+  }
+  RDDLOG(INFO) << "config sampler";
+  for (auto& kv : j.items()) {
+    const dynamic& k = kv.first;
+    const dynamic& v = kv.second;
+    RDDLOG(INFO) << "config sampler." << k;
+    for (auto& i : v) {
+      if (json::get(i, "type", "") == "percent") {
+        auto percent = json::get(i, "percent", 0.0);
+        Singleton<SamplerManager>::get()->setupSampler<PercentSampler>(
+            k.asString(), percent);
+      }
+      // other types
+    }
+  }
+}
+
+static dynamic defaultJob() {
+  return dynamic::object
+    ("job", dynamic::object
+      ("graph", dynamic::object()));
 }
 
 void configJobGraph(const dynamic& j) {
@@ -131,6 +254,20 @@ void configJobGraph(const dynamic& j) {
       g.add(name, next);
     }
   }
+}
+
+std::string generateDefault() {
+  dynamic d = dynamic::object;
+  d.update(defaultLogging());
+  d.update(defaultActor());
+  d.update(defaultService());
+  d.update(defaultThreadPool());
+  d.update(defaultNet());
+  d.update(defaultMonitor());
+  d.update(defaultDegrader());
+  d.update(defaultSampler());
+  d.update(defaultJob());
+  return toPrettyJson(d);
 }
 
 void config(const char* name, std::initializer_list<ConfigTask> confs) {

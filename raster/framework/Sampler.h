@@ -66,9 +66,6 @@ private:
 
 } // namespace rdd
 
-#define RDDSAM_SETUP_PERCENT(name, percent) \
-  ::rdd::Singleton< ::rdd::SamplerManager>::get() \
-    ->setupSampler<PercentSampler>(name, percent)
 #define RDDSAM_HIT(name) \
   ::rdd::Singleton< ::rdd::SamplerManager>::get()->hit(name)
 

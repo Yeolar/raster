@@ -79,9 +79,6 @@ private:
 
 } // namespace rdd
 
-#define RDDDEG_SETUP_LIMIT(name, limit, gap) \
-  ::rdd::Singleton< ::rdd::DegraderManager>::get() \
-    ->setupDegrader<LimitDegrader>(name, limit, gap)
 #define RDDDEG_HIT(name) \
   ::rdd::Singleton< ::rdd::DegraderManager>::get()->hit(name)
 
