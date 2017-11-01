@@ -7,6 +7,7 @@
 #include "raster/concurrency/CPUThreadPool.h"
 #include "raster/concurrency/IOThreadPool.h"
 #include "raster/coroutine/Executor.h"
+#include "raster/framework/Signal.h"
 #include "raster/io/event/Event.h"
 #include "raster/io/event/EventLoop.h"
 #include "raster/net/Channel.h"
@@ -15,7 +16,6 @@
 #include "raster/parallel/Group.h"
 #include "raster/util/Function.h"
 #include "raster/util/MapUtil.h"
-#include "raster/util/Signal.h"
 #include "raster/util/Singleton.h"
 #include "raster/util/SysUtil.h"
 

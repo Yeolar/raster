@@ -13,9 +13,9 @@
 #include "raster/framework/Degrader.h"
 #include "raster/framework/FalconSender.h"
 #include "raster/framework/Monitor.h"
-#include "raster/framework/Process.h"
 #include "raster/framework/Sampler.h"
 #include "raster/util/Logging.h"
+#include "raster/util/ProcessUtil.h"
 #include "raster/util/ThreadUtil.h"
 
 namespace rdd {

@@ -5,13 +5,13 @@
 #include <gflags/gflags.h>
 #include "raster/coroutine/GenericExecutor.h"
 #include "raster/framework/Config.h"
+#include "raster/framework/Signal.h"
 #include "raster/net/Actor.h"
 #include "raster/parallel/Scheduler.h"
 #include "raster/protocol/thrift/AsyncServer.h"
 #include "raster/util/Logging.h"
 #include "raster/util/ReflectObject.h"
 #include "raster/util/ScopeGuard.h"
-#include "raster/util/Signal.h"
 #include "raster/util/Uuid.h"
 #include "gen-cpp/Parallel.h"
 

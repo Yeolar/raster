@@ -4,12 +4,12 @@
 
 #include <gflags/gflags.h>
 #include "raster/framework/Config.h"
+#include "raster/framework/Signal.h"
 #include "raster/net/Actor.h"
 #include "raster/protocol/proto/AsyncClient.h"
 #include "raster/protocol/proto/AsyncServer.h"
 #include "raster/util/Logging.h"
 #include "raster/util/ScopeGuard.h"
-#include "raster/util/Signal.h"
 #include "raster/util/Uuid.h"
 #include "Proxy.pb.h"
 

@@ -63,6 +63,7 @@ install(FILES
     MemoryProtect.h
     noncopyable.h
     Optional.h
+    ProcessUtil.h
     ProducerConsumerQueue.h
     Random.h
     Range.h

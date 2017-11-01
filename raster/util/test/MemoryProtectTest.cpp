@@ -3,7 +3,7 @@
  */
 
 #include "raster/util/MemoryProtect.h"
-#include "raster/util/Signal.h"
+#include "raster/framework/Signal.h"
 #include <stdio.h>
 #include <malloc.h>
 #include <stdlib.h>
