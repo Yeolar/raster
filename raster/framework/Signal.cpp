@@ -9,6 +9,7 @@
 #include "raster/util/Backtrace.h"
 #include "raster/util/Logging.h"
 #include "raster/util/MemoryProtect.h"
+#include "raster/util/ProcessUtil.h"
 #include "raster/util/Singleton.h"
 
 namespace rdd {
