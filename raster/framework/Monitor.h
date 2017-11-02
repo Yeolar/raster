@@ -84,6 +84,10 @@ public:
     handle_.detach();
   }
 
+  void stop() {
+    open_ = false;
+  }
+
   void run();
 
   void setPrefix(const std::string& prefix) {

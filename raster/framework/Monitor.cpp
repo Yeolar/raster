@@ -12,7 +12,7 @@ namespace rdd {
 void Monitor::run() {
   open_ = true;
   CycleTimer timer(60000000); // 60s
-  while (true) {
+  while (open_) {
     if (timer.isExpired()) {
       MonMap data;
       dump(data);

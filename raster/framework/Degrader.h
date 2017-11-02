@@ -24,16 +24,19 @@ class LimitDegrader : public Degrader {
 public:
   LimitDegrader() {}
 
-  void setup(uint32_t limit, uint32_t gap) {
-    RDDLOG(INFO) << "Degrader: setup limit=" << limit << ", gap=" << gap;
+  void setup(bool open, uint32_t limit, uint32_t gap) {
+    RDDLOG(INFO) << "Degrader: setup "
+      << "open=" << open << ", limit=" << limit << ", gap=" << gap;
+    open_ = open;
     limit_ = limit;
     gap_ = gap;
   }
 
   virtual bool needDemote() {
+    bool open = open_;
     uint32_t limit = limit_;
     uint32_t gap = gap_;
-    if (limit && gap) {
+    if (open && gap) {
       time_t ts = time(nullptr) / gap;
       if (ts != ts_) {
         ts_ = ts;
@@ -45,6 +48,7 @@ public:
   }
 
 private:
+  std::atomic<bool> open_{false};
   std::atomic<uint32_t> limit_{0};
   std::atomic<uint32_t> gap_{0};
   std::atomic<uint32_t> count_{0};

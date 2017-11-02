@@ -24,17 +24,21 @@ class PercentSampler : public Sampler {
 public:
   PercentSampler() {}
 
-  void setup(double percent) {
-    RDDLOG(INFO) << "Sampler: setup percent=" << percent;
+  void setup(bool open, double percent) {
+    RDDLOG(INFO) << "Sampler: setup "
+      << "open=" << open << ", percent=" << percent;
+    open_ = open;
     percent_ = percent;
   }
 
   virtual bool hit() {
+    bool open = open_;
     double percent = percent_;
-    return percent > 0 && percent < 1 && percent > Random::randDouble01();
+    return open && percent > Random::randDouble01();
   }
 
 private:
+  std::atomic<bool> open_{false};
   std::atomic<double> percent_{0};
 };
 

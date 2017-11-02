@@ -190,6 +190,8 @@ void configMonitor(const dynamic& j, bool reload) {
           std::unique_ptr<Monitor::Sender>(new FalconSender()));
     }
     Singleton<Monitor>::get()->start();
+  } else {
+    Singleton<Monitor>::get()->stop();
   }
 }
 
@@ -197,6 +199,7 @@ static dynamic defaultDegrader() {
   return dynamic::object
     ("degrader", dynamic::object
       ("rdd", dynamic::object
+        ("open", false)
         ("type", "limit")
         ("limit", 0)
         ("gap", 0)));
@@ -214,10 +217,11 @@ void configDegrader(const dynamic& j, bool reload) {
     RDDLOG(INFO) << "config degrader." << k;
     for (auto& i : v) {
       if (json::get(i, "type", "") == "limit") {
+        auto open = json::get(i, "open", false);
         auto limit = json::get(i, "limit", 0);
         auto gap = json::get(i, "gap", 0);
         Singleton<DegraderManager>::get()->setupDegrader<LimitDegrader>(
-            k.asString(), limit, gap);
+            k.asString(), open, limit, gap);
       }
       // other types
     }
@@ -228,6 +232,7 @@ static dynamic defaultSampler() {
   return dynamic::object
     ("sampler", dynamic::object
       ("rdd", dynamic::object
+        ("open", false)
         ("type", "percent")
         ("percent", 0.0)));
 }
@@ -244,9 +249,10 @@ void configSampler(const dynamic& j, bool reload) {
     RDDLOG(INFO) << "config sampler." << k;
     for (auto& i : v) {
       if (json::get(i, "type", "") == "percent") {
+        auto open = json::get(i, "open", false);
         auto percent = json::get(i, "percent", 0.0);
         Singleton<SamplerManager>::get()->setupSampler<PercentSampler>(
-            k.asString(), percent);
+            k.asString(), open, percent);
       }
       // other types
     }
