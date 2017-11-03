@@ -198,9 +198,14 @@ void configMonitor(const dynamic& j, bool reload) {
 static dynamic defaultDegrader() {
   return dynamic::object
     ("degrader", dynamic::object
-      ("rdd", dynamic::object
+      ("count", dynamic::object
         ("open", false)
-        ("type", "limit")
+        ("type", "count")
+        ("limit", 0)
+        ("gap", 0))
+      ("rate", dynamic::object
+        ("open", false)
+        ("type", "rate")
         ("limit", 0)
         ("gap", 0)));
 }
@@ -216,12 +221,19 @@ void configDegrader(const dynamic& j, bool reload) {
     const dynamic& v = kv.second;
     RDDLOG(INFO) << "config degrader." << k;
     for (auto& i : v) {
-      if (json::get(i, "type", "") == "limit") {
+      if (json::get(i, "type", "") == "count") {
         auto open = json::get(i, "open", false);
         auto limit = json::get(i, "limit", 0);
         auto gap = json::get(i, "gap", 0);
-        Singleton<DegraderManager>::get()->setupDegrader<LimitDegrader>(
+        Singleton<DegraderManager>::get()->setupDegrader<CountDegrader>(
             k.asString(), open, limit, gap);
+      }
+      if (json::get(i, "type", "") == "rate") {
+        auto open = json::get(i, "open", false);
+        auto limit = json::get(i, "limit", 0);
+        auto rate = json::get(i, "rate", 0.0);
+        Singleton<DegraderManager>::get()->setupDegrader<RateDegrader>(
+            k.asString(), open, limit, rate);
       }
       // other types
     }

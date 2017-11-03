@@ -11,6 +11,7 @@
 #include "raster/util/Algorithm.h"
 #include "raster/util/Logging.h"
 #include "raster/util/MapUtil.h"
+#include "raster/util/SpinLock.h"
 #include "raster/util/Time.h"
 
 namespace rdd {
@@ -20,39 +21,80 @@ public:
   virtual bool needDemote() = 0;
 };
 
-class LimitDegrader : public Degrader {
+class CountDegrader : public Degrader {
 public:
-  LimitDegrader() {}
+  CountDegrader() {}
 
   void setup(bool open, uint32_t limit, uint32_t gap) {
     RDDLOG(INFO) << "Degrader: setup "
       << "open=" << open << ", limit=" << limit << ", gap=" << gap;
+    SpinLockGuard guard(lock_);
     open_ = open;
     limit_ = limit;
     gap_ = gap;
   }
 
   virtual bool needDemote() {
-    bool open = open_;
-    uint32_t limit = limit_;
-    uint32_t gap = gap_;
-    if (open && gap) {
-      time_t ts = time(nullptr) / gap;
+    if (open_) {
+      time_t ts = time(nullptr);
+      SpinLockGuard guard(lock_);
+      ts /= gap_;
       if (ts != ts_) {
         ts_ = ts;
         count_ = 0;
       }
-      return ++count_ > limit;
+      return ++count_ > limit_;
     }
     return false;
   }
 
 private:
   std::atomic<bool> open_{false};
-  std::atomic<uint32_t> limit_{0};
-  std::atomic<uint32_t> gap_{0};
-  std::atomic<uint32_t> count_{0};
-  std::atomic<time_t> ts_{0};
+  SpinLock lock_;
+  uint32_t limit_{0};
+  uint32_t gap_{0};
+  uint32_t count_{0};
+  time_t ts_{0};
+};
+
+class RateDegrader : public Degrader {
+public:
+  RateDegrader() {}
+
+  void setup(bool open, uint32_t limit, double rate) {
+    RDDLOG(INFO) << "Degrader: setup "
+      << "open=" << open << ", limit=" << limit << ", rate=" << rate;
+    SpinLockGuard guard(lock_);
+    open_ = open;
+    rate_ = rate;
+    limit_ = limit;
+    ticket_ = limit;
+  }
+
+  virtual bool needDemote() {
+    if (open_) {
+      uint64_t ts = timestampNow();
+      SpinLockGuard guard(lock_);
+      if (ts_ != 0) {
+        uint32_t incr = std::max(ts - ts_, 0ul) * rate_;
+        ticket_ = std::min(ticket_ + incr, limit_);
+      }
+      ts_ = ts;
+      if (ticket_ == 0) {
+        return true;
+      }
+      ticket_--;
+    }
+    return false;
+  }
+
+private:
+  SpinLock lock_;
+  std::atomic<bool> open_{false};
+  double rate_{0.0};
+  uint32_t limit_{0};
+  uint32_t ticket_{0};
+  time_t ts_{0};
 };
 
 class DegraderManager {
