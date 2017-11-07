@@ -103,29 +103,29 @@ public:
     checkUnixError(flockNoInt(fd_, LOCK_UN), "flock() failed (unlock)");
   }
 
-  ssize_t read(void* buf, size_t n) {
+  ssize_t read(void* buf, size_t n) const {
     ssize_t r = readFull(fd_, buf, n);
     checkUnixError(r, "read failed");
     return r;
   }
 
   template <class T>
-  ssize_t read(T& value) {
+  ssize_t read(T& value) const {
     return read(&value, sizeof(T));
   }
 
-  ssize_t write(const void* buf, size_t n) {
+  ssize_t write(const void* buf, size_t n) const {
     ssize_t r = writeFull(fd_, buf, n);
     checkUnixError(r, "write failed");
     return r;
   }
 
   template <class T>
-  ssize_t write(T& value) {
+  ssize_t write(T& value) const {
     return write(&value, sizeof(T));
   }
 
-  off_t seek(off_t offset, int whence) {
+  off_t seek(off_t offset, int whence) const {
     off_t r = lseek(fd_, offset, whence);
     checkUnixError(r, "seek failed");
     return r;
