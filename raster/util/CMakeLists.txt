@@ -18,6 +18,7 @@ set(RASTER_UTIL_SRCS
     TestUtil.cpp
     Time.cpp
     Unicode.cpp
+    Uri.cpp
     Utf8StringPiece.cpp
     Uuid.cpp
 )
@@ -85,7 +86,9 @@ install(FILES
     Time.h
     Traits.h
     Unicode.h
+    Uri.h
     Utf8StringPiece.h
+    Utility.h
     Uuid.h
     Waiter.h
     DESTINATION include/raster/util)

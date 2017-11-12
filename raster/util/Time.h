@@ -14,7 +14,7 @@
 
 namespace rdd {
 
-typedef std::chrono::system_clock Clock;
+typedef std::chrono::high_resolution_clock Clock;
 
 inline uint64_t nanoTimestampNow() {
   return Clock::now().time_since_epoch().count();
@@ -89,12 +89,44 @@ inline bool operator<(const Timeout<T>& lhs, const Timeout<T>& rhs) {
 
 bool isSameDay(time_t t1, time_t t2);
 
+class AutoTimer {
+public:
+  explicit AutoTimer(std::string&& msg = "", uint64_t minTimetoLog = 0)
+    : msg_(std::move(msg)),
+      start_(nanoTimestampNow()),
+      minTimeToLog_(minTimetoLog) {}
+
+  NOCOPY(AutoTimer);
+
+  ~AutoTimer() {
+    if (!msg_.empty()) {
+      log(msg_);
+    }
+  }
+
+  uint64_t log(StringPiece msg = "") {
+    return logImpl(nanoTimestampNow(), msg);
+  }
+
+  template <typename... Args>
+  uint64_t log(Args&&... args) {
+    auto now = nanoTimestampNow();
+    return logImpl(now, to<std::string>(std::forward<Args>(args)...));
+  }
+
+private:
+  uint64_t logImpl(uint64_t now, StringPiece msg);
+
+  std::string msg_;
+  uint64_t start_;
+  uint64_t minTimeToLog_;
+};
+
 class CycleTimer {
 public:
   explicit CycleTimer(uint64_t cycle = 0)
-    : cycle_(cycle) {
-    start_ = timestampNow();
-  }
+    : start_(timestampNow()),
+      cycle_(cycle) {}
 
   void setCycle(uint64_t cycle) {
     cycle_ = cycle;

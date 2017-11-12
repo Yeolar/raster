@@ -7,6 +7,7 @@
 #include <cstring>
 #include <ctime>
 #include <stdexcept>
+#include "raster/util/Logging.h"
 
 namespace rdd {
 
@@ -47,6 +48,17 @@ bool isSameDay(time_t t1, time_t t2) {
   int y2 = tm->tm_year;
   int d2 = tm->tm_yday;
   return (y1 == y2 && d1 == d2);
+}
+
+uint64_t AutoTimer::logImpl(uint64_t now, StringPiece msg) {
+  auto duration = now - start_;
+  if (duration >= minTimeToLog_) {
+    if (!msg.empty()) {
+      RDDLOG(INFO) << msg << " in " << double(duration)/1000000000 << " sec";
+    }
+  }
+  start_ = nanoTimestampNow() - duration;
+  return duration;
 }
 
 } // namespace rdd

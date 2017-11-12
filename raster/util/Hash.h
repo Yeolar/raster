@@ -132,6 +132,27 @@ inline uint64_t fnv64(const std::string& str,
 }
 
 } // namespace hash
+
+// recursion
+template <size_t index, typename... Ts>
+struct TupleHasher {
+  size_t operator()(std::tuple<Ts...> const& key) const {
+    return hash::hash_combine(
+      TupleHasher<index - 1, Ts...>()(key),
+      std::get<index>(key));
+  }
+};
+
+// base
+template <typename... Ts>
+struct TupleHasher<0, Ts...> {
+  size_t operator()(std::tuple<Ts...> const& key) const {
+    // we could do std::hash here directly, but hash_combine hides all the
+    // ugly templating implicitly
+    return hash::hash_combine(std::get<0>(key));
+  }
+};
+
 } // namespace rdd
 
 namespace std {
@@ -143,6 +164,17 @@ struct hash<std::pair<T1, T2>> {
 public:
   size_t operator()(const std::pair<T1, T2>& x) const {
     return rdd::hash::hash_combine(x.first, x.second);
+  }
+};
+
+// Hash function for tuples. Requires default hash functions for all types.
+template <typename... Ts>
+struct hash<std::tuple<Ts...>> {
+  size_t operator()(std::tuple<Ts...> const& key) const {
+    rdd::TupleHasher<
+      std::tuple_size<std::tuple<Ts...>>::value - 1, // start index
+      Ts...> hasher;
+    return hasher(key);
   }
 };
 
