@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string.h>
+
 #include "raster/util/LogBase.h"
 #include "raster/util/Singleton.h"
 #include "raster/util/String.h"

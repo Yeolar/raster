@@ -16,10 +16,10 @@
 #include <utility>
 #include <vector>
 
+#include "raster/gen/Core.h"
 #include "raster/util/Conv.h"
 #include "raster/util/Optional.h"
 #include "raster/util/Range.h"
-#include "raster/gen/Core.h"
 
 /**
  * Generator-based Sequence Comprehensions in C++, akin to C#'s LINQ

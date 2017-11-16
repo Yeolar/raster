@@ -9,6 +9,7 @@
 #include <atomic>
 #include <errno.h>
 #include <assert.h>
+
 #include "raster/util/Futex.h"
 #include "raster/util/SysUtil.h"
 

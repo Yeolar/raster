@@ -5,6 +5,7 @@
 #pragma once
 
 #include <arpa/inet.h>
+
 #include "raster/3rd/thrift/transport/TSocket.h"
 #include "raster/3rd/thrift/transport/TTransport.h"
 #include "raster/3rd/thrift/transport/TBufferTransports.h"

@@ -3,8 +3,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/io/ZlibStreamCompressor.h"
 #include "raster/io/Cursor.h"
+#include "raster/io/ZlibStreamCompressor.h"
 #include "raster/util/Logging.h"
 
 // IOBuf uses 24 bytes of data for bookeeping purposes, so requesting for 4073

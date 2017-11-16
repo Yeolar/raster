@@ -9,6 +9,7 @@
 #include <string.h>
 #include <memory>
 #include <vector>
+
 #include "raster/util/Range.h"
 
 namespace rdd {

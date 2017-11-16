@@ -6,6 +6,7 @@
 
 #include <unistd.h>
 #include <fcntl.h>
+
 #include "raster/io/Descriptor.h"
 #include "raster/util/Logging.h"
 

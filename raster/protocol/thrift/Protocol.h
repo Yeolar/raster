@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "raster/net/Protocol.h"
 #include "raster/3rd/thrift/transport/TBufferTransports.h"
+#include "raster/net/Protocol.h"
 
 namespace rdd {
 

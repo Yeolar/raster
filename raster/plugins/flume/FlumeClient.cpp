@@ -3,6 +3,7 @@
  */
 
 #include <fstream>
+
 #include "raster/plugins/flume/FlumeClient.h"
 #include "raster/plugins/flume/gen-cpp/Scribe.h"
 #include "raster/plugins/flume/gen-cpp/scribe_types.h"

@@ -6,6 +6,7 @@
 
 #include <map>
 #include <string>
+
 #include "raster/framework/Monitor.h"
 
 namespace rdd {

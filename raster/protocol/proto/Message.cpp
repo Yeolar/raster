@@ -2,8 +2,8 @@
 * Copyright (C) 2017, Yeolar
 */
 
-#include "raster/protocol/proto/Message.h"
 #include "raster/protocol/proto/Encoding.h"
+#include "raster/protocol/proto/Message.h"
 
 namespace rdd {
 namespace proto {

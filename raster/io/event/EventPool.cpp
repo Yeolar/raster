@@ -2,8 +2,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/io/event/EventPool.h"
 #include "raster/framework/Monitor.h"
+#include "raster/io/event/EventPool.h"
 
 namespace rdd {
 

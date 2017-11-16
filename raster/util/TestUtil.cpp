@@ -3,18 +3,18 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/util/TestUtil.h"
-
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
-#include <raster/io/File.h>
-#include <raster/io/FileUtil.h>
-#include <raster/util/Conv.h>
-#include <raster/util/Exception.h>
-#include <raster/util/String.h>
+#include "raster/io/File.h"
+#include "raster/io/FileUtil.h"
+#include "raster/util/Conv.h"
+#include "raster/util/Exception.h"
+#include "raster/util/Logging.h"
+#include "raster/util/String.h"
+#include "raster/util/TestUtil.h"
 
 namespace rdd {
 namespace test {

@@ -2,8 +2,9 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/enc/CharProperty.h"
 #include <map>
+
+#include "raster/enc/CharProperty.h"
 #include "raster/io/FileUtil.h"
 #include "raster/util/Logging.h"
 #include "raster/util/String.h"

@@ -6,6 +6,7 @@
 
 #include <arpa/inet.h>
 #include <boost/shared_ptr.hpp>
+
 #include "raster/3rd/thrift/TProcessor.h"
 #include "raster/3rd/thrift/protocol/TBinaryProtocol.h"
 #include "raster/3rd/thrift/transport/TBufferTransports.h"

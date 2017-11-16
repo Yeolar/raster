@@ -6,6 +6,7 @@
 
 #include <list>
 #include <memory>
+
 #include "raster/util/Function.h"
 
 namespace rdd {

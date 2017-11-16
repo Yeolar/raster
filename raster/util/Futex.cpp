@@ -3,10 +3,11 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/util/Futex.h"
 #include <errno.h>
 #include <linux/futex.h>
 #include <sys/syscall.h>
+
+#include "raster/util/Futex.h"
 
 namespace rdd {
 

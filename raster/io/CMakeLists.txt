@@ -3,6 +3,7 @@
 set(RASTER_IO_SRCS
     Compression.cpp
     Cursor.cpp
+    File.cpp
     HugePages.cpp
     IOBuf.cpp
     MMapIOAlloc.cpp

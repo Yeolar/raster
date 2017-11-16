@@ -8,6 +8,7 @@
 #include <limits>
 #include <stdexcept>
 #include <boost/intrusive/slist.hpp>
+
 #include "raster/util/ThreadUtil.h"
 
 namespace rdd {

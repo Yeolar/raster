@@ -47,7 +47,6 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
 #include <boost/operators.hpp>
 
 #include "raster/util/Range.h"

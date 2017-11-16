@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <string>
 #include <boost/operators.hpp>
+
 #include "raster/util/Logging.h"
 #include "raster/util/Range.h"
 

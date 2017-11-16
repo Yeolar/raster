@@ -12,6 +12,7 @@
 #include <type_traits>
 #include <boost/function_types/function_arity.hpp>
 #include <gflags/gflags.h>
+
 #include "raster/util/Macro.h"
 #include "raster/util/ScopeGuard.h"
 #include "raster/util/Time.h"

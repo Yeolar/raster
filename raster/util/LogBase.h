@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
 #include "raster/io/FSUtil.h"
 #include "raster/util/Exception.h"
 #include "raster/util/FixedStream.h"

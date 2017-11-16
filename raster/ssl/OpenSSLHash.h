@@ -6,6 +6,7 @@
 #pragma once
 
 #include <openssl/ssl.h>
+
 #include "raster/io/IOBuf.h"
 #include "raster/ssl/OpenSSLPtrTypes.h"
 #include "raster/util/Conv.h"

@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <string>
+
 #include "raster/util/Singleton.h"
 
 namespace rdd {

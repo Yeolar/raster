@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <arpa/inet.h>
+
 #include "raster/io/Cursor.h"
 #include "raster/io/IOBuf.h"
 #include "raster/net/NetUtil.h"

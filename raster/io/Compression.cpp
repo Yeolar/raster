@@ -3,13 +3,13 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include <zlib.h>
+
 #include "raster/io/Compression.h"
 #include "raster/util/Conv.h"
 #include "raster/util/Logging.h"
 #include "raster/util/Memory.h"
 #include "raster/util/ScopeGuard.h"
-
-#include <zlib.h>
 
 namespace rdd { namespace io {
 

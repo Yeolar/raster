@@ -3,6 +3,7 @@
  */
 
 #include <atomic>
+
 #include "raster/io/event/EventLoopManager.h"
 
 namespace rdd {

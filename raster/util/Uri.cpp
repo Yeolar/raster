@@ -3,9 +3,10 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/util/Uri.h"
 #include <cctype>
 #include <boost/regex.hpp>
+
+#include "raster/util/Uri.h"
 
 namespace rdd {
 

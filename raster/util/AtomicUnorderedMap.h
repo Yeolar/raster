@@ -12,7 +12,6 @@
 #include <stdexcept>
 #include <system_error>
 #include <type_traits>
-
 #include <boost/type_traits/has_trivial_destructor.hpp>
 
 #include "raster/util/Bits.h"

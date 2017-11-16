@@ -7,6 +7,7 @@
 #include <functional>
 #include <memory>
 #include <stdexcept>
+
 #include "raster/util/Memory.h"
 
 namespace rdd {

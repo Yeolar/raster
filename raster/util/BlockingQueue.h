@@ -6,6 +6,7 @@
 
 #include <mutex>
 #include <queue>
+
 #include "raster/util/Sem.h"
 
 namespace rdd {

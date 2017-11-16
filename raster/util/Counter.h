@@ -5,6 +5,7 @@
 #pragma once
 
 #include <stdint.h>
+
 #include "raster/util/RWSpinLock.h"
 
 namespace rdd {

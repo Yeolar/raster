@@ -2,8 +2,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/net/AsyncClient.h"
 #include "raster/io/event/EventPool.h"
+#include "raster/net/AsyncClient.h"
 
 namespace rdd {
 

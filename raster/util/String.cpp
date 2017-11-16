@@ -3,14 +3,14 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/util/String.h"
-#include "raster/util/ScopeGuard.h"
-
 #include <cstdarg>
 #include <cstring>
 #include <array>
 #include <memory>
 #include <stdexcept>
+
+#include "raster/util/ScopeGuard.h"
+#include "raster/util/String.h"
 
 namespace rdd {
 

@@ -5,8 +5,9 @@
 #pragma once
 
 #include <map>
-#include "raster/util/RWLock.h"
 #include <mutex>
+
+#include "raster/util/RWLock.h"
 
 namespace rdd {
 

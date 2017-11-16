@@ -13,9 +13,10 @@
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
 #include <google/protobuf/service.h>
-#include "raster/net/Protocol.h"
+
 #include "raster/io/Cursor.h"
 #include "raster/io/TypedIOBuf.h"
+#include "raster/net/Protocol.h"
 
 namespace rdd {
 namespace proto {

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <stddef.h>
+
 #include "raster/util/Macro.h"
 
 namespace rdd {

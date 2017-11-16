@@ -21,6 +21,7 @@
 #include <cmath>
 #include <limits.h>
 #include <boost/implicit_cast.hpp>
+
 #include "raster/util/Macro.h"
 #include "raster/util/Range.h"
 

@@ -10,6 +10,7 @@
 #else
 #include <boost/context/fcontext.hpp>
 #endif
+
 #include "raster/util/Function.h"
 
 /**

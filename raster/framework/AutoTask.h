@@ -10,6 +10,7 @@
 #include <thread>
 #include <stdint.h>
 #include <unistd.h>
+
 #include "raster/util/ThreadUtil.h"
 #include "raster/util/Time.h"
 

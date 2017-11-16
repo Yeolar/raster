@@ -8,6 +8,7 @@
 #include <atomic>
 #include <thread>
 #include <utility>
+
 #include "raster/util/Macro.h"
 
 namespace rdd {

@@ -2,10 +2,10 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/framework/Monitor.h"
 #include "raster/io/event/EventHandler.h"
 #include "raster/net/Actor.h"
 #include "raster/net/Protocol.h"
-#include "raster/framework/Monitor.h"
 
 namespace rdd {
 

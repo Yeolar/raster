@@ -6,9 +6,9 @@
 #pragma once
 #define RDD_GEN_STRING_H
 
-#include "raster/util/Range.h"
 #include "raster/gen/Base.h"
 #include "raster/io/IOBuf.h"
+#include "raster/util/Range.h"
 
 namespace rdd {
 namespace gen {

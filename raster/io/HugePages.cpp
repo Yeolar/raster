@@ -3,7 +3,6 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/io/HugePages.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
@@ -13,9 +12,11 @@
 #include <stdexcept>
 #include <system_error>
 #include <boost/regex.hpp>
+
 #include "raster/gen/Base.h"
 #include "raster/gen/File.h"
 #include "raster/gen/String.h"
+#include "raster/io/HugePages.h"
 #include "raster/util/Conv.h"
 #include "raster/util/Range.h"
 

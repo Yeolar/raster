@@ -9,6 +9,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+
 #include "raster/util/Singleton.h"
 #include "raster/util/ThreadUtil.h"
 

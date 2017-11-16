@@ -8,6 +8,7 @@
 #include <functional>
 #include <boost/iterator/iterator_adaptor.hpp>
 #include <boost/iterator/iterator_facade.hpp>
+
 #include "raster/util/Conv.h"
 #include "raster/util/Logging.h"
 #include "raster/util/Macro.h"

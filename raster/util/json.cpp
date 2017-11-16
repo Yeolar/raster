@@ -3,12 +3,12 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/util/json.h"
 #include <cassert>
 #include <boost/next_prior.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include "raster/util/Conv.h"
+#include "raster/util/json.h"
 #include "raster/util/Range.h"
 #include "raster/util/String.h"
 #include "raster/util/Unicode.h"

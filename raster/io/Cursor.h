@@ -7,10 +7,10 @@
 
 #include <assert.h>
 #include <cstdarg>
+#include <memory>
 #include <stdexcept>
 #include <string.h>
 #include <type_traits>
-#include <memory>
 
 #include "raster/io/IOBuf.h"
 #include "raster/util/Bits.h"

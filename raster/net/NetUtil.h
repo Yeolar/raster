@@ -6,6 +6,7 @@
 
 #include <string>
 #include <boost/operators.hpp>
+
 #include "raster/util/Hash.h"
 #include "raster/util/String.h"
 

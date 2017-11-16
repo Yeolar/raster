@@ -26,8 +26,9 @@
  * @author Jordan DeLong <delong.j@fb.com>
  */
 
-#include <type_traits>
 #include <atomic>
+#include <type_traits>
+
 #include "raster/util/Logging.h"
 #include "raster/util/SysUtil.h"
 

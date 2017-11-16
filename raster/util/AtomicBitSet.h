@@ -10,6 +10,7 @@
 #include <array>
 #include <atomic>
 #include <limits>
+
 #include "raster/util/Macro.h"
 
 namespace rdd {

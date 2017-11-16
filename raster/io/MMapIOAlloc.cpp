@@ -2,8 +2,9 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/io/MMapIOAlloc.h"
 #include <stdexcept>
+
+#include "raster/io/MMapIOAlloc.h"
 
 namespace rdd {
 

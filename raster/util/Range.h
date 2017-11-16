@@ -9,7 +9,6 @@
 #pragma once
 
 #include <algorithm>
-#include <boost/operators.hpp>
 #include <cassert>
 #include <climits>
 #include <cstring>
@@ -17,6 +16,7 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+#include <boost/operators.hpp>
 
 #include "raster/util/Macro.h"
 #include "raster/util/SpookyHashV2.h"

@@ -7,8 +7,9 @@
 
 #include <map>
 #include <string>
-#include "raster/util/Range.h"
+
 #include "raster/io/FSUtil.h"
+#include "raster/util/Range.h"
 
 namespace rdd {
 namespace test {

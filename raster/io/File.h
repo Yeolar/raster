@@ -5,116 +5,60 @@
 
 #pragma once
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <string>
-#include "raster/io/FileUtil.h"
-#include "raster/util/Exception.h"
-#include "raster/util/Logging.h"
+#include <fcntl.h>
+
+#include "raster/util/Macro.h"
 
 namespace rdd {
 
 class File {
 public:
-  File() : fd_(-1), ownsFd_(false) {}
+  File() noexcept;
 
   // Takes ownership of the file descriptor if ownsFd is true
-  explicit File(int fd, bool ownsFd = false)
-    : fd_(fd), ownsFd_(ownsFd) {
-    RDDCHECK(fd >= -1) << "fd must be -1 or non-negative";
-    RDDCHECK(fd != -1 || !ownsFd) << "cannot own -1";
-  }
+  explicit File(int fd, bool ownsFd = false) noexcept;
 
-  explicit File(const char* name,
-                int flags = O_RDONLY,
-                mode_t mode = 0666) {
-    init(name, flags, mode);
-  }
+  explicit File(const char* name, int flags = O_RDONLY, mode_t mode = 0666);
 
-  explicit File(const std::string& name,
-                int flags = O_RDONLY,
-                mode_t mode = 0666) {
-    init(name.c_str(), flags, mode);
-  }
+  explicit File(
+      const std::string& name, int flags = O_RDONLY, mode_t mode = 0666);
 
-  ~File() {
-    auto fd = fd_;
-    if (!closeNoThrow()) {  // ignore most errors
-      DCHECK(errno != EBADF)
-        << "closing fd " << fd << ", it may already have been closed."
-        << " Another time, this might close the wrong FD.";
-    }
-  }
+  ~File();
 
-  File(File&& other)
-    : fd_(other.fd_), ownsFd_(other.ownsFd_) {
-    other.release();
-  }
-
-  File& operator=(File&& other) {
-    closeNoThrow();
-    swap(other);
-    return *this;
-  }
+  static File temporary();
 
   int fd() const { return fd_; }
 
   operator bool() const { return fd_ != -1; }
 
-  void close() {
-    if (!closeNoThrow()) {
-      throwSystemError("close() failed");
-    }
-  }
+  File dup() const;
 
-  bool closeNoThrow() {
-    int r = ownsFd_ ? ::close(fd_) : 0;
-    release();
-    return r == 0;
-  }
+  void close();
+  bool closeNoThrow();
 
-  int release() {
-    int released = fd_;
-    fd_ = -1;
-    ownsFd_ = false;
-    return released;
-  }
+  int release() noexcept;
 
-  void swap(File& other) {
-    std::swap(fd_, other.fd_);
-    std::swap(ownsFd_, other.ownsFd_);
-  }
+  void swap(File& other);
 
-  void lock() {
-    checkUnixError(flockNoInt(fd_, LOCK_EX), "flock() failed (lock)");
-  }
+  File(File&& other) noexcept;
+  File& operator=(File&& other);
 
-  bool try_lock() {
-    int r = flockNoInt(fd_, LOCK_EX | LOCK_NB);
-    // flock returns EWOULDBLOCK if already locked
-    if (r == -1 && errno == EWOULDBLOCK) return false;
-    checkUnixError(r, "flock() failed (try_lock)");
-    return true;
-  }
+  void allocate(size_t offset, size_t bytes);
+  void truncate(size_t bytes);
 
-  void unlock() {
-    checkUnixError(flockNoInt(fd_, LOCK_UN), "flock() failed (unlock)");
-  }
+  void fsync();
+  void fdatasync();
+
+  void lock();
+  bool try_lock();
+  void unlock();
+
+  size_t getSize() const;
 
   NOCOPY(File);
 
 private:
-  void init(const char* name, int flags, mode_t mode) {
-    fd_ = ::open(name, flags, mode);
-    ownsFd_ = false;
-    if (fd_ == -1) {
-      throwSystemError("open ", name, " failed");
-    }
-    ownsFd_ = true;
-  }
-
   int fd_;
   bool ownsFd_;
 };

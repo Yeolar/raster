@@ -3,6 +3,7 @@
  */
 
 #include <string.h>
+
 #include "uconv.h"
 
 namespace rdd {

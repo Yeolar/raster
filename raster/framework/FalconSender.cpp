@@ -2,9 +2,9 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/framework/FalconSender.h"
-
 #include <curl/curl.h>
+
+#include "raster/framework/FalconSender.h"
 #include "raster/net/NetUtil.h"
 #include "raster/util/json.h"
 #include "raster/util/Logging.h"

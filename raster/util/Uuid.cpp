@@ -3,9 +3,6 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/util/Uuid.h"
-#include "raster/util/String.h"
-
 #include <time.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -16,6 +13,9 @@
 #include <sys/syscall.h>
 #include <net/if.h>
 #include <netinet/in.h>
+
+#include "raster/util/String.h"
+#include "raster/util/Uuid.h"
 
 namespace rdd {
 

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <semaphore.h>
+
 #include "raster/util/Exception.h"
 
 namespace rdd {

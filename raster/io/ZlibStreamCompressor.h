@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <zlib.h>
+
 #include "raster/io/ZlibStreamDecompressor.h"
 
 namespace rdd {

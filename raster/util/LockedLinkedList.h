@@ -6,6 +6,7 @@
 
 #include <assert.h>
 #include <atomic>
+
 #include "raster/util/SpinLock.h"
 
 namespace rdd {

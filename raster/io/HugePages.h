@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 #include <boost/operators.hpp>
+
 #include "raster/io/FSUtil.h"
 
 namespace rdd {

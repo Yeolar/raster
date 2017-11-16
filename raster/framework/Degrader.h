@@ -8,6 +8,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+
 #include "raster/util/Algorithm.h"
 #include "raster/util/Logging.h"
 #include "raster/util/MapUtil.h"

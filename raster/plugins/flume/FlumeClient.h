@@ -7,6 +7,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
+
 #include "raster/protocol/thrift/SyncClient.h"
 #include "raster/util/Conv.h"
 #include "raster/util/Logging.h"

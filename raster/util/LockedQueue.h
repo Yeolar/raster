@@ -5,6 +5,7 @@
 #pragma once
 
 #include <queue>
+
 #include "raster/util/RWLock.h"
 
 namespace rdd {

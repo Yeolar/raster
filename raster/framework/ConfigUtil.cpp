@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <gflags/gflags.h>
+
 #include "raster/framework/Config.h"
 
 DEFINE_bool(gen, false, "Generate default config");

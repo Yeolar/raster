@@ -3,15 +3,15 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/util/Unicode.h"
-#include "raster/util/Utf8StringPiece.h"
-
 //#define U_HIDE_DRAFT_API 1
 
 #include <unicode/uchar.h>
 #include <unicode/unistr.h>
 #include <unicode/normlzr.h>
 #include <unicode/translit.h>
+
+#include "raster/util/Unicode.h"
+#include "raster/util/Utf8StringPiece.h"
 
 namespace rdd {
 

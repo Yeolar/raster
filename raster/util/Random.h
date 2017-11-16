@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <random>
+
 #include "raster/util/ThreadUtil.h"
 
 namespace rdd {

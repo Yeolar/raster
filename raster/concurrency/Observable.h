@@ -8,6 +8,7 @@
 #include <map>
 #include <memory>
 #include <vector>
+
 #include "raster/concurrency/Observer.h"
 #include "raster/util/RWSpinLock.h"
 #include "raster/util/SpinLock.h"

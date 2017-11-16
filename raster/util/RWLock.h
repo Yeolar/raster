@@ -6,6 +6,7 @@
 
 #include <errno.h>
 #include <pthread.h>
+
 #include "raster/util/Macro.h"
 
 namespace rdd {

@@ -3,6 +3,7 @@
  */
 
 #include <gflags/gflags.h>
+
 #include "raster/enc/CharProperty.h"
 
 using namespace rdd;

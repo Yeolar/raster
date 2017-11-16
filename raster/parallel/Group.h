@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <vector>
 #include <assert.h>
+
 #include "raster/util/RWLock.h"
 
 namespace rdd {

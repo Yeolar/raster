@@ -6,9 +6,10 @@
 
 #include <string>
 #include <arpa/inet.h>
-#include "raster/net/Protocol.h"
+
 #include "raster/io/Cursor.h"
 #include "raster/io/TypedIOBuf.h"
+#include "raster/net/Protocol.h"
 
 namespace rdd {
 namespace binary {

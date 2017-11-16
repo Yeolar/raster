@@ -6,7 +6,9 @@
 #pragma once
 
 #include <sys/mman.h>
+
 #include "raster/io/File.h"
+#include "raster/util/Logging.h"
 #include "raster/util/noncopyable.h"
 #include "raster/util/Range.h"
 

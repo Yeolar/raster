@@ -12,6 +12,7 @@
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/unordered_set.hpp>
 #include <boost/iterator/iterator_adaptor.hpp>
+
 #include "raster/util/noncopyable.h"
 
 namespace rdd {

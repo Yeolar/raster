@@ -3,9 +3,9 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/io/Cursor.h"
-
 #include <cstdio>
+
+#include "raster/io/Cursor.h"
 #include "raster/util/ScopeGuard.h"
 
 namespace rdd { namespace io {

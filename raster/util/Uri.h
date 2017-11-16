@@ -5,11 +5,12 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
 #include <functional>
-#include <utility>
+#include <string>
 #include <tuple>
+#include <utility>
+#include <vector>
+
 #include "raster/util/Conv.h"
 #include "raster/util/Hash.h"
 #include "raster/util/String.h"

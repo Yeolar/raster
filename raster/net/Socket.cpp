@@ -2,14 +2,14 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/net/Socket.h"
-
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
 #include <netinet/tcp.h>
+
 #include "raster/io/FileUtil.h"
+#include "raster/net/Socket.h"
 #include "raster/util/Conv.h"
 #include "raster/util/Logging.h"
 

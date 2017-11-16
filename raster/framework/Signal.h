@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <signal.h>
+
 #include "raster/util/Exception.h"
 #include "raster/util/Function.h"
 

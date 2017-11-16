@@ -7,6 +7,7 @@
 #include <deque>
 #include <memory>
 #include <vector>
+
 #include "raster/util/MemoryMapping.h"
 #include "raster/util/RWSpinLock.h"
 

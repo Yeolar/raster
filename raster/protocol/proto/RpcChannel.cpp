@@ -3,6 +3,7 @@
  */
 
 #include <sstream>
+
 #include "raster/protocol/proto/Encoding.h"
 #include "raster/protocol/proto/Message.h"
 #include "raster/protocol/proto/RpcChannel.h"

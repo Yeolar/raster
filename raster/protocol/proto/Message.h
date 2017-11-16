@@ -9,6 +9,7 @@
 #include <ostream>
 #include <string>
 #include <google/protobuf/service.h>
+
 #include "raster/io/Cursor.h"
 #include "raster/protocol/proto/RpcController.h"
 

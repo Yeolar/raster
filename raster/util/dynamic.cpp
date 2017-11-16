@@ -4,8 +4,9 @@
  */
 
 #include <bits/functexcept.h>
-#include "raster/util/Hash.h"
+
 #include "raster/util/dynamic.h"
+#include "raster/util/Hash.h"
 
 namespace rdd {
 

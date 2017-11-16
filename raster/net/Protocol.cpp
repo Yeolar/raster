@@ -2,8 +2,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/net/Protocol.h"
 #include "raster/io/Cursor.h"
+#include "raster/net/Protocol.h"
 
 namespace rdd {
 

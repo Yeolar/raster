@@ -6,6 +6,7 @@
 
 #include <atomic>
 #include <assert.h>
+
 #include "raster/coroutine/BoostContext.h"
 #include "raster/coroutine/Executor.h"
 #include "raster/util/Logging.h"

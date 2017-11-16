@@ -5,18 +5,18 @@
 
 #define __STDC_LIMIT_MACROS
 
-#include "raster/io/IOBuf.h"
+#include <stdexcept>
+#include <assert.h>
+#include <stdint.h>
+#include <stdlib.h>
+
 #include "raster/io/Cursor.h"
+#include "raster/io/IOBuf.h"
 #include "raster/util/Conv.h"
 #include "raster/util/Macro.h"
 #include "raster/util/Memory.h"
 #include "raster/util/ScopeGuard.h"
 #include "raster/util/SpookyHashV2.h"
-
-#include <stdexcept>
-#include <assert.h>
-#include <stdint.h>
-#include <stdlib.h>
 
 using std::unique_ptr;
 

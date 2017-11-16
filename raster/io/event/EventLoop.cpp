@@ -2,8 +2,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/io/event/EventLoop.h"
 #include "raster/framework/Monitor.h"
+#include "raster/io/event/EventLoop.h"
 #include "raster/net/Channel.h"
 
 namespace rdd {
