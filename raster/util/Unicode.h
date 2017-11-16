@@ -34,11 +34,13 @@
  * @param leadByte The first byte of a UTF-8 sequence. Must be 0..0xff.
  * @internal
  */
+#ifndef U8_COUNT_TRAIL_BYTES
 #define U8_COUNT_TRAIL_BYTES(leadByte) \
   ((uint8_t)(leadByte)<0xf0 ? \
     ((uint8_t)(leadByte)>=0xc0)+((uint8_t)(leadByte)>=0xe0) : \
      (uint8_t)(leadByte)<0xfe ? \
       3+((uint8_t)(leadByte)>=0xf8)+((uint8_t)(leadByte)>=0xfc) : 0)
+#endif
 
 /**
  * Counts the trail bytes for a UTF-8 lead byte of a valid UTF-8 sequence.
@@ -52,8 +54,10 @@
  * @param leadByte The first byte of a UTF-8 sequence. Must be 0..0xff.
  * @internal
  */
+#ifndef U8_COUNT_TRAIL_BYTES_UNSAFE
 #define U8_COUNT_TRAIL_BYTES_UNSAFE(leadByte) \
   (((leadByte)>=0xc0)+((leadByte)>=0xe0)+((leadByte)>=0xf0))
+#endif
 
 /**
  * Does this code unit (byte) encode a code point by itself (US-ASCII 0..0x7f)?
@@ -61,7 +65,9 @@
  * @return TRUE or FALSE
  * @stable ICU 2.4
  */
+#ifndef U8_IS_SINGLE
 #define U8_IS_SINGLE(c) (((c)&0x80)==0)
+#endif
 
 /**
  * Is this code unit (byte) a UTF-8 lead byte?
@@ -69,9 +75,13 @@
  * @return TRUE or FALSE
  * @stable ICU 2.4
  */
+#ifndef U8_IS_LEAD
 #define U8_IS_LEAD(c) ((uint8_t)((c)-0xc0)<0x3e)
+#endif
 
+#ifndef U8_IS_SINGLE_OR_LEAD
 #define U8_IS_SINGLE_OR_LEAD(c) (U8_IS_SINGLE(c) || U8_IS_LEAD(c))
+#endif
 
 /**
  * Is this code unit (byte) a UTF-8 trail byte?
@@ -79,7 +89,9 @@
  * @return TRUE or FALSE
  * @stable ICU 2.4
  */
+#ifndef U8_IS_TRAIL
 #define U8_IS_TRAIL(c) (((c)&0xc0)==0x80)
+#endif
 
 /**
  * How many code units (bytes) are used for the UTF-8 encoding
@@ -88,6 +100,7 @@
  * @return 1..4, or 0 if c is a surrogate or not a Unicode code point
  * @stable ICU 2.4
  */
+#ifndef U8_LENGTH
 #define U8_LENGTH(c) \
   ((uint32_t)(c)<=0x7f ? 1 : \
     ((uint32_t)(c)<=0x7ff ? 2 : \
@@ -98,6 +111,7 @@
       ) \
     ) \
   )
+#endif
 
 /**
  * The maximum number of UTF-8 code units (bytes) per Unicode code point
@@ -105,7 +119,9 @@
  * @return 4
  * @stable ICU 2.4
  */
+#ifndef U8_MAX_LENGTH
 #define U8_MAX_LENGTH 4
+#endif
 
 namespace rdd {
 
