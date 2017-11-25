@@ -20,12 +20,12 @@ namespace rdd {
 struct HugePageSize : private boost::totally_ordered<HugePageSize> {
   explicit HugePageSize(size_t s) : size(s) { }
 
-  fs::path filePath(const fs::path& relpath) const {
+  Path filePath(const Path& relpath) const {
     return mountPoint / relpath;
   }
 
   size_t size = 0;
-  fs::path mountPoint;
+  Path mountPoint;
   dev_t device = 0;
 };
 

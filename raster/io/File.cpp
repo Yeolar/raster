@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/mman.h>
 
 #include "raster/io/File.h"
 #include "raster/io/FileUtil.h"
@@ -107,11 +108,11 @@ void File::truncate(size_t bytes) {
   checkUnixError(::ftruncate(fd_, to<off_t>(bytes)), "ftruncate() failed");
 }
 
-void File::fsync() {
+void File::fsync() const {
   checkUnixError(::fsync(fd_), "fsync() failed");
 }
 
-void File::fdatasync() {
+void File::fdatasync() const {
   checkUnixError(::fdatasync(fd_), "fdatasync() failed");
 }
 
@@ -137,4 +138,42 @@ size_t File::getSize() const {
   return to<size_t>(stat.st_size);
 }
 
-} // namespace rdd
+FileContents::FileContents(const File& origFile)
+    : file_(origFile.dup()), fileLen_(file_.getSize()), map_(nullptr) {
+  // len of 0 for empty files results in invalid argument
+  if (fileLen_ > 0) {
+    map_ = mmap(nullptr, fileLen_, PROT_READ, MAP_SHARED, file_.fd(), 0);
+    if (map_ == MAP_FAILED) {
+      throwSystemError("mmap() failed");
+    }
+  }
+}
+
+FileContents::~FileContents() {
+  if (map_) {
+    munmap(const_cast<void*>(map_), fileLen_);
+  }
+}
+
+void FileContents::copy(size_t offset, void* buf, size_t length) {
+  if (copyPartial(offset, buf, length) != length) {
+    RDDLOG(FATAL) << "File too short or corrupt";
+  }
+}
+
+size_t FileContents::copyPartial(size_t offset, void* buf, size_t maxLength) {
+  if (offset >= fileLen_)
+    return 0;
+  size_t length = std::min(fileLen_ - offset, maxLength);
+  memcpy(buf, static_cast<const char*>(map_) + offset, length);
+  return length;
+}
+
+const void* FileContents::getHelper(size_t offset, size_t length) {
+  if (length != 0 && offset + length > fileLen_) {
+    RDDLOG(FATAL) << "File too short or corrupt";
+  }
+  return static_cast<const char*>(map_) + offset;
+}
+
+}  // namespace rdd

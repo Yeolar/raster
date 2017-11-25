@@ -7,6 +7,7 @@
 #include <deque>
 #include <memory>
 #include <vector>
+#include <boost/iterator/iterator_facade.hpp>
 
 #include "raster/util/MemoryMapping.h"
 #include "raster/util/RWSpinLock.h"
@@ -76,7 +77,7 @@ public:
   typedef value_type& reference;
   typedef const value_type& const_reference;
 
-  MMapIO(fs::path path, size_t size)
+  MMapIO(const Path& path, size_t size)
     : map_(path.c_str(), 0, size, MemoryMapping::writable()) {}
 
   void init(uint16_t i);
@@ -117,7 +118,7 @@ public:
   typedef typename std::vector<MMapIOPtr>::iterator iterator;
   typedef typename std::vector<MMapIOPtr>::const_iterator const_iterator;
 
-  MMapIOPool(fs::path dir, size_t blockSize, uint16_t initCount = 0);
+  MMapIOPool(const Path& dir, size_t blockSize, uint16_t initCount = 0);
 
   void* allocate(size_t size);
 
@@ -134,7 +135,7 @@ private:
 
   void* allocateOnFixed(size_t size);
 
-  fs::path dir_;
+  Path dir_;
   size_t blockSize_;
   std::vector<MMapIOPtr> pool_;
   std::deque<uint16_t> frees_;

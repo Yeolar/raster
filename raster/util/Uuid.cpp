@@ -3,92 +3,17 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <time.h>
-#include <fcntl.h>
-#include <sys/types.h>
 #include <sys/time.h>
-#include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <sys/syscall.h>
 #include <net/if.h>
 #include <netinet/in.h>
 
+#include "raster/util/Random.h"
 #include "raster/util/String.h"
 #include "raster/util/Uuid.h"
 
 namespace rdd {
-
-static __thread unsigned short ul_jrand_seed[3];
-
-int randomGetFd() {
-  int i, fd;
-  struct timeval tv;
-
-  fd = open("/dev/urandom", O_RDONLY | O_CLOEXEC);
-  if (fd == -1)
-    fd = open("/dev/random", O_RDONLY | O_NONBLOCK | O_CLOEXEC);
-  if (fd >= 0) {
-    i = fcntl(fd, F_GETFD);
-    if (i >= 0)
-      fcntl(fd, F_SETFD, i | FD_CLOEXEC);
-  }
-
-  gettimeofday(&tv, 0);
-  srand((getpid() << 16) ^ getuid() ^ tv.tv_sec ^ tv.tv_usec);
-
-  ul_jrand_seed[0] = getpid() ^ (tv.tv_sec & 0xFFFF);
-  ul_jrand_seed[1] = getppid() ^ (tv.tv_usec & 0xFFFF);
-  ul_jrand_seed[2] = (tv.tv_sec ^ tv.tv_usec) >> 16;
-  /* Crank the random number generator a few times */
-  gettimeofday(&tv, 0);
-  for (i = (tv.tv_sec ^ tv.tv_usec) & 0x1F; i > 0; i--)
-    rand();
-  return fd;
-}
-
-/*
- * Generate a stream of random nbytes into buf.
- * Use /dev/urandom if possible, and if not,
- * use glibc pseudo-random functions.
- */
-void randomGetBytes(void *buf, size_t nbytes) {
-  size_t i, n = nbytes;
-  int fd = randomGetFd();
-  int lose_counter = 0;
-  unsigned char *cp = (unsigned char *)buf;
-
-  if (fd >= 0) {
-    while (n > 0) {
-      ssize_t x = read(fd, cp, n);
-      if (x <= 0) {
-        if (lose_counter++ > 16)
-          break;
-        continue;
-      }
-      n -= x;
-      cp += x;
-      lose_counter = 0;
-    }
-    close(fd);
-  }
-
-  /*
-   * We do this all the time, but this is the only source of
-   * randomness if /dev/random/urandom is out to lunch.
-   */
-  for (cp = (unsigned char*)buf, i = 0; i < nbytes; i++)
-    *cp++ ^= (rand() >> 7) & 0xFF;
-
-  unsigned short tmp_seed[3];
-
-  memcpy(tmp_seed, ul_jrand_seed, sizeof(tmp_seed));
-  ul_jrand_seed[2] = ul_jrand_seed[2] ^ syscall(__NR_gettid);
-  for (cp = (unsigned char*)buf, i = 0; i < nbytes; i++)
-    *cp++ ^= (jrand48(tmp_seed) >> 7) & 0xFF;
-  memcpy(ul_jrand_seed, tmp_seed,
-         sizeof(ul_jrand_seed) - sizeof(unsigned short));
-}
 
 void uuidPack(const struct uuid *uu, uuid_t ptr) {
   uint32_t tmp;
@@ -199,7 +124,7 @@ static int getClock(uint32_t *clock_high, uint32_t *clock_low,
   uint64_t clock_reg;
 
   if ((last.tv_sec == 0) && (last.tv_usec == 0)) {
-    randomGetBytes(&clock_seq, sizeof(clock_seq));
+    Random::secureRandom(&clock_seq, sizeof(clock_seq));
     clock_seq &= 0x3FFF;
     gettimeofday(&last, 0);
     last.tv_sec--;
@@ -248,7 +173,7 @@ int internalUuidGenerateTime(uuid_t out, int *num) {
 
   if (!has_init) {
     if (getNodeId(node_id) <= 0) {
-      randomGetBytes(node_id, 6);
+      Random::secureRandom(node_id, 6);
       /*
        * Set multicast bit, to prevent conflicts
        * with IEEE 802 addresses obtained from

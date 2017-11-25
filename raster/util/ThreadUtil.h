@@ -26,6 +26,12 @@ inline bool setThreadName(pthread_t id, const std::string& name) {
   return pthread_setname_np(id, name.substr(0, 15).c_str()) == 0;
 }
 
+inline std::string getThreadName(pthread_t id) {
+  char name[16];
+  pthread_getname_np(id, name, NELEMS(name));
+  return name;
+}
+
 template <class T>
 class ThreadLocalPtr {
 public:

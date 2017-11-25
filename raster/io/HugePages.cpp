@@ -54,9 +54,9 @@ HugePageSizeVec readRawHugePageSizes() {
   static const boost::regex regex(R"!(hugepages-(\d+)kB)!");
   boost::smatch match;
   HugePageSizeVec vec;
-  fs::path path("/sys/kernel/mm/hugepages");
-  for (fs::directory_iterator it(path); it != fs::directory_iterator(); ++it) {
-    std::string filename(it->path().filename().string());
+  Path path("/sys/kernel/mm/hugepages");
+  for (auto& p : ls(path)) {
+    std::string filename(p.str());
     if (boost::regex_match(filename, match, regex)) {
       StringPiece numStr(
           filename.data() + match.position(1), size_t(match.length(1)));
@@ -156,14 +156,14 @@ HugePageSizeVec readHugePageSizes() {
       }
 
       // Store mount point
-      fs::path path(parts[1].begin(), parts[1].end());
+      Path path(parts[1]);
       struct stat st;
-      const int ret = stat(path.string().c_str(), &st);
+      const int ret = stat(path.c_str(), &st);
       if (ret == -1 && errno == ENOENT) {
         return;
       }
       checkUnixError(ret, "stat hugepage mountpoint failed");
-      pos->mountPoint = fs::canonical(path);
+      pos->mountPoint = canonical(path);
       pos->device = st.st_dev;
     };
 

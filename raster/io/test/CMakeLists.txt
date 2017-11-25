@@ -7,6 +7,7 @@ set(RASTER_IO_TEST_SRCS
     FSUtilTest.cpp
     IOBufCursorTest.cpp
     IOBufTest.cpp
+    PathTest.cpp
 )
 
 foreach(test_src ${RASTER_IO_TEST_SRCS})

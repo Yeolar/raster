@@ -107,9 +107,9 @@ void MMapIO::deallocate(void* p, size_t size) {
   h->used -= size;
 }
 
-MMapIOPool::MMapIOPool(fs::path dir, size_t blockSize, uint16_t initCount)
+MMapIOPool::MMapIOPool(const Path& dir, size_t blockSize, uint16_t initCount)
   : dir_(dir), blockSize_(blockSize) {
-  RDDCHECK(fs::is_directory(dir));
+  RDDCHECK(dir.isDirectory());
   pool_.resize(initCount + 1);
   for (size_t i = 1; i <= initCount; i++) {
     loadOrCreate(i);

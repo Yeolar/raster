@@ -33,7 +33,7 @@ class TemporaryFile {
     UNLINK_ON_DESTRUCTION
   };
   explicit TemporaryFile(StringPiece namePrefix = StringPiece(),
-                         fs::path dir = fs::path(),
+                         Path dir = Path(),
                          Scope scope = Scope::UNLINK_ON_DESTRUCTION,
                          bool closeOnDestruction = true);
   ~TemporaryFile();
@@ -43,13 +43,13 @@ class TemporaryFile {
   TemporaryFile& operator=(TemporaryFile&&) = default;
 
   int fd() const { return fd_; }
-  const fs::path& path() const;
+  const Path& path() const;
 
  private:
   Scope scope_;
   bool closeOnDestruction_;
   int fd_;
-  fs::path path_;
+  Path path_;
 };
 
 /**
@@ -71,7 +71,7 @@ class TemporaryDirectory {
     DELETE_ON_DESTRUCTION
   };
   explicit TemporaryDirectory(StringPiece namePrefix = StringPiece(),
-                              fs::path dir = fs::path(),
+                              Path dir = Path(),
                               Scope scope = Scope::DELETE_ON_DESTRUCTION);
   ~TemporaryDirectory();
 
@@ -79,11 +79,11 @@ class TemporaryDirectory {
   TemporaryDirectory(TemporaryDirectory&&) = default;
   TemporaryDirectory& operator=(TemporaryDirectory&&) = default;
 
-  const fs::path& path() const { return path_; }
+  const Path& path() const { return path_; }
 
  private:
   Scope scope_;
-  fs::path path_;
+  Path path_;
 };
 
 /**
@@ -99,10 +99,10 @@ public:
   ChangeToTempDir(ChangeToTempDir&&) = default;
   ChangeToTempDir& operator=(ChangeToTempDir&&) = default;
 
-  const fs::path& path() const { return dir_.path(); }
+  const Path& path() const { return dir_.path(); }
 
 private:
-  fs::path initialPath_;
+  Path initialPath_;
   TemporaryDirectory dir_;
 };
 

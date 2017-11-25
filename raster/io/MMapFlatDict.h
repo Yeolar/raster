@@ -97,7 +97,6 @@ private:
     IndexType,
     Allocator> map_;
   std::unique_ptr<MMapIOAlloc> pool_;
-  fs::path path_;
 };
 
 template <

@@ -5,7 +5,6 @@
 #pragma once
 
 #include "raster/io/Cursor.h"
-#include "raster/io/FSUtil.h"
 #include "raster/io/RecordIO.h"
 #include "raster/io/TypedIOBuf.h"
 #include "raster/util/AtomicUnorderedMap.h"
@@ -72,7 +71,7 @@ public:
   };
 
 public:
-  explicit FlatDict(size_t maxSize, fs::path path = "")
+  explicit FlatDict(size_t maxSize, const std::string& path = "")
     : map_(maxSize),
       path_(path),
       sync_(false) {
@@ -82,13 +81,13 @@ public:
     sync();
   }
 
-  void setSyncPath(fs::path path) {
+  void setSyncPath(const std::string& path) {
     path_ = path;
   }
 
-  void load(fs::path path) {
+  void load(const std::string& path) {
     if (!sync_.exchange(true)) {
-      RecordIOReader reader(File(path.string()));
+      RecordIOReader reader(std::move(File(path)));
       for (auto& record : reader) {
         std::unique_ptr<IOBuf> buf(IOBuf::createCombined(record.first.size()));
         io::Appender appender(buf.get(), 0);
@@ -110,7 +109,7 @@ public:
           head->prependChain(std::move(buf));
         }
       }
-      RecordIOWriter writer(File(path_.string(), O_WRONLY | O_CREAT | O_TRUNC));
+      RecordIOWriter writer(File(path_, O_WRONLY | O_CREAT | O_TRUNC));
       writer.write(std::move(head->pop()));
       sync_ = false;
     }
@@ -170,7 +169,7 @@ private:
      boost::has_trivial_destructor<detail::MutableLockedIOBuf>::value),
     IndexType,
     Allocator> map_;
-  fs::path path_;
+  std::string path_;
   std::atomic<bool> sync_;
 };
 

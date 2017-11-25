@@ -18,11 +18,11 @@ using namespace rdd;
 namespace {
 
 void copy(const char* srcFile, const char* dest) {
-  fs::path destPath(dest);
-  if (!destPath.is_absolute()) {
+  Path destPath(dest);
+  if (!destPath.isAbsolute()) {
     auto hp = getHugePageSize();
     RDDCHECK(hp) << "no huge pages available";
-    destPath = fs::canonical_parent(destPath, hp->mountPoint);
+    destPath = canonical(destPath.parent(), hp->mountPoint) / destPath.name();
   }
 
   mmapFileCopy(srcFile, destPath.c_str());

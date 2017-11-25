@@ -1,4 +1,5 @@
 /*
+ * Copyright 2017 Facebook, Inc.
  * Copyright (C) 2017, Yeolar
  */
 
@@ -13,6 +14,18 @@ namespace rdd {
 
 class Random {
 public:
+  static void secureRandom(void* data, size_t len);
+
+  template <class T>
+  static typename std::enable_if<
+    std::is_integral<T>::value && !std::is_same<T,bool>::value,
+    T>::type
+  secureRandom() {
+    T val;
+    secureRandom(&val, sizeof(val));
+    return val;
+  }
+
   static uint32_t rand32() {
     return std::uniform_int_distribution<uint32_t>()(*rng);
   }

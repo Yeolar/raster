@@ -47,8 +47,8 @@ public:
   void allocate(size_t offset, size_t bytes);
   void truncate(size_t bytes);
 
-  void fsync();
-  void fdatasync();
+  void fsync() const;
+  void fdatasync() const;
 
   void lock();
   bool try_lock();
@@ -65,4 +65,36 @@ private:
 
 inline void swap(File& a, File& b) { a.swap(b); }
 
-} // namespace rdd
+/**
+ * Provides random access to a file.
+ * This implementation currently works by mmaping the file and working from the
+ * in-memory copy.
+ */
+class FileContents {
+public:
+  explicit FileContents(const File& file);
+
+  ~FileContents();
+
+  size_t getFileLength() { return fileLen_; }
+
+  void copy(size_t offset, void* buf, size_t length);
+
+  size_t copyPartial(size_t offset, void* buf, size_t maxLength);
+
+  template <typename T = void>
+  const T* get(size_t offset, size_t length) {
+    return reinterpret_cast<const T*>(getHelper(offset, length));
+  }
+
+private:
+  NOCOPY(FileContents);
+
+  const void* getHelper(size_t offset, size_t length);
+
+  File file_;
+  size_t fileLen_;
+  const void* map_;
+};
+
+}  // namespace rdd

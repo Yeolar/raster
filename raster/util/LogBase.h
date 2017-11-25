@@ -183,21 +183,19 @@ private:
 
   void split() {
     close();
-    fs::path file(file_);
-    for (fs::directory_iterator it(file.parent_path());
-         it != fs::directory_iterator(); ++it) {
-      auto path = it->path();
-      if (path.stem() == file.filename()) {
-        int no = atoi(path.extension().c_str());
+    Path file(file_);
+    for (auto& f : ls(file.parent())) {
+      auto path = file.parent() / f;
+      if (path.base() == file.name()) {
+        int no = atoi(path.ext().c_str());
         if (rotate_ > 0 && no >= rotate_) {
-          remove(path.c_str());
+          remove(path);
         } else if (no > 0) {
-          rename(path.c_str(),
-                 path.replace_extension(to<std::string>(no+1)).c_str());
+          rename(path, path.replaceExt(to<std::string>(no+1)));
         }
       }
     }
-    rename(file_.c_str(), (file_ + ".1").c_str());
+    rename(file, file + ".1");
     open();
   }
 
