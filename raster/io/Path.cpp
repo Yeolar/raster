@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "raster/io/Path.h"
+#include "raster/util/Exception.h"
 #include "raster/util/String.h"
 
 namespace rdd {
@@ -106,10 +107,25 @@ void Path::append(StringPiece sp) {
   }
 }
 
-bool Path::checkMode(int mode) const {
+bool Path::checkExistOrMode(int mode) const {
   struct stat stat;
-  ::stat(path_.c_str(), &stat);
-  return (stat.st_mode & S_IFMT) == mode;
+  if (::stat(path_.c_str(), &stat) == -1) {
+    if (errno == ENOENT || errno == ENOTDIR) {
+      return false;
+    }
+    throwSystemError("stat(", path_, ") failed");
+  }
+  return mode == 0 || mode == (stat.st_mode & S_IFMT);
+}
+
+bool Path::accessible(int mode) const {
+  if (::access(path_.c_str(), mode) == -1) {
+    if (errno == ENOENT || errno == ENOTDIR || errno == EACCES) {
+      return false;
+    }
+    throwSystemError("access(", path_, ") failed");
+  }
+  return true;
 }
 
 } // namespace rdd

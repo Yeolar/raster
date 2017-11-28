@@ -48,10 +48,12 @@ public:
 
   bool empty() const { return path_.empty(); }
   bool isAbsolute() const { return StringPiece(path_).startsWith('/'); }
-  bool isDirectory() const { return checkMode(S_IFDIR); }
-  bool isFile() const { return checkMode(S_IFREG); }
-  bool isLink() const { return checkMode(S_IFLNK); }
-  bool isSocket() const { return checkMode(S_IFSOCK); }
+  bool exists() const { return checkExistOrMode(); }
+  bool isDirectory() const { return checkExistOrMode(S_IFDIR); }
+  bool isFile() const { return checkExistOrMode(S_IFREG); }
+  bool isLink() const { return checkExistOrMode(S_IFLNK); }
+  bool isSocket() const { return checkExistOrMode(S_IFSOCK); }
+  bool accessible(int mode) const;
 
   Path parent() const;
   std::string name() const;
@@ -69,7 +71,7 @@ public:
 private:
   void append(StringPiece sp);
 
-  bool checkMode(int mode) const;
+  bool checkExistOrMode(int mode = 0) const;
 
   std::string path_;
 };

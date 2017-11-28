@@ -10,6 +10,7 @@ set(RASTER_UTIL_SRCS
     Futex.cpp
     json.cpp
     MemoryMapping.cpp
+    ProcessUtil.cpp
     Random.cpp
     Range.cpp
     SpookyHashV2.cpp

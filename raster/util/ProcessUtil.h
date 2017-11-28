@@ -4,21 +4,15 @@
 
 #pragma once
 
-#include "raster/io/FileUtil.h"
+#include "raster/io/Path.h"
 
 namespace rdd {
 
 class ProcessUtil {
 public:
-  static pid_t readPid(const char* file) {
-    std::string s;
-    readFile(file, s);
-    return to<pid_t>(s);
-  }
+  static pid_t readPid(const Path& file);
 
-  static bool writePid(const char* file, pid_t pid) {
-    return writeFile(to<std::string>(pid), file, 0600);
-  }
+  static bool writePid(const Path& file, pid_t pid);
 };
 
 } // namespace rdd

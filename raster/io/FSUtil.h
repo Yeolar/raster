@@ -9,7 +9,6 @@
 
 #include "raster/io/File.h"
 #include "raster/io/Path.h"
-#include "raster/util/Exception.h"
 #include "raster/util/Random.h"
 #include "raster/util/String.h"
 
