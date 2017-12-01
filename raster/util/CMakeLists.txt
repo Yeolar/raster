@@ -13,6 +13,7 @@ set(RASTER_UTIL_SRCS
     ProcessUtil.cpp
     Random.cpp
     Range.cpp
+    RendezvousHash.cpp
     SpookyHashV2.cpp
     String.cpp
     SysUtil.cpp
@@ -70,6 +71,7 @@ install(FILES
     Random.h
     Range.h
     ReflectObject.h
+    RendezvousHash.h
     RWLock.h
     RWSpinLock.h
     SArray.h
