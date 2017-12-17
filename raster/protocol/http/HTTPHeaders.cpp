@@ -3,6 +3,7 @@
  */
 
 #include "raster/protocol/http/HTTPHeaders.h"
+#include "raster/util/MapUtil.h"
 #include "raster/util/String.h"
 
 namespace rdd {
@@ -48,12 +49,7 @@ std::string HTTPHeaders::get(
 }
 
 std::vector<std::string> HTTPHeaders::getList(const std::string& name) const {
-  std::vector<std::string> out;
-  auto rng = data_.equal_range(normalizeName(name));
-  for (auto it = rng.first; it != rng.second; ++it) {
-    out.push_back(it->second);
-  }
-  return out;
+  return get_all<std::vector<std::string>>(data_, normalizeName(name));
 }
 
 std::string HTTPHeaders::normalizeName(const std::string& name) const {
