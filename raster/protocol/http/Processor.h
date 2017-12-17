@@ -4,44 +4,74 @@
 
 #pragma once
 
-#include <arpa/inet.h>
-#include <boost/shared_ptr.hpp>
-#include "raster/3rd/thrift/TProcessor.h"
-#include "raster/3rd/thrift/protocol/TBinaryProtocol.h"
-#include "raster/3rd/thrift/transport/TBufferTransports.h"
-#include "raster/3rd/thrift/transport/TTransportException.h"
-#include "raster/net/Event.h"
 #include "raster/net/Processor.h"
-#include "raster/protocol/thrift/Encoding.h"
+#include "raster/protocol/http/HTTPEvent.h"
+#include "raster/protocol/http/HTTPMethod.h"
 
 namespace rdd {
+
+class HTTPMethodProcessor {
+public:
+  virtual void onGet     (HTTPRequest* request, HTTPResponse* response);
+  virtual void onPost    (HTTPRequest* request, HTTPResponse* response);
+  virtual void onPut     (HTTPRequest* request, HTTPResponse* response);
+  virtual void onHead    (HTTPRequest* request, HTTPResponse* response);
+  virtual void onDelete  (HTTPRequest* request, HTTPResponse* response);
+  virtual void onConnect (HTTPRequest* request, HTTPResponse* response);
+  virtual void onOptions (HTTPRequest* request, HTTPResponse* response);
+  virtual void onTrace   (HTTPRequest* request, HTTPResponse* response);
+};
 
 class HTTPProcessor : public Processor {
 public:
   HTTPProcessor(
-      const std::shared_ptr< ::apache::thrift::TProcessor>& processor)
+      const std::shared_ptr<HTTPMethodProcessor>& processor)
     : processor_(processor) {
-    pibuf_.reset(new apache::thrift::transport::TMemoryBuffer());
-    pobuf_.reset(new apache::thrift::transport::TMemoryBuffer());
-    piprot_.reset(new apache::thrift::protocol::TBinaryProtocol(pibuf_));
-    poprot_.reset(new apache::thrift::protocol::TBinaryProtocol(pobuf_));
   }
 
   virtual ~HTTPProcessor() {}
 
   virtual bool decodeData(Event* event) {
-    return rdd::thrift::decodeData(event->rbuf(), pibuf_.get());
+    HTTPEvent* httpev = reinterpret_cast<HTTPEvent*>(event);
+    request_ = httpev->request();
+    response_ = httpev->response();
+    return true;
   }
 
   virtual bool encodeData(Event* event) {
-    return rdd::thrift::encodeData(event->wbuf(), pobuf_.get());
+    return true;
   }
 
   virtual bool run() {
     try {
-      return processor_->process(piprot_, poprot_, nullptr);
-    } catch (apache::thrift::protocol::TProtocolException& e) {
-      RDDLOG(WARN) << "catch exception: " << e.what();
+      HTTPMethod method = stringToMethod(request_->method);
+      switch (method) {
+        case HTTPMethod::GET:
+          processor_->onGet(request_, response_);
+          break;
+        case HTTPMethod::POST:
+          processor_->onPost(request_, response_);
+          break;
+        case HTTPMethod::PUT:
+          processor_->onPut(request_, response_);
+          break;
+        case HTTPMethod::HEAD:
+          processor_->onHead(request_, response_);
+          break;
+        case HTTPMethod::DELETE:
+          processor_->onDelete(request_, response_);
+          break;
+        case HTTPMethod::CONNECT:
+          processor_->onConnect(request_, response_);
+          break;
+        case HTTPMethod::OPTIONS:
+          processor_->onOptions(request_, response_);
+          break;
+        case HTTPMethod::TRACE:
+          processor_->onTrace(request_, response_);
+          break;
+      }
+      return true;
     } catch (std::exception& e) {
       RDDLOG(WARN) << "catch exception: " << e.what();
     } catch (...) {
@@ -51,28 +81,9 @@ public:
   }
 
 protected:
-  std::shared_ptr< ::apache::thrift::TProcessor> processor_;
-  boost::shared_ptr< ::apache::thrift::transport::TMemoryBuffer> pibuf_;
-  boost::shared_ptr< ::apache::thrift::transport::TMemoryBuffer> pobuf_;
-  boost::shared_ptr< ::apache::thrift::protocol::TBinaryProtocol> piprot_;
-  boost::shared_ptr< ::apache::thrift::protocol::TBinaryProtocol> poprot_;
-};
-
-class HTTPZlibProcessor : public HTTPProcessor {
-public:
-  HTTPZlibProcessor(
-      const std::shared_ptr< ::apache::thrift::TProcessor>& processor)
-    : HTTPProcessor(processor) {}
-
-  virtual ~HTTPZlibProcessor() {}
-
-  virtual bool decodeData(Event* event) {
-    return rdd::thrift::decodeZlibData(event->rbuf(), pibuf_.get());
-  }
-
-  virtual bool encodeData(Event* event) {
-    return rdd::thrift::encodeZlibData(event->wbuf(), pobuf_.get());
-  }
+  std::shared_ptr<HTTPMethodProcessor> processor_;
+  HTTPRequest* request_;
+  HTTPResponse* response_;
 };
 
 template <class P, class If, class ProcessorType>
@@ -82,17 +93,17 @@ public:
   virtual ~HTTPProcessorFactory() {}
 
   virtual std::shared_ptr<Processor> create() {
+    // TODO route;
     return std::shared_ptr<Processor>(
       new ProcessorType(
-        std::shared_ptr< ::apache::thrift::TProcessor>(
+        std::shared_ptr<HTTPMethodProcessor>(
           new P(handler_))));
   }
 
   If* handler() { return handler_.get(); }
 
 private:
-  boost::shared_ptr<If> handler_;
+  std::shared_ptr<If> handler_;
 };
 
-}
-
+} // namespace rdd
