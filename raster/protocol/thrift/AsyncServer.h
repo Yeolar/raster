@@ -26,7 +26,7 @@ public:
       new ThriftProcessorFactory<P, If, ThriftProcessor>());
     Peer peer = {"", port};
     channel_ = std::make_shared<Channel>(
-      peer, timeoutOpt, protocol, processorFactory);
+      Channel::DEFAULT, peer, timeoutOpt, protocol, processorFactory);
   }
 };
 
@@ -46,7 +46,7 @@ public:
       new ThriftProcessorFactory<P, If, ThriftZlibProcessor>());
     Peer peer = {"", port};
     channel_ = std::make_shared<Channel>(
-      peer, timeoutOpt, protocol, processorFactory);
+      Channel::DEFAULT, peer, timeoutOpt, protocol, processorFactory);
   }
 };
 

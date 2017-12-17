@@ -114,15 +114,15 @@ static std::string unquote(StringPiece s) {
   return out;
 }
 
-void parseQuery(URLQuery& query, const std::string& str) {
+void parseQuery(URLQuery& query, StringPiece sp) {
   std::vector<StringPiece> v;
-  splitAny("&;", str, v);
+  splitAny("&;", sp, v);
 
-  for (auto& sp : v) {
-    if (sp.empty())
+  for (auto& s : v) {
+    if (s.empty())
       continue;
     StringPiece name, value;
-    if (split('=', sp, name, value)) {
+    if (split('=', s, name, value)) {
       if (!value.empty()) {
         query.emplace(unquote(name), unquote(value));
       }

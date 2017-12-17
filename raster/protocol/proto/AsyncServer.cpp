@@ -14,7 +14,7 @@ void PBAsyncServer::makeChannel(int port, const TimeoutOption& timeout_opt) {
     new PBProcessorFactory(this));
   Peer peer = {"", port};
   channel_ = std::make_shared<Channel>(
-    peer, timeout_opt, protocol, processor_factory);
+    Channel::DEFAULT, peer, timeout_opt, protocol, processor_factory);
 }
 
 } // namespace rdd

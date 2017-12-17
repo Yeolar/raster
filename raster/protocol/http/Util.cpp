@@ -223,7 +223,7 @@ static std::string parseHeader(
 
 void parseBodyArguments(
     StringPiece contentType,
-    const std::string& body,
+    StringPiece body,
     URLQuery& arguments,
     std::multimap<std::string, HTTPFile>& files) {
   if (contentType.startsWith("application/x-www-form-urlencoded")) {

@@ -20,7 +20,7 @@ public:
       new BinaryProcessorFactory<P>());
     Peer peer = {"", port};
     channel_ = std::make_shared<Channel>(
-      peer, timeoutOpt, protocol, processorFactory);
+      Channel::DEFAULT, peer, timeoutOpt, protocol, processorFactory);
   }
 };
 

@@ -11,12 +11,19 @@ namespace rdd {
 
 class Channel {
 public:
-  Channel(const Peer& peer,
+  enum {
+    DEFAULT,
+    HTTP,
+  };
+
+  Channel(int type,
+          const Peer& peer,
           const TimeoutOption& timeoutOpt,
           const std::shared_ptr<Protocol>& protocol,
           const std::shared_ptr<ProcessorFactory>& processorFactory
             = std::shared_ptr<ProcessorFactory>())
-    : id_(peer.port)
+    : type_(type)
+    , id_(peer.port)
     , peer_(peer)
     , timeoutOpt_(timeoutOpt)
     , protocol_(protocol)
@@ -26,6 +33,8 @@ public:
   std::string str() const {
     return to<std::string>("channel[", id_, "]");
   }
+
+  int type() const { return type_; }
 
   int id() const { return id_; }
 
@@ -41,6 +50,7 @@ public:
   }
 
 private:
+  int type_;
   int id_;
   Peer peer_;
   TimeoutOption timeoutOpt_;

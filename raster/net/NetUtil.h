@@ -69,6 +69,10 @@ std::string getNodeIp();
 
 std::string ipv4ToHost(const std::string& ip, bool trimSuffix = false);
 
+bool isValidIP(const std::string& ip);
+
+bool isValidPort(uint16_t port);
+
 } // namespace rdd
 
 namespace std {

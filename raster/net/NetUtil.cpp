@@ -116,4 +116,20 @@ std::string ipv4ToHost(const std::string& ip, bool trimSuffix) {
   return trimSuffix && p ? std::string(s, p - s) : s;
 }
 
+bool isValidIP(const std::string& ip) {
+  struct addrinfo *ai, hints;
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_flags = AI_NUMERICHOST;
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  if (getaddrinfo(ip.c_str(), 0, &hints, &ai) != 0) {
+    return false;
+  }
+  return ai != nullptr;
+}
+
+bool isValidPort(uint16_t port) {
+  return port > 0;
+}
+
 } // namespace rdd

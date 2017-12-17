@@ -5,12 +5,27 @@
 #include "raster/io/event/Event.h"
 #include "raster/io/event/EventExecutor.h"
 #include "raster/net/Channel.h"
+#include "raster/protocol/http/HTTPEvent.h"
 
 namespace rdd {
 
+Event* createEvent(const std::shared_ptr<Channel>& channel,
+                   const std::shared_ptr<Socket>& socket) {
+  switch (channel->type()) {
+    case Channel::DEFAULT:
+      return new Event(channel, socket);
+    case Channel::HTTP:
+      return new HTTPEvent(channel, socket);
+    default: break;
+  }
+  throw std::runtime_error(
+      to<std::string>("Undefined channel type: ", channel->type()));
+}
+
 Event* Event::getCurrentEvent() {
   ExecutorPtr executor = getCurrentExecutor();
-  return executor ? std::dynamic_pointer_cast<EventExecutor>(executor)->event() : nullptr;
+  return executor ?
+    std::dynamic_pointer_cast<EventExecutor>(executor)->event() : nullptr;
 }
 
 std::atomic<uint64_t> Event::globalSeqid_(1);

@@ -17,8 +17,12 @@
 
 namespace rdd {
 
+class Event;
 class Channel;
 class Processor;
+
+Event* createEvent(const std::shared_ptr<Channel>& channel,
+                   const std::shared_ptr<Socket>& socket);
 
 class Event {
 public:
@@ -47,13 +51,13 @@ public:
   static Event* getCurrentEvent();
 
   Event(const std::shared_ptr<Channel>& channel,
-        const std::shared_ptr<Socket>& socket = std::shared_ptr<Socket>());
+        const std::shared_ptr<Socket>& socket);
 
   Event(Waker* waker);
 
   virtual ~Event();
 
-  void reset();
+  virtual void reset();
 
   Descriptor* descriptor() const { return (socket() ?: (Descriptor*)waker_); }
   int fd() const { return descriptor()->fd(); }

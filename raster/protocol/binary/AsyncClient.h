@@ -62,7 +62,8 @@ public:
 protected:
   virtual std::shared_ptr<Channel> makeChannel() {
     std::shared_ptr<Protocol> protocol(new BinaryProtocol());
-    return std::make_shared<Channel>(peer_, timeoutOpt_, protocol);
+    return std::make_shared<Channel>(
+        Channel::DEFAULT, peer_, timeoutOpt_, protocol);
   }
 };
 
