@@ -85,4 +85,10 @@ subrange(Container& container, size_t begin, size_t end) {
   container.erase(container.begin(), container.begin() + b);
 }
 
+template <class Container, class T>
+void remove(Container& container, const T& value) {
+  container.erase(std::remove(container.begin(), container.end(), value),
+                  container.end());
+}
+
 } // namespace rdd

@@ -89,6 +89,7 @@ install(FILES
     Time.h
     Traits.h
     Unicode.h
+    UnionBasedStatic.h
     Uri.h
     Utf8StringPiece.h
     Utility.h

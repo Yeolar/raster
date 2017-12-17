@@ -41,6 +41,14 @@ inline size_t qfind(const Range<T> & haystack,
                     Comp eq = Comp());
 
 /**
+ * Finds the last occurrence of needle in haystack.
+ */
+template <class T, class Comp = std::equal_to<typename Range<T>::value_type>>
+inline size_t rfind(const Range<T> & haystack,
+                    const Range<T> & needle,
+                    Comp eq = Comp());
+
+/**
  * Finds the first occurrence of needle in haystack. The result is the
  * offset reported to the beginning of haystack, or string::npos if
  * needle wasn't found.
@@ -933,6 +941,61 @@ size_t qfind(const Range<T>& haystack,
   return std::string::npos;
 }
 
+template <class T, class Comp>
+size_t rfind(const Range<T>& haystack,
+             const Range<T>& needle,
+             Comp eq) {
+  // Use a Boyer-Moore-like trick by comparing the last characters first
+  auto const nsize = needle.size();
+  if (haystack.size() < nsize) {
+    return std::string::npos;
+  }
+  if (!nsize) return 0;
+  auto const nsize_1 = nsize - 1;
+  auto const lastNeedle = needle[nsize_1];
+
+  // Boyer-Moore skip value for the last char in the needle. Zero is
+  // not a valid value; skip will be computed the first time it's
+  // needed.
+  std::string::size_type skip = 0;
+
+  auto i = haystack.end() - nsize;
+  auto iBegin = haystack.begin();
+
+  while (i >= iBegin) {
+    // Boyer-Moore: match the last element in the needle
+    while (!eq(i[nsize_1], lastNeedle)) {
+      if (--i < iBegin) {
+        // not found
+        return std::string::npos;
+      }
+    }
+    // Here we know that the last char matches
+    // Continue in pedestrian mode
+    for (size_t j = 0; ; ) {
+      assert(j < nsize);
+      if (!eq(i[j], needle[j])) {
+        // Not found, we can skip
+        // Compute the skip value lazily
+        if (skip == 0) {
+          skip = 1;
+          while (skip <= nsize_1 && !eq(i[nsize_1 - skip], lastNeedle)) {
+            ++skip;
+          }
+        }
+        i -= skip;
+        break;
+      }
+      // Check if done searching
+      if (++j == nsize) {
+        // Yay
+        return i - iBegin;
+      }
+    }
+  }
+  return std::string::npos;
+}
+
 namespace detail {
 
 size_t qfind_first_byte_of_nosse(const StringPiece haystack,
@@ -1048,6 +1111,14 @@ inline size_t qfind_first_of(const Range<const unsigned char*>& haystack,
                              const Range<const unsigned char*>& needles) {
   return detail::qfind_first_byte_of(StringPiece(haystack),
                                      StringPiece(needles));
+}
+
+// case-insensitive string comparison
+inline bool caseInsensitiveEqual(StringPiece s, StringPiece t) {
+  if (s.size() != t.size()) {
+    return false;
+  }
+  return std::equal(s.begin(), s.end(), t.begin(), asciiCaseInsensitive);
 }
 
 template<class Key, class Enable>

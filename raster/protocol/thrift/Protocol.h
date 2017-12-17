@@ -9,25 +9,27 @@
 
 namespace rdd {
 
-// protocol of thrift binary
-class TBinaryProtocol : public HBinaryProtocol<uint32_t> {
+// protocol of thrift framed
+class TFramedProtocol : public HBinaryProtocol<uint32_t> {
 public:
-  TBinaryProtocol() : HBinaryProtocol<uint32_t>() {}
-  virtual ~TBinaryProtocol() {}
+  TFramedProtocol() : HBinaryProtocol<uint32_t>() {}
+  virtual ~TFramedProtocol() {}
 
   virtual size_t bodyLength(const uint32_t& header) const {
     return ntohl(header);
   }
 };
 
-// protocol of thrift framed
-typedef TBinaryProtocol TFramedProtocol;
-
 // protocol of thrift zlib
-class TZlibProtocol : public ZlibBinaryProtocol {
+class TZlibProtocol : public Protocol {
 public:
-  TZlibProtocol() : ZlibBinaryProtocol() {}
+  TZlibProtocol() : Protocol() {}
   virtual ~TZlibProtocol() {}
+
+  virtual int readData(Event* event) {
+    static const ByteRange kEnd((uint8_t*)"\x00\x00\xff\xff", 4);
+    return Protocol::readDataUntil(event, kEnd);
+  }
 };
 
 namespace thrift {

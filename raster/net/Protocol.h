@@ -67,15 +67,4 @@ public:
   virtual size_t bodyLength(const H& header) const = 0;
 };
 
-class ZlibBinaryProtocol : public Protocol {
-public:
-  ZlibBinaryProtocol() : Protocol() {}
-  virtual ~ZlibBinaryProtocol() {}
-
-  virtual int readData(Event* event) {
-    return Protocol::readDataUntil(
-        event, ByteRange((uint8_t*)"\x00\x00\xff\xff", 4));
-  }
-};
-
 } // namespace rdd

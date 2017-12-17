@@ -83,6 +83,7 @@ add_subdirectory(raster/net)
 add_subdirectory(raster/parallel)
 add_subdirectory(raster/plugins/flume)
 add_subdirectory(raster/protocol/binary)
+add_subdirectory(raster/protocol/http)
 add_subdirectory(raster/protocol/proto)
 add_subdirectory(raster/protocol/thrift)
 add_subdirectory(raster/serializer)
@@ -101,6 +102,7 @@ add_library(raster_static STATIC
     $<TARGET_OBJECTS:raster_io_event>
     $<TARGET_OBJECTS:raster_net>
     $<TARGET_OBJECTS:raster_plugins_flume>
+    $<TARGET_OBJECTS:raster_protocol_http>
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_ssl>
     $<TARGET_OBJECTS:raster_util>
@@ -118,6 +120,7 @@ add_library(raster_shared SHARED
     $<TARGET_OBJECTS:raster_io_event>
     $<TARGET_OBJECTS:raster_net>
     $<TARGET_OBJECTS:raster_plugins_flume>
+    $<TARGET_OBJECTS:raster_protocol_http>
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_ssl>
     $<TARGET_OBJECTS:raster_util>
@@ -153,6 +156,7 @@ if(GTEST_FOUND)
     add_subdirectory(raster/gen/test)
     add_subdirectory(raster/io/test)
     add_subdirectory(raster/parallel/test)
+    add_subdirectory(raster/protocol/http/test)
     add_subdirectory(raster/serializer/test)
     add_subdirectory(raster/ssl/test)
     add_subdirectory(raster/util/test)

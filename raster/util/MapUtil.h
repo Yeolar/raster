@@ -73,4 +73,18 @@ typename Map::mapped_type::element_type* get_deref_smart_ptr(
   return (pos != map.end() ? pos->second.get() : nullptr);
 }
 
+template <class Container, class Map>
+typename std::enable_if<
+  std::is_same<
+    typename Container::value_type,
+    typename Map::mapped_type>::value, Container>::type
+get_all(Map& map, const typename Map::key_type& key) {
+  Container result;
+  auto rng = map.equal_range(key);
+  for (auto it = rng.first; it != rng.second; ++it) {
+    result.push_back(it->second);
+  }
+  return result;
+}
+
 } // namespace rdd

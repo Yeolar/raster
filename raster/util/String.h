@@ -289,6 +289,12 @@ void toLowerAscii(String& s) {
   }
 }
 
+inline std::string toLowerAscii(StringPiece sp) {
+  std::string out = sp.str();
+  toLowerAscii(out);
+  return out;
+}
+
 } // namespace rdd
 
 #include "String-inl.h"
