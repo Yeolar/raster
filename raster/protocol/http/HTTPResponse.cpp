@@ -23,7 +23,7 @@ void HTTPResponse::prependHeaders(StringPiece version) {
            getResponseW3CName(statusCode), "\r\n", &header);
   toAppend(headers->str(), "\r\n", &header);
   toAppend(cookies->str(), "\r\n\r\n", &header);
-  data->prepend(header);
+  // TODO data->prepend(header);
 }
 
 } // namespace rdd

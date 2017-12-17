@@ -41,7 +41,7 @@ HTTPProcessorFactory::HTTPProcessorFactory(
 std::shared_ptr<Processor> HTTPProcessorFactory::create(Event* event) {
   HTTPEvent* httpev = reinterpret_cast<HTTPEvent*>(event);
   auto uri = httpev->request()->uri;
-  for (auto& kv : router_) {
+  for (auto& kv : routers_) {
     boost::cmatch match;
     if (boost::regex_match(uri.begin(), uri.end(), match, kv.second)) {
       return std::shared_ptr<Processor>(
