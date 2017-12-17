@@ -12,11 +12,6 @@ namespace rdd {
 // protocol of HTTP
 class HTTPProtocol : public Protocol {
 public:
-  enum {
-    ON_HEADERS,
-    ON_BODY,
-  };
-
   HTTPProtocol() : Protocol() {}
   virtual ~HTTPProtocol() {}
 
