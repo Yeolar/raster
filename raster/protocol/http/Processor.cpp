@@ -31,6 +31,13 @@ void HTTPMethodProcessor::onTrace(HTTPRequest* req, HTTPResponse* resp) {
   throw HTTPException(405);
 }
 
+HTTPProcessorFactory::HTTPProcessorFactory(
+    const std::map<std::string, std::string>& routers) {
+  for (auto& kv : routers) {
+    routers_.emplace(kv.first, boost::regex(kv.second));
+  }
+}
+
 std::shared_ptr<Processor> HTTPProcessorFactory::create(Event* event) {
   HTTPEvent* httpev = reinterpret_cast<HTTPEvent*>(event);
   auto uri = httpev->request()->uri;

@@ -10,47 +10,24 @@
 
 namespace rdd {
 
-template <class If, class P>
 class HTTPAsyncServer : public Service {
 public:
-  If* handler() {
-    auto pf = channel_->processorFactory();
-    return ((HTTPProcessorFactory<P, If, HTTPProcessor>*)(pf.get()))
-      ->handler();
+  void addRouter(const std::string& handler, const std::string& regex) {
+    router_.emplace(handler, regex);
   }
 
-  virtual void makeChannel(int port, const TimeoutOption& timeout_opt) {
+  virtual void makeChannel(int port, const TimeoutOption& timeoutOpt) {
     std::shared_ptr<Protocol> protocol(
       new HTTPProtocol());
-    std::shared_ptr<ProcessorFactory> processor_factory(
-      new HTTPProcessorFactory<P, If, HTTPProcessor>());
+    std::shared_ptr<ProcessorFactory> processorFactory(
+      new HTTPProcessorFactory(routers_));
     Peer peer = {"", port};
     channel_ = std::make_shared<Channel>(
-      peer, timeout_opt, protocol, processor_factory);
+      Channel::HTTP, peer, timeoutOpt, protocol, processorFactory);
   }
+
+private:
+  std::map<std::string, std::string> routers_;
 };
 
-/*
-template <class If, class P>
-class HTTPZlibAsyncServer : public Service {
-public:
-  If* handler() {
-    auto pf = channel_->processorFactory();
-    return ((HTTPProcessorFactory<P, If, HTTPZlibProcessor>*)(pf.get()))
-      ->handler();
-  }
-
-  virtual void makeChannel(int port, const TimeoutOption& timeout_opt) {
-    std::shared_ptr<Protocol> protocol(
-      new HTTPZlibProtocol());
-    std::shared_ptr<ProcessorFactory> processor_factory(
-      new HTTPProcessorFactory<P, If, HTTPZlibProcessor>());
-    Peer peer = {"", port};
-    channel_ = std::make_shared<Channel>(
-      peer, timeout_opt, protocol, processor_factory);
-  }
-};
-*/
-
-}
-
+} // namespace rdd

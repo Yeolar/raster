@@ -95,13 +95,13 @@ protected:
 
 class HTTPProcessorFactory : public ProcessorFactory {
 public:
-  HTTPProcessorFactory() {}
+  HTTPProcessorFactory(const std::map<std::string, std::string>& routers);
   virtual ~HTTPProcessorFactory() {}
 
   virtual std::shared_ptr<Processor> create(Event* event);
 
 private:
-  std::map<std::string, boost::regex> router_;
+  std::map<std::string, boost::regex> routers_;
 };
 
 } // namespace rdd
