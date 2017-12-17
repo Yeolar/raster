@@ -28,7 +28,11 @@ public:
   std::string get(const std::string& name, const std::string& dflt = "") const;
   std::vector<std::string> getList(const std::string& name) const;
 
+  void clearHeadersFor304();
+
   std::string normalizeName(const std::string& name) const;
+
+  std::string str() const;
 
 private:
   std::multimap<std::string, std::string> data_;

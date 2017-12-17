@@ -14,9 +14,11 @@ class HTTPEvent : public Event {
 public:
   enum State {
     INIT,
-    ON_HEADERS,
-    ON_BODY,
-    FINISH,
+    ON_READING_HEADERS,
+    ON_READING_BODY,
+    ON_READING_FINISH,
+    ON_WRITING,
+    ON_WRITING_FINISH,
     ERROR,
   };
 
@@ -27,9 +29,11 @@ public:
 
   virtual void reset();
 
-  void onHeaders();
+  void onReadingHeaders();
 
-  void onBody();
+  void onReadingBody();
+
+  void onWritingFinish();
 
   State state() const { return state_; }
 

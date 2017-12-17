@@ -4,9 +4,13 @@
 
 #pragma once
 
+#include <boost/regex.hpp>
+
 #include "raster/net/Processor.h"
 #include "raster/protocol/http/HTTPEvent.h"
+#include "raster/protocol/http/HTTPException.h"
 #include "raster/protocol/http/HTTPMethod.h"
+#include "raster/util/ReflectObject.h"
 
 namespace rdd {
 
@@ -72,6 +76,9 @@ public:
           break;
       }
       return true;
+    } catch (HTTPException& e) {
+      // write
+      RDDLOG(WARN) << "catch http exception: " << e;
     } catch (std::exception& e) {
       RDDLOG(WARN) << "catch exception: " << e.what();
     } catch (...) {
@@ -86,24 +93,15 @@ protected:
   HTTPResponse* response_;
 };
 
-template <class P, class If, class ProcessorType>
 class HTTPProcessorFactory : public ProcessorFactory {
 public:
-  HTTPProcessorFactory() : handler_(new If()) {}
+  HTTPProcessorFactory() {}
   virtual ~HTTPProcessorFactory() {}
 
-  virtual std::shared_ptr<Processor> create() {
-    // TODO route;
-    return std::shared_ptr<Processor>(
-      new ProcessorType(
-        std::shared_ptr<HTTPMethodProcessor>(
-          new P(handler_))));
-  }
-
-  If* handler() { return handler_.get(); }
+  virtual std::shared_ptr<Processor> create(Event* event);
 
 private:
-  std::shared_ptr<If> handler_;
+  std::map<std::string, boost::regex> router_;
 };
 
 } // namespace rdd

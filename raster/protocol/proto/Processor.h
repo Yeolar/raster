@@ -123,7 +123,7 @@ public:
   PBProcessorFactory(PBAsyncServer* server) : server_(server) {}
   virtual ~PBProcessorFactory() {}
 
-  virtual std::shared_ptr<Processor> create() {
+  virtual std::shared_ptr<Processor> create(Event* event) {
     return std::shared_ptr<Processor>(new PBProcessor(server_));
   }
 

@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "raster/protocol/http/HTTPException.h"
 #include "raster/protocol/http/HTTPMethod.h"
 #include "raster/util/Conv.h"
 #include "raster/util/UnionBasedStatic.h"
@@ -37,7 +38,7 @@ HTTPMethod stringToMethod(StringPiece method) {
     }
     index++;
   }
-  throw std::runtime_error(to<std::string>("Unknown HTTP method: ", method));
+  throw HTTPException(405, method);
 }
 
 const std::string& methodToString(HTTPMethod method) {

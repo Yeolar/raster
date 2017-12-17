@@ -86,7 +86,7 @@ public:
   void setForward() { action_ = FORWARD; }
 
   std::shared_ptr<Channel> channel() const;
-  std::shared_ptr<Processor> processor(bool create = false);
+  std::shared_ptr<Processor> processor();
 
   Executor* executor() const { return executor_; }
   void setExecutor(Executor* executor) { executor_ = executor; }
@@ -173,7 +173,6 @@ private:
 
   std::shared_ptr<Channel> channel_;
   std::shared_ptr<Socket> socket_;
-  std::shared_ptr<Processor> processor_;
 
   Waker* waker_;
   Executor* executor_;

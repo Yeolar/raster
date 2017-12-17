@@ -19,7 +19,7 @@ public:
 
 class ProcessorFactory {
 public:
-  virtual std::shared_ptr<Processor> create() = 0;
+  virtual std::shared_ptr<Processor> create(Event* event) = 0;
 };
 
 } // namespace rdd

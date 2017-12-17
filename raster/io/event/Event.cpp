@@ -102,14 +102,11 @@ std::shared_ptr<Channel> Event::channel() const {
   return channel_;
 }
 
-std::shared_ptr<Processor> Event::processor(bool create) {
-  if (create || !processor_) {
-    if (!channel_->processorFactory()) {
-      throw std::runtime_error("client channel has no processor");
-    }
-    processor_ = channel_->processorFactory()->create();
+std::shared_ptr<Processor> Event::processor() {
+  if (!channel_->processorFactory()) {
+    throw std::runtime_error("client channel has no processor");
   }
-  return processor_;
+  return channel_->processorFactory()->create(this);
 }
 
 int Event::readData() {

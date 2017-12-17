@@ -82,7 +82,7 @@ public:
   ThriftProcessorFactory() : handler_(new If()) {}
   virtual ~ThriftProcessorFactory() {}
 
-  virtual std::shared_ptr<Processor> create() {
+  virtual std::shared_ptr<Processor> create(Event* event) {
     return std::shared_ptr<Processor>(
       new ProcessorType(
         std::shared_ptr< ::apache::thrift::TProcessor>(

@@ -52,6 +52,20 @@ std::vector<std::string> HTTPHeaders::getList(const std::string& name) const {
   return get_all<std::vector<std::string>>(data_, normalizeName(name));
 }
 
+void HTTPHeaders::clearHeadersFor304() {
+  // 304 responses should not contain entity headers (defined in
+  // http://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.1)
+  // not explicitly allowed by
+  // http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
+  static std::vector<std::string> headers {
+    "Allow", "Content-Encoding", "Content-Language", "Content-Length",
+    "Content-Md5", "Content-Range", "Content-Type", "Last-Modified"
+  };
+  for (auto& h : headers) {
+    data_.erase(h);
+  }
+}
+
 std::string HTTPHeaders::normalizeName(const std::string& name) const {
   std::string norm(name);
   bool start = true;
@@ -60,6 +74,14 @@ std::string HTTPHeaders::normalizeName(const std::string& name) const {
     start = c == '-';
   }
   return norm;
+}
+
+std::string HTTPHeaders::str() const {
+  std::vector<std::string> v;
+  for (auto& kv : data_) {
+    v.emplace_back(std::move(to<std::string>(kv.first, ": ", kv.second)));
+  }
+  return join("\r\n", v);
 }
 
 } // namespace rdd

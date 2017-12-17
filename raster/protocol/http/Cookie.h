@@ -46,7 +46,7 @@ struct CookieMorsel {
 
   void setAttr(const std::string& key, const std::string& value);
 
-  std::string str();
+  std::string str() const;
 };
 
 struct Cookie {
@@ -58,7 +58,7 @@ struct Cookie {
 
   void set(const std::string& key, const std::string& value);
 
-  std::string str();
+  std::string str() const;
 
   static std::string quote(StringPiece value);
   static std::string unquote(StringPiece value);

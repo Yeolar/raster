@@ -6,6 +6,7 @@ set(RASTER_PROTOCOL_HTTP_SRCS
     HTTPHeaders.cpp
     HTTPMethod.cpp
     HTTPRequest.cpp
+    HTTPResponse.cpp
     ParseQuery.cpp
     ParseURL.cpp
     Processor.cpp

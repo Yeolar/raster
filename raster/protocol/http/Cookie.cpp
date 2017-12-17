@@ -123,7 +123,7 @@ void CookieMorsel::setAttr(const std::string& k, const std::string& v) {
   throw std::invalid_argument("Invalid attribute: " + k);
 }
 
-std::string CookieMorsel::str() {
+std::string CookieMorsel::str() const {
   std::string out;
   toAppend("Set-Cookie: ", key, '=', codedValue, &out);
 
@@ -265,7 +265,7 @@ void Cookie::load(StringPiece sp) {
   }
 }
 
-std::string Cookie::str() {
+std::string Cookie::str() const {
   std::vector<std::string> v;
   for (auto& kv : data) {
     v.emplace_back(std::move(kv.second->str()));

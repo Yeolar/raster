@@ -19,7 +19,7 @@ public:
   virtual ~EventExecutor() {}
 
   void handle() {
-    auto processor = event_->processor(true);
+    auto processor = event_->processor();
     processor->decodeData(event_);
     processor->run();
     processor->encodeData(event_);

@@ -49,7 +49,7 @@ public:
   BinaryProcessorFactory() {}
   virtual ~BinaryProcessorFactory() {}
 
-  virtual std::shared_ptr<Processor> create() {
+  virtual std::shared_ptr<Processor> create(Event* event) {
     return std::shared_ptr<Processor>(new P());
   }
 };

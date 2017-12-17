@@ -19,29 +19,37 @@ public:
     static const ByteRange kEnd((uint8_t*)"\r\n\r\n", 4);
     HTTPEvent* httpev = reinterpret_cast<HTTPEvent*>(event);
 
-    if (httpev->state() == HTTPEvent::ON_HEADERS) {
+    if (httpev->state() == HTTPEvent::ON_READING_HEADERS) {
       int r = Protocol::readDataUntil(event, kEnd);
       if (r == 0) {
-        httpev->onHeaders();
+        httpev->onReadingHeaders();
         switch (httpev->state()) {
-          case HTTPEvent::ON_BODY: return 1;
-          case HTTPEvent::FINISH: return 0;
+          case HTTPEvent::ON_READING_BODY: return 1;
+          case HTTPEvent::ON_READING_FINISH: return 0;
           case HTTPEvent::ERROR: return -1;
           case HTTPEvent::INIT:
-          case HTTPEvent::ON_HEADERS:
+          case HTTPEvent::ON_READING_HEADERS:
           default:
             throw std::runtime_error(
-                to<std::string>("meet wrong http state: ", httpev->state()));
+                to<std::string>("wrong http state: ", httpev->state()));
         }
       }
       return r;
     } else {
       int r = Protocol::readData(event);
       if (r == 0) {
-        httpev->onBody();
+        httpev->onReadingBody();
       }
       return r;
     }
+  }
+
+  virtual int writeData(Event* event) {
+    HTTPEvent* httpev = reinterpret_cast<HTTPEvent*>(event);
+    if (httpev->state() == HTTPEvent::ON_WRITING) {
+      httpev->onWritingFinish();
+    }
+    return Protocol::writeData(event);
   }
 };
 

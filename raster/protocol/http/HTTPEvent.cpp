@@ -16,10 +16,10 @@ HTTPEvent::HTTPEvent(const std::shared_ptr<Channel>& channel,
 
 void HTTPEvent::reset() {
   Event::reset();
-  state_ = ON_HEADERS;
+  state_ = ON_READING_HEADERS;
 }
 
-void HTTPEvent::onHeaders() {
+void HTTPEvent::onReadingHeaders() {
   IOBuf* buf = rbuf().get();
   headerSize_ = buf->computeChainDataLength();
 
@@ -45,7 +45,7 @@ void HTTPEvent::onHeaders() {
   auto clen = headers_->get("Content-Length");
 
   if (clen.empty()) {
-    state_ = FINISH;
+    state_ = ON_READING_FINISH;
   } else {
     size_t n = to<size_t>(clen);
     if (n > Protocol::BODYLEN_LIMIT) {
@@ -58,11 +58,11 @@ void HTTPEvent::onHeaders() {
       wbuf()->append("HTTP/1.1 100 (Continue)\r\n\r\n");
     }*/
     rlen() += n;
-    state_ = ON_BODY;
+    state_ = ON_READING_BODY;
   }
 }
 
-void HTTPEvent::onBody() {
+void HTTPEvent::onReadingBody() {
   IOBuf* buf = rbuf().get();
   StringPiece data(buf->coalesce());
   request_->body = data.subpiece(headerSize_);
@@ -73,7 +73,42 @@ void HTTPEvent::onBody() {
     parseBodyArguments(headers_->get("Content-Type"),
                        data, request_->arguments, request_->files);
   }
-  state_ = FINISH;
+  state_ = ON_READING_FINISH;
+}
+
+void HTTPEvent::onWritingFinish() {
+  if (response_->statusCode == 200 &&
+      (request_->method == "GET" || request_->method == "HEAD") &&
+      !response_->headers->has("Etag")) {
+    auto etag = response_->computeEtag();
+    if (!etag.empty()) {
+      response_->headers->set("Etag", etag);
+      auto inm = request_->headers->get("If-None-Match");
+      if (!inm.empty() && inm.find(etag) != std::string::npos) {
+        response_->data->clear();
+        response_->statusCode = 304;
+      }
+    }
+  }
+  if (response_->statusCode == 304) {
+    response_->headers->clearHeadersFor304();
+  } else if (response_->headers->has("Content-Length")) {
+    auto clen = response_->data->computeChainDataLength();
+    response_->headers->set("Content-Length", to<std::string>(clen));
+  }
+  if (request_->method == "HEAD") {
+    response_->data->clear();
+  }
+  response_->prependHeaders(request_->version);
+  if (response_->statusCode < 400) {
+    RDDLOG(INFO) << *this << response_->statusCode;
+  } else if (response_->statusCode < 500) {
+    RDDLOG(WARN) << *this << response_->statusCode;
+  } else {
+    RDDLOG(ERROR) << *this << response_->statusCode;
+  }
+  wbuf().swap(response_->data);
+  state_ = ON_WRITING_FINISH;
 }
 
 } // namespace rdd
