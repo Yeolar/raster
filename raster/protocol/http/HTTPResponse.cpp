@@ -23,7 +23,9 @@ void HTTPResponse::prependHeaders(StringPiece version) {
   std::string header;
   toAppend(version, ' ', statusCode, ' ',
            getResponseW3CName(statusCode), "\r\n", &header);
-  toAppend(headers->str(), "\r\n", &header);
+  headers.forEach([&](const std::string& k, const std::string& v) {
+    toAppend(k, ": ", v, "\r\n", &header);
+  });
   toAppend(cookies->str(), "\r\n\r\n", &header);
   auto buf = IOBuf::create(header.size());
   rdd::io::Appender appender(buf.get(), 0);

@@ -15,9 +15,7 @@ namespace rdd {
 
 class HTTPResponse {
 public:
-  HTTPResponse() {
-    headers = std::make_shared<HTTPHeaders>();
-  }
+  HTTPResponse() {}
 
   std::string computeEtag() const;
 
@@ -27,7 +25,7 @@ public:
 
   std::unique_ptr<IOBuf> data;
   int statusCode;
-  std::shared_ptr<HTTPHeaders> headers;
+  HTTPHeaders headers;
   std::shared_ptr<Cookie> cookies;
 };
 

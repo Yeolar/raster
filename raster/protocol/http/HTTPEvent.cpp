@@ -38,11 +38,13 @@ void HTTPEvent::onReadingHeaders() {
     return;
   }
 
-  headers_ = std::make_shared<HTTPHeaders>(data.subpiece(eol + 2));
-  request_ = std::make_shared<HTTPRequest>(method, uri, version, headers_,
-                                           true,  // support xheaders
-                                           peer().host);
-  auto clen = headers_->get("Content-Length");
+  HTTPHeaders headers;
+  headers.parse(data.subpiece(eol + 2));
+
+  request_ = std::make_shared<HTTPRequest>(
+      method, uri, version, std::move(headers), true, peer().host);
+
+  auto clen = request_->headers.getSingleOrEmpty(HTTP_HEADER_CONTENT_LENGTH);
 
   if (clen.empty()) {
     state_ = ON_READING_FINISH;
@@ -54,7 +56,7 @@ void HTTPEvent::onReadingHeaders() {
       RDDLOG(V3) << *this << " bodyLength=" << n;
     }
     /* TODO
-    if (headers_->get("Expect") == "100-continue") {
+    if (request_->headers.get("Expect") == "100-continue") {
       wbuf()->append("HTTP/1.1 100 (Continue)\r\n\r\n");
     }*/
     rlen() += n;
@@ -70,8 +72,9 @@ void HTTPEvent::onReadingBody() {
   if (request_->method == "POST" ||
       request_->method == "PATCH" ||
       request_->method == "PUT") {
-    parseBodyArguments(headers_->get("Content-Type"),
-                       data, request_->arguments, request_->files);
+    parseBodyArguments(
+        request_->headers.getSingleOrEmpty(HTTP_HEADER_CONTENT_TYPE),
+        data, request_->arguments, request_->files);
   }
   state_ = ON_READING_FINISH;
 }
@@ -79,11 +82,11 @@ void HTTPEvent::onReadingBody() {
 void HTTPEvent::onWritingFinish() {
   if (response_->statusCode == 200 &&
       (request_->method == "GET" || request_->method == "HEAD") &&
-      !response_->headers->has("Etag")) {
+      !response_->headers.exists(HTTP_HEADER_ETAG)) {
     auto etag = response_->computeEtag();
     if (!etag.empty()) {
-      response_->headers->set("Etag", etag);
-      auto inm = request_->headers->get("If-None-Match");
+      response_->headers.set(HTTP_HEADER_ETAG, etag);
+      auto inm = request_->headers.combine(HTTP_HEADER_IF_NONE_MATCH);
       if (!inm.empty() && inm.find(etag) != std::string::npos) {
         response_->data->clear();
         response_->statusCode = 304;
@@ -91,10 +94,10 @@ void HTTPEvent::onWritingFinish() {
     }
   }
   if (response_->statusCode == 304) {
-    response_->headers->clearHeadersFor304();
-  } else if (response_->headers->has("Content-Length")) {
+    response_->headers.clearHeadersFor304();
+  } else if (response_->headers.exists(HTTP_HEADER_CONTENT_LENGTH)) {
     auto clen = response_->data->computeChainDataLength();
-    response_->headers->set("Content-Length", to<std::string>(clen));
+    response_->headers.set("Content-Length", to<std::string>(clen));
   }
   if (request_->method == "HEAD") {
     response_->data->clear();

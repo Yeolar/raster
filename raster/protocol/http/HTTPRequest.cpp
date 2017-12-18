@@ -11,20 +11,23 @@ HTTPRequest::HTTPRequest(
     StringPiece method_,
     StringPiece uri_,
     StringPiece version_,
-    std::shared_ptr<HTTPHeaders> headers_,
+    HTTPHeaders&& headers_,
     bool xheaders,
     const std::string& remoteIP_)
-  : method(method_), uri(uri_), version(version_) {
-  headers = headers_ ? headers_ : std::make_shared<HTTPHeaders>();
-  host = headers->get("Host", "127.0.0.1");
+  : method(method_),
+    uri(uri_),
+    version(version_),
+    headers(std::move(headers_)) {
+  host = headers.getSingle(HTTP_HEADER_HOST, "127.0.0.1");
   if (xheaders) {
     // Squid uses X-Forward-For, others use X-Real-Ip
-    remoteIP = headers->get("X-Real-Ip",
-                            headers->get("X-Forwarded-For", remoteIP_));
+    remoteIP = headers.getSingle(HTTP_HEADER_X_REAL_IP,
+               headers.getSingle(HTTP_HEADER_X_FORWARDED_FOR, remoteIP_));
     if (!isValidIP(remoteIP))
       remoteIP = remoteIP_;
     // AWS uses X-Forwarded-Proto
-    protocol = headers->get("X-Scheme", headers->get("X-Forwarded-Proto"));
+    protocol = headers.getSingle(HTTP_HEADER_X_SCHEME,
+               headers.getSingleOrEmpty(HTTP_HEADER_X_FORWARDED_PROTO));
     if (protocol != "http" && protocol != "https")
       protocol = "http";
   } else {
@@ -40,11 +43,12 @@ bool HTTPRequest::supportHTTP_1_1() const {
 }
 
 bool HTTPRequest::keepAlive() const {
-  auto conn = headers->get("Connection");
+  auto connectionHdr = headers.combine(HTTP_HEADER_CONNECTION);
   if (supportHTTP_1_1())
-    return !caseInsensitiveEqual(conn, "close");
-  if (headers->has("Content-Length") || method == "HEAD" || method == "GET")
-    return caseInsensitiveEqual(conn, "keep-alive");
+    return !caseInsensitiveEqual(connectionHdr, "close");
+  if (headers.exists(HTTP_HEADER_CONTENT_LENGTH)
+      || method == "HEAD" || method == "GET")
+    return caseInsensitiveEqual(connectionHdr, "keep-alive");
   return false;
 }
 
@@ -55,7 +59,7 @@ std::string HTTPRequest::fullURL() const {
 Cookie* HTTPRequest::getCookies() {
   if (!cookies_) {
     cookies_ = std::make_shared<Cookie>();
-    cookies_->load(headers->get("Cookie"));
+    cookies_->load(headers.combine(HTTP_HEADER_COOKIE));
   }
   return cookies_.get();
 }

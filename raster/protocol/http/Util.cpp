@@ -276,10 +276,11 @@ void parseMultipartFormData(
       RDDLOG(WARN) << "multipart/form-data missing headers";
       continue;
     }
-    HTTPHeaders headers(part.subpiece(0, eoh));
+    HTTPHeaders headers;
+    headers.parse(part.subpiece(0, eoh));
     part.advance(eoh + 4);
     std::map<std::string, std::string> dispParams;
-    auto dispHeader = headers.get("Content-Disposition", "");
+    auto dispHeader = headers.combine(HTTP_HEADER_CONTENT_DISPOSITION);
     auto disposition = parseHeader(dispHeader, dispParams);
     if (disposition != "form-data" || !part.endsWith("\r\n")) {
       RDDLOG(WARN) << "Invalid multipart/form-data";
@@ -297,7 +298,8 @@ void parseMultipartFormData(
       arguments.emplace(name, value.str());
     } else {
       auto filename = it->second;
-      auto ctype = headers.get("Content-Type", "application/unknown");
+      auto ctype = headers.getSingle(HTTP_HEADER_CONTENT_TYPE,
+                                     "application/unknown");
       files.emplace(name, HTTPFile{filename, value.str(), ctype});
     }
   }

@@ -7,14 +7,6 @@
 
 using namespace rdd;
 
-void checkEqual(const std::vector<std::string>& lhs,
-                const std::vector<std::string>& rhs) {
-  EXPECT_EQ(lhs.size(), rhs.size());
-  for (size_t i = 0; i < lhs.size(); i++) {
-    EXPECT_STREQ(lhs[i].c_str(), rhs[i].c_str());
-  }
-}
-
 TEST(headers, all) {
   const char* data =
     "Foo: bar\r\n"
@@ -25,10 +17,14 @@ TEST(headers, all) {
     "     more\r\n"
     "     lines\r\n";
 
-  HTTPHeaders headers(data);
-  EXPECT_STREQ("qwer zxcv", headers.get("asdf").c_str());
-  checkEqual({"qwer zxcv"}, headers.getList("asdf"));
-  EXPECT_STREQ("bar baz,even more lines", headers.get("Foo").c_str());
-  checkEqual({"bar baz", "even more lines"}, headers.getList("foo"));
+  HTTPHeaders headers;
+  headers.parse(data);
+  EXPECT_EQ(3, headers.size());
+  EXPECT_EQ(1, headers.getNumberOfValues("asdf"));
+  EXPECT_STREQ("qwer zxcv", headers.combine("asdf").c_str());
+  EXPECT_STREQ("qwer zxcv", headers.getSingleOrEmpty("asdf").c_str());
+  EXPECT_EQ(2, headers.getNumberOfValues("Foo"));
+  EXPECT_STREQ("bar baz, even more lines", headers.combine("Foo").c_str());
+  EXPECT_TRUE(headers.getSingleOrEmpty("Foo").empty());
 }
 

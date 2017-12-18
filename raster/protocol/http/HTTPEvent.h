@@ -43,7 +43,6 @@ public:
 private:
   State state_;
   size_t headerSize_;
-  std::shared_ptr<HTTPHeaders> headers_;
   std::shared_ptr<HTTPRequest> request_;
   std::shared_ptr<HTTPResponse> response_;
 };

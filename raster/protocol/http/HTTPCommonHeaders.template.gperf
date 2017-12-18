@@ -1,0 +1,56 @@
+%{
+/*
+ * Copyright (c) 2015, Facebook, Inc.
+ * Copyright (C) 2017, Yeolar
+ */
+
+#include <cstring>
+
+#include "raster/protocol/http/HTTPCommonHeaders.h"
+#include "raster/util/Logging.h"
+
+namespace rdd {
+
+%}
+
+%language=C++
+%compare-lengths
+%ignore-case
+%struct-type
+%readonly-tables
+%global-table
+%enum
+%define class-name HTTPCommonHeadersInternal
+
+struct HTTPCommonHeaderName { const char* name; uint8_t code; };
+
+
+/* the following is a placeholder for the build script to generate a list
+ * of enum values from the list in HTTPCommonHeaders.txt
+ */
+%%%%%
+
+HTTPHeaderCode HTTPCommonHeaders::hash(const char* name, size_t len) {
+  const HTTPCommonHeaderName* match =
+    HTTPCommonHeadersInternal::in_word_set(name, len);
+  return (match == nullptr) ? HTTP_HEADER_OTHER : HTTPHeaderCode(match->code);
+}
+
+std::string* HTTPCommonHeaders::initHeaderNames() {
+  DCHECK_LE(MAX_HASH_VALUE, 255);
+  auto headerNames = new std::string[256];
+  for (int j = MIN_HASH_VALUE; j <= MAX_HASH_VALUE; ++j) {
+    uint8_t code = wordlist[j].code;
+    const uint8_t OFFSET = 2; // first 2 values are reserved for special cases
+    if (code >= OFFSET && code < TOTAL_KEYWORDS + OFFSET
+                       && wordlist[j].name[0] != '\0') {
+      DCHECK_EQ(headerNames[code], std::string());
+      // this would mean a duplicate header code in the .gperf file
+
+      headerNames[code] = wordlist[j].name;
+    }
+  }
+  return headerNames;
+}
+
+} // namespace rdd

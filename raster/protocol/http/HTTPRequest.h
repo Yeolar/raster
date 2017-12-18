@@ -16,8 +16,8 @@ class HTTPRequest {
 public:
   HTTPRequest(StringPiece method,
               StringPiece uri,
-              StringPiece version = "HTTP/1.0",
-              std::shared_ptr<HTTPHeaders> headers = nullptr,
+              StringPiece version,
+              HTTPHeaders&& headers,
               bool xheaders = false,
               const std::string& remoteIP = "");
 
@@ -32,7 +32,7 @@ public:
   StringPiece method;
   StringPiece uri;
   StringPiece version;
-  std::shared_ptr<HTTPHeaders> headers;
+  HTTPHeaders headers;
   std::string remoteIP;
   std::string protocol;
   std::string host;
