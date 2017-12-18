@@ -42,7 +42,12 @@ void HTTPEvent::onReadingHeaders() {
   headers.parse(data.subpiece(eol + 2));
 
   request_ = std::make_shared<HTTPRequest>(
-      method, uri, version, std::move(headers), true, peer().host);
+      stringToMethod(method),
+      uri,
+      version,
+      std::move(headers),
+      true,
+      peer().host);
 
   auto clen = request_->headers.getSingleOrEmpty(HTTP_HEADER_CONTENT_LENGTH);
 
@@ -69,9 +74,8 @@ void HTTPEvent::onReadingBody() {
   StringPiece data(buf->coalesce());
   request_->body = data.subpiece(headerSize_);
 
-  if (request_->method == "POST" ||
-      request_->method == "PATCH" ||
-      request_->method == "PUT") {
+  if (request_->method == HTTPMethod::POST ||
+      request_->method == HTTPMethod::PUT) {
     parseBodyArguments(
         request_->headers.getSingleOrEmpty(HTTP_HEADER_CONTENT_TYPE),
         data, request_->arguments, request_->files);
@@ -81,7 +85,8 @@ void HTTPEvent::onReadingBody() {
 
 void HTTPEvent::onWritingFinish() {
   if (response_->statusCode == 200 &&
-      (request_->method == "GET" || request_->method == "HEAD") &&
+      (request_->method == HTTPMethod::GET ||
+       request_->method == HTTPMethod::HEAD) &&
       !response_->headers.exists(HTTP_HEADER_ETAG)) {
     auto etag = response_->computeEtag();
     if (!etag.empty()) {
@@ -97,9 +102,9 @@ void HTTPEvent::onWritingFinish() {
     response_->headers.clearHeadersFor304();
   } else if (response_->headers.exists(HTTP_HEADER_CONTENT_LENGTH)) {
     auto clen = response_->data->computeChainDataLength();
-    response_->headers.set("Content-Length", to<std::string>(clen));
+    response_->headers.set(HTTP_HEADER_CONTENT_LENGTH, to<std::string>(clen));
   }
-  if (request_->method == "HEAD") {
+  if (request_->method == HTTPMethod::HEAD) {
     response_->data->clear();
   }
   response_->prependHeaders(request_->version);

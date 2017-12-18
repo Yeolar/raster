@@ -48,8 +48,7 @@ public:
 
   virtual bool run() {
     try {
-      HTTPMethod method = stringToMethod(request_->method);
-      switch (method) {
+      switch (request_->method) {
         case HTTPMethod::GET:
           processor_->onGet(request_, response_);
           break;

@@ -8,7 +8,7 @@
 namespace rdd {
 
 HTTPRequest::HTTPRequest(
-    StringPiece method_,
+    HTTPMethod method_,
     StringPiece uri_,
     StringPiece version_,
     HTTPHeaders&& headers_,
@@ -47,7 +47,8 @@ bool HTTPRequest::keepAlive() const {
   if (supportHTTP_1_1())
     return !caseInsensitiveEqual(connectionHdr, "close");
   if (headers.exists(HTTP_HEADER_CONTENT_LENGTH)
-      || method == "HEAD" || method == "GET")
+      || method == HTTPMethod::HEAD
+      || method == HTTPMethod::GET)
     return caseInsensitiveEqual(connectionHdr, "keep-alive");
   return false;
 }

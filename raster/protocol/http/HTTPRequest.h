@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "raster/protocol/http/Cookie.h"
+#include "raster/protocol/http/HTTPMethod.h"
 #include "raster/protocol/http/Util.h"
 #include "raster/util/Range.h"
 
@@ -14,7 +15,7 @@ namespace rdd {
 
 class HTTPRequest {
 public:
-  HTTPRequest(StringPiece method,
+  HTTPRequest(HTTPMethod method,
               StringPiece uri,
               StringPiece version,
               HTTPHeaders&& headers,
@@ -29,7 +30,7 @@ public:
 
   Cookie* getCookies();
 
-  StringPiece method;
+  HTTPMethod method;
   StringPiece uri;
   StringPiece version;
   HTTPHeaders headers;

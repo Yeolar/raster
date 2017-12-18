@@ -2,6 +2,7 @@
 
 set(RASTER_PROTOCOL_HTTP_SRCS
     Cookie.cpp
+    HTTPCommonHeaders.cpp
     HTTPEvent.cpp
     HTTPHeaders.cpp
     HTTPMethod.cpp
@@ -16,6 +17,7 @@ add_library(raster_protocol_http OBJECT ${RASTER_PROTOCOL_HTTP_SRCS})
 
 install(FILES
     Cookie.h
+    HTTPCommonHeaders.h
     HTTPEvent.h
     HTTPHeaders.h
     HTTPMethod.h
