@@ -41,7 +41,7 @@ public:
   HTTPResponse* response() const { return response_.get(); }
 
 private:
-  State state_;
+  State state_{INIT};
   size_t headerSize_;
   std::shared_ptr<HTTPRequest> request_;
   std::shared_ptr<HTTPResponse> response_;

@@ -6,6 +6,7 @@
 #include "raster/protocol/http/HTTPMethod.h"
 #include "raster/protocol/http/Processor.h"
 #include "raster/util/ReflectObject.h"
+#include "raster/util/ScopeGuard.h"
 
 namespace rdd {
 
@@ -13,6 +14,11 @@ bool HTTPProcessor::run() {
   handler_->request = request_ = event<HTTPEvent>()->request();
   handler_->response = response_ = event<HTTPEvent>()->response();
   handler_->clear();
+
+  SCOPE_EXIT {
+    event<HTTPEvent>()->setState(HTTPEvent::ON_WRITING);
+  };
+
   try {
     handler_->prepare();
     switch (request_->method) {

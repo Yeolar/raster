@@ -105,7 +105,7 @@ void HTTPEvent::onWriting() {
     RDDCHECK(response_->data->empty());
     response_->headers.clearHeadersFor304();
   } else if (!response_->headers.exists(HTTP_HEADER_CONTENT_LENGTH)) {
-    size_t n = response_->data->computeChainDataLength();
+    size_t n = response_->data->computeChainDataLength() + 2;
     response_->headers.set(HTTP_HEADER_CONTENT_LENGTH, to<std::string>(n));
   }
 
@@ -120,7 +120,7 @@ void HTTPEvent::onWriting() {
                                              ::rdd::logging::LOG_ERROR;
   RDDLOG_STREAM(level)
     << response_->statusCode << " "
-    << request_ << " "
+    << *request_ << " "
     << this->cost()/1000.0 << "ms";
 
   state_ = ON_WRITING_FINISH;

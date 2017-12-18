@@ -26,12 +26,13 @@ void HTTPResponse::prependHeaders(StringPiece version) {
   headers.forEach([&](const std::string& k, const std::string& v) {
     toAppend(k, ": ", v, "\r\n", &header);
   });
-  toAppend(cookies->str(), "\r\n\r\n", &header);
+  toAppend(cookies.str(), "\r\n\r\n", &header);
 
   auto buf = IOBuf::create(header.size());
   rdd::io::Appender appender(buf.get(), 0);
   appender(StringPiece(header));
-  data->prependChain(std::move(buf));
+  data.swap(buf);
+  data->appendChain(std::move(buf));
 }
 
 } // namespace rdd

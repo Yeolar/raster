@@ -18,7 +18,9 @@ namespace rdd {
 
 class HTTPResponse {
 public:
-  HTTPResponse() {}
+  HTTPResponse() {
+    data = IOBuf::create(Protocol::CHUNK_SIZE);
+  }
 
   std::string computeEtag() const;
 
@@ -32,7 +34,7 @@ public:
   std::unique_ptr<IOBuf> data;
   int statusCode;
   HTTPHeaders headers;
-  std::shared_ptr<Cookie> cookies;
+  Cookie cookies;
 
 private:
   template<class T>
