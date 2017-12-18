@@ -9,6 +9,7 @@
 
 #include "raster/io/IOBuf.h"
 #include "raster/protocol/http/Cookie.h"
+#include "raster/protocol/http/HTTPException.h"
 #include "raster/protocol/http/HTTPHeaders.h"
 
 namespace rdd {
@@ -20,6 +21,8 @@ public:
   std::string computeEtag() const;
 
   void prependHeaders(StringPiece version);
+
+  void write(const HTTPException& e);
 
   void appendData(StringPiece sp);
 

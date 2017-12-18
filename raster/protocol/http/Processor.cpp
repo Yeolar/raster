@@ -6,29 +6,73 @@
 
 namespace rdd {
 
-void HTTPMethodProcessor::onGet(HTTPRequest* req, HTTPResponse* resp) {
+void HTTPMethodProcessor::onGet() {
   throw HTTPException(405);
 }
-void HTTPMethodProcessor::onPost(HTTPRequest* req, HTTPResponse* resp) {
+void HTTPMethodProcessor::onPost() {
   throw HTTPException(405);
 }
-void HTTPMethodProcessor::onPut(HTTPRequest* req, HTTPResponse* resp) {
+void HTTPMethodProcessor::onPut() {
   throw HTTPException(405);
 }
-void HTTPMethodProcessor::onHead(HTTPRequest* req, HTTPResponse* resp) {
+void HTTPMethodProcessor::onHead() {
   throw HTTPException(405);
 }
-void HTTPMethodProcessor::onDelete(HTTPRequest* req, HTTPResponse* resp) {
+void HTTPMethodProcessor::onDelete() {
   throw HTTPException(405);
 }
-void HTTPMethodProcessor::onConnect(HTTPRequest* req, HTTPResponse* resp) {
+void HTTPMethodProcessor::onConnect() {
   throw HTTPException(405);
 }
-void HTTPMethodProcessor::onOptions(HTTPRequest* req, HTTPResponse* resp) {
+void HTTPMethodProcessor::onOptions() {
   throw HTTPException(405);
 }
-void HTTPMethodProcessor::onTrace(HTTPRequest* req, HTTPResponse* resp) {
+void HTTPMethodProcessor::onTrace() {
   throw HTTPException(405);
+}
+
+bool HTTPProcessor::run() {
+  processor_->request = request_ = event<HTTPEvent>()->request();
+  processor_->response = response_ = event<HTTPEvent>()->response();
+  try {
+    switch (request_->method) {
+      case HTTPMethod::GET:
+        processor_->onGet();
+        break;
+      case HTTPMethod::POST:
+        processor_->onPost();
+        break;
+      case HTTPMethod::PUT:
+        processor_->onPut();
+        break;
+      case HTTPMethod::HEAD:
+        processor_->onHead();
+        break;
+      case HTTPMethod::DELETE:
+        processor_->onDelete();
+        break;
+      case HTTPMethod::CONNECT:
+        processor_->onConnect();
+        break;
+      case HTTPMethod::OPTIONS:
+        processor_->onOptions();
+        break;
+      case HTTPMethod::TRACE:
+        processor_->onTrace();
+        break;
+    }
+    return true;
+  } catch (HTTPException& e) {
+    response_->write(e);
+    // write
+    RDDLOG(WARN) << "catch http exception: " << e;
+    return true;
+  } catch (std::exception& e) {
+    RDDLOG(WARN) << "catch exception: " << e.what();
+  } catch (...) {
+    RDDLOG(WARN) << "catch unknown exception";
+  }
+  return false;
 }
 
 HTTPProcessorFactory::HTTPProcessorFactory(
@@ -46,6 +90,7 @@ std::shared_ptr<Processor> HTTPProcessorFactory::create(Event* event) {
     if (boost::regex_match(uri.begin(), uri.end(), match, kv.second)) {
       return std::shared_ptr<Processor>(
         new HTTPProcessor(
+            event,
             makeSharedReflectObject<HTTPMethodProcessor>(kv.first)));
     }
   }

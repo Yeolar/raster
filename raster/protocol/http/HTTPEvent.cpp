@@ -10,16 +10,16 @@ namespace rdd {
 
 HTTPEvent::HTTPEvent(const std::shared_ptr<Channel>& channel,
                      const std::shared_ptr<Socket>& socket)
-  : Event(channel, socket) {
-  state_ = INIT;
-}
+  : Event(channel, socket) {}
 
 void HTTPEvent::reset() {
   Event::reset();
-  state_ = ON_READING_HEADERS;
+  state_ = INIT;
 }
 
 void HTTPEvent::onReadingHeaders() {
+  RDDCHECK(state_ == INIT);
+
   IOBuf* buf = rbuf.get();
   headerSize_ = buf->computeChainDataLength();
 
@@ -49,12 +49,8 @@ void HTTPEvent::onReadingHeaders() {
       true,
       peer().host);
 
-  auto clen = request_->headers.getSingleOrEmpty(HTTP_HEADER_CONTENT_LENGTH);
-
-  if (clen.empty()) {
-    state_ = ON_READING_FINISH;
-  } else {
-    size_t n = to<size_t>(clen);
+  size_t n = request_->contentLength();
+  if (n != 0) {
     if (n > Protocol::BODYLEN_LIMIT) {
       RDDLOG(WARN) << *this << " big request, bodyLength=" << n;
     } else {
@@ -65,11 +61,15 @@ void HTTPEvent::onReadingHeaders() {
       wbuf->append("HTTP/1.1 100 (Continue)\r\n\r\n");
     }*/
     rlen += n;
-    state_ = ON_READING_BODY;
+    state_ = ON_READING;
+  } else {
+    state_ = ON_READING_FINISH;
   }
 }
 
 void HTTPEvent::onReadingBody() {
+  RDDCHECK(state_ == ON_READING);
+
   IOBuf* buf = rbuf.get();
   StringPiece data(buf->coalesce());
   request_->body = data.subpiece(headerSize_);
@@ -83,7 +83,9 @@ void HTTPEvent::onReadingBody() {
   state_ = ON_READING_FINISH;
 }
 
-void HTTPEvent::onWritingFinish() {
+void HTTPEvent::onWriting() {
+  RDDCHECK(state_ == ON_WRITING);
+
   if (response_->statusCode == 200 &&
       (request_->method == HTTPMethod::GET ||
        request_->method == HTTPMethod::HEAD) &&
@@ -101,8 +103,8 @@ void HTTPEvent::onWritingFinish() {
   if (response_->statusCode == 304) {
     response_->headers.clearHeadersFor304();
   } else if (response_->headers.exists(HTTP_HEADER_CONTENT_LENGTH)) {
-    auto clen = response_->data->computeChainDataLength();
-    response_->headers.set(HTTP_HEADER_CONTENT_LENGTH, to<std::string>(clen));
+    size_t n = response_->data->computeChainDataLength();
+    response_->headers.set(HTTP_HEADER_CONTENT_LENGTH, to<std::string>(n));
   }
   if (request_->method == HTTPMethod::HEAD) {
     response_->data->clear();

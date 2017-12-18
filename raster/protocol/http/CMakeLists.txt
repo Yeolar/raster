@@ -4,6 +4,7 @@ set(RASTER_PROTOCOL_HTTP_SRCS
     Cookie.cpp
     HTTPCommonHeaders.cpp
     HTTPEvent.cpp
+    HTTPException.cpp
     HTTPHeaders.cpp
     HTTPMethod.cpp
     HTTPRequest.cpp
@@ -19,6 +20,7 @@ install(FILES
     Cookie.h
     HTTPCommonHeaders.h
     HTTPEvent.h
+    HTTPException.h
     HTTPHeaders.h
     HTTPMethod.h
     HTTPRequest.h

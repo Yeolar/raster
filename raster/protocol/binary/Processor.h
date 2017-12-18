@@ -14,17 +14,17 @@ namespace rdd {
 template <class Req = ByteRange, class Res = ByteRange>
 class BinaryProcessor : public Processor {
 public:
-  BinaryProcessor() {}
+  BinaryProcessor(Event* event) : Processor(event) {}
   virtual ~BinaryProcessor() {}
 
   virtual bool process(Res& response, const Req& request) = 0;
 
-  virtual bool decodeData(Event* event) {
-    return binary::decodeData(event->rbuf, &ibuf_);
+  virtual bool decodeData() {
+    return binary::decodeData(event_->rbuf, &ibuf_);
   }
 
-  virtual bool encodeData(Event* event) {
-    return binary::encodeData(event->wbuf, &obuf_);
+  virtual bool encodeData() {
+    return binary::encodeData(event_->wbuf, &obuf_);
   }
 
   virtual bool run() {
@@ -50,7 +50,7 @@ public:
   virtual ~BinaryProcessorFactory() {}
 
   virtual std::shared_ptr<Processor> create(Event* event) {
-    return std::shared_ptr<Processor>(new P());
+    return std::shared_ptr<Processor>(new P(event));
   }
 };
 

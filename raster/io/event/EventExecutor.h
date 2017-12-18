@@ -20,9 +20,9 @@ public:
 
   void handle() {
     auto processor = event_->processor();
-    processor->decodeData(event_);
+    processor->decodeData();
     processor->run();
-    processor->encodeData(event_);
+    processor->encodeData();
     event_->setType(Event::TOWRITE);
   }
 

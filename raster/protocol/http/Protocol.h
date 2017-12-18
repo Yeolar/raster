@@ -18,36 +18,35 @@ public:
   virtual int readData(Event* event) {
     static const ByteRange kEnd((uint8_t*)"\r\n\r\n", 4);
     HTTPEvent* httpev = reinterpret_cast<HTTPEvent*>(event);
-
-    if (httpev->state() == HTTPEvent::ON_READING_HEADERS) {
+    if (httpev->state() == HTTPEvent::INIT) {
       int r = Protocol::readDataUntil(event, kEnd);
       if (r == 0) {
         httpev->onReadingHeaders();
         switch (httpev->state()) {
-          case HTTPEvent::ON_READING_BODY: return 1;
+          case HTTPEvent::ON_READING: return 1;
           case HTTPEvent::ON_READING_FINISH: return 0;
           case HTTPEvent::ERROR: return -1;
-          case HTTPEvent::INIT:
-          case HTTPEvent::ON_READING_HEADERS:
           default:
             throw std::runtime_error(
                 to<std::string>("wrong http state: ", httpev->state()));
         }
       }
       return r;
-    } else {
+    }
+    if (httpev->state() == HTTPEvent::ON_READING) {
       int r = Protocol::readData(event);
       if (r == 0) {
         httpev->onReadingBody();
       }
       return r;
     }
+    return -1;
   }
 
   virtual int writeData(Event* event) {
     HTTPEvent* httpev = reinterpret_cast<HTTPEvent*>(event);
     if (httpev->state() == HTTPEvent::ON_WRITING) {
-      httpev->onWritingFinish();
+      httpev->onWriting();
     }
     return Protocol::writeData(event);
   }

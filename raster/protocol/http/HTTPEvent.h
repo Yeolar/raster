@@ -14,8 +14,7 @@ class HTTPEvent : public Event {
 public:
   enum State {
     INIT,
-    ON_READING_HEADERS,
-    ON_READING_BODY,
+    ON_READING,
     ON_READING_FINISH,
     ON_WRITING,
     ON_WRITING_FINISH,
@@ -33,9 +32,10 @@ public:
 
   void onReadingBody();
 
-  void onWritingFinish();
+  void onWriting();
 
   State state() const { return state_; }
+  void setState(State st) { state_ = st; }
 
   HTTPRequest* request() const { return request_.get(); }
   HTTPResponse* response() const { return response_.get(); }

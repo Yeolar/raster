@@ -28,6 +28,8 @@ public:
 
   std::string fullURL() const;
 
+  size_t contentLength() const;
+
   Cookie* getCookies();
 
   HTTPMethod method;

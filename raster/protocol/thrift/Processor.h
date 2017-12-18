@@ -20,8 +20,9 @@ namespace rdd {
 class ThriftProcessor : public Processor {
 public:
   ThriftProcessor(
+      Event* event,
       const std::shared_ptr< ::apache::thrift::TProcessor>& processor)
-    : processor_(processor) {
+    : Processor(event), processor_(processor) {
     pibuf_.reset(new apache::thrift::transport::TMemoryBuffer());
     pobuf_.reset(new apache::thrift::transport::TMemoryBuffer());
     piprot_.reset(new apache::thrift::protocol::TBinaryProtocol(pibuf_));
@@ -30,12 +31,12 @@ public:
 
   virtual ~ThriftProcessor() {}
 
-  virtual bool decodeData(Event* event) {
-    return rdd::thrift::decodeData(event->rbuf, pibuf_.get());
+  virtual bool decodeData() {
+    return rdd::thrift::decodeData(event_->rbuf, pibuf_.get());
   }
 
-  virtual bool encodeData(Event* event) {
-    return rdd::thrift::encodeData(event->wbuf, pobuf_.get());
+  virtual bool encodeData() {
+    return rdd::thrift::encodeData(event_->wbuf, pobuf_.get());
   }
 
   virtual bool run() {
@@ -62,17 +63,18 @@ protected:
 class ThriftZlibProcessor : public ThriftProcessor {
 public:
   ThriftZlibProcessor(
+      Event* event,
       const std::shared_ptr< ::apache::thrift::TProcessor>& processor)
-    : ThriftProcessor(processor) {}
+    : ThriftProcessor(event, processor) {}
 
   virtual ~ThriftZlibProcessor() {}
 
-  virtual bool decodeData(Event* event) {
-    return rdd::thrift::decodeZlibData(event->rbuf, pibuf_.get());
+  virtual bool decodeData() {
+    return rdd::thrift::decodeZlibData(event_->rbuf, pibuf_.get());
   }
 
-  virtual bool encodeData(Event* event) {
-    return rdd::thrift::encodeZlibData(event->wbuf, pobuf_.get());
+  virtual bool encodeData() {
+    return rdd::thrift::encodeZlibData(event_->wbuf, pobuf_.get());
   }
 };
 
@@ -85,8 +87,8 @@ public:
   virtual std::shared_ptr<Processor> create(Event* event) {
     return std::shared_ptr<Processor>(
       new ProcessorType(
-        std::shared_ptr< ::apache::thrift::TProcessor>(
-          new P(handler_))));
+          event,
+          std::shared_ptr< ::apache::thrift::TProcessor>(new P(handler_))));
   }
 
   If* handler() { return handler_.get(); }

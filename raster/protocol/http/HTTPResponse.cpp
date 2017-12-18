@@ -2,6 +2,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include <sstream>
+
 #include "raster/io/Cursor.h"
 #include "raster/net/Protocol.h"
 #include "raster/protocol/http/HTTPResponse.h"
@@ -31,6 +33,13 @@ void HTTPResponse::prependHeaders(StringPiece version) {
   rdd::io::Appender appender(buf.get(), 0);
   appender(StringPiece(header));
   data->prependChain(std::move(buf));
+}
+
+void HTTPResponse::write(const HTTPException& e) {
+  data->clear();
+  std::stringstream ss;
+  ss << e;
+  appendData(ss.str());
 }
 
 void HTTPResponse::appendData(StringPiece sp) {

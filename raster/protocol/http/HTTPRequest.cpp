@@ -57,6 +57,13 @@ std::string HTTPRequest::fullURL() const {
   return to<std::string>(protocol, "://", host, uri);
 }
 
+size_t HTTPRequest::contentLength() const {
+  auto value = headers.getSingleOrEmpty(HTTP_HEADER_CONTENT_LENGTH);
+  if (value.empty())
+    return 0;
+  return to<size_t>(value);
+}
+
 Cookie* HTTPRequest::getCookies() {
   if (!cookies_) {
     cookies_ = std::make_shared<Cookie>();

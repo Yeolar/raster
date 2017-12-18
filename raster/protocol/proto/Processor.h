@@ -17,16 +17,17 @@ namespace rdd {
 
 class PBProcessor : public Processor {
 public:
-  PBProcessor(PBAsyncServer* server) : server_(server) {}
+  PBProcessor(Event* event, PBAsyncServer* server)
+    : Processor(event), server_(server) {}
 
   virtual ~PBProcessor() {}
 
-  virtual bool decodeData(Event* event) {
-    return rdd::proto::decodeData(event->rbuf, ibuf_);
+  virtual bool decodeData() {
+    return rdd::proto::decodeData(event_->rbuf, ibuf_);
   }
 
-  virtual bool encodeData(Event* event) {
-    return rdd::proto::encodeData(event->wbuf, obuf_);
+  virtual bool encodeData() {
+    return rdd::proto::encodeData(event_->wbuf, obuf_);
   }
 
   virtual bool run() {
@@ -124,7 +125,7 @@ public:
   virtual ~PBProcessorFactory() {}
 
   virtual std::shared_ptr<Processor> create(Event* event) {
-    return std::shared_ptr<Processor>(new PBProcessor(server_));
+    return std::shared_ptr<Processor>(new PBProcessor(event, server_));
   }
 
 private:

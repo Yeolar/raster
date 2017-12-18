@@ -23,7 +23,7 @@ namespace fbs {
 
 class Proxy : public BinaryProcessor<> {
 public:
-  Proxy() {
+  Proxy(Event* event) : BinaryProcessor<>(event) {
     RDDLOG(DEBUG) << "Proxy init";
   }
 
