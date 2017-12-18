@@ -143,6 +143,7 @@ install(TARGETS raster_shared
 # Binary
 add_subdirectory(examples/empty)
 add_subdirectory(examples/flatbuffers)
+add_subdirectory(examples/http)
 add_subdirectory(examples/parallel)
 add_subdirectory(examples/pbrpc)
 add_subdirectory(examples/proxy)

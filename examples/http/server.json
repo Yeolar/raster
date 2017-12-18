@@ -1,0 +1,40 @@
+{
+  "logging": {
+    "logfile": "log/http.log",
+    "level": 1,
+    "async": true
+  },
+  "actor": {
+    "stack_size": 65536,
+    "conn_limit": 100000,
+    "task_limit": 4000,
+    "poll_size": 1024,
+    "poll_timeout": 1000,
+    "forwarding": false
+  },
+  "service": {
+    "8000": {
+      "service": "Http",
+      "conn_timeout": 100000,
+      "recv_timeout": 300000,
+      "send_timeout": 1000000
+    }
+  },
+  "thread": {
+    "io": { "thread_count": 4, "bindcpu": false },
+    "0": { "thread_count": 4, "bindcpu": false }
+  },
+  "net": {
+    "copy": [
+      //{"port": 9090, "fhost": "", "fport": 9091, "flow": 100}
+    ]
+  },
+  "monitor": {
+    "open": false,
+    "prefix": "http"
+  },
+  "job": {
+    "graph": {
+    }
+  }
+}

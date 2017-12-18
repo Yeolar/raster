@@ -13,6 +13,8 @@ namespace rdd {
 
 class RequestHandler {
 public:
+  virtual ~RequestHandler() {}
+
   virtual void onGet     ();
   virtual void onPost    ();
   virtual void onPut     ();

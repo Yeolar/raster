@@ -13,7 +13,7 @@ namespace rdd {
 class HTTPAsyncServer : public Service {
 public:
   void addRouter(const std::string& handler, const std::string& regex) {
-    router_.emplace(handler, regex);
+    routers_.emplace(handler, regex);
   }
 
   virtual void makeChannel(int port, const TimeoutOption& timeoutOpt) {
