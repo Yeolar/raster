@@ -104,8 +104,9 @@ bool isValidResponseCode(int code) {
   return contain(sW3CCodeMap.data, code);
 }
 
-std::string getResponseW3CName(int code) {
-  return get_default(sW3CCodeMap.data, code, "Unknown");
+const std::string& getResponseW3CName(int code) {
+  static const std::string unknown = "Unknown";
+  return get_ref_default(sW3CCodeMap.data, code, unknown);
 }
 
 std::string urlJoin(const std::string& base, const std::string& url) {

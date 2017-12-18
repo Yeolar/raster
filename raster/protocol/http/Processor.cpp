@@ -2,75 +2,53 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/protocol/http/HTTPEvent.h"
+#include "raster/protocol/http/HTTPMethod.h"
 #include "raster/protocol/http/Processor.h"
+#include "raster/util/ReflectObject.h"
 
 namespace rdd {
 
-void HTTPMethodProcessor::onGet() {
-  throw HTTPException(405);
-}
-void HTTPMethodProcessor::onPost() {
-  throw HTTPException(405);
-}
-void HTTPMethodProcessor::onPut() {
-  throw HTTPException(405);
-}
-void HTTPMethodProcessor::onHead() {
-  throw HTTPException(405);
-}
-void HTTPMethodProcessor::onDelete() {
-  throw HTTPException(405);
-}
-void HTTPMethodProcessor::onConnect() {
-  throw HTTPException(405);
-}
-void HTTPMethodProcessor::onOptions() {
-  throw HTTPException(405);
-}
-void HTTPMethodProcessor::onTrace() {
-  throw HTTPException(405);
-}
-
 bool HTTPProcessor::run() {
-  processor_->request = request_ = event<HTTPEvent>()->request();
-  processor_->response = response_ = event<HTTPEvent>()->response();
+  handler_->request = request_ = event<HTTPEvent>()->request();
+  handler_->response = response_ = event<HTTPEvent>()->response();
+  handler_->clear();
   try {
+    handler_->prepare();
     switch (request_->method) {
       case HTTPMethod::GET:
-        processor_->onGet();
+        handler_->onGet();
         break;
       case HTTPMethod::POST:
-        processor_->onPost();
+        handler_->onPost();
         break;
       case HTTPMethod::PUT:
-        processor_->onPut();
+        handler_->onPut();
         break;
       case HTTPMethod::HEAD:
-        processor_->onHead();
+        handler_->onHead();
         break;
       case HTTPMethod::DELETE:
-        processor_->onDelete();
+        handler_->onDelete();
         break;
       case HTTPMethod::CONNECT:
-        processor_->onConnect();
+        handler_->onConnect();
         break;
       case HTTPMethod::OPTIONS:
-        processor_->onOptions();
+        handler_->onOptions();
         break;
       case HTTPMethod::TRACE:
-        processor_->onTrace();
+        handler_->onTrace();
         break;
     }
+    handler_->finish();
     return true;
   } catch (HTTPException& e) {
-    response_->write(e);
-    // write
-    RDDLOG(WARN) << "catch http exception: " << e;
-    return true;
+    handler_->handleException(e);
   } catch (std::exception& e) {
-    RDDLOG(WARN) << "catch exception: " << e.what();
+    handler_->handleException(e);
   } catch (...) {
-    RDDLOG(WARN) << "catch unknown exception";
+    handler_->handleException();
   }
   return false;
 }
@@ -91,7 +69,7 @@ std::shared_ptr<Processor> HTTPProcessorFactory::create(Event* event) {
       return std::shared_ptr<Processor>(
         new HTTPProcessor(
             event,
-            makeSharedReflectObject<HTTPMethodProcessor>(kv.first)));
+            makeSharedReflectObject<RequestHandler>(kv.first)));
     }
   }
   throw HTTPException(404);

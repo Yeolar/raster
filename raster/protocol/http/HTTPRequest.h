@@ -49,4 +49,6 @@ private:
   std::shared_ptr<Cookie> cookies_;
 };
 
+std::ostream& operator<<(std::ostream& os, const HTTPRequest& req);
+
 } // namespace rdd

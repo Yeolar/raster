@@ -41,6 +41,7 @@ void HTTPEvent::onReadingHeaders() {
   HTTPHeaders headers;
   headers.parse(data.subpiece(eol + 2));
 
+  response_ = std::make_shared<HTTPResponse>();
   request_ = std::make_shared<HTTPRequest>(
       stringToMethod(method),
       uri,
@@ -101,23 +102,27 @@ void HTTPEvent::onWriting() {
     }
   }
   if (response_->statusCode == 304) {
+    RDDCHECK(response_->data->empty());
     response_->headers.clearHeadersFor304();
-  } else if (response_->headers.exists(HTTP_HEADER_CONTENT_LENGTH)) {
+  } else if (!response_->headers.exists(HTTP_HEADER_CONTENT_LENGTH)) {
     size_t n = response_->data->computeChainDataLength();
     response_->headers.set(HTTP_HEADER_CONTENT_LENGTH, to<std::string>(n));
   }
+
   if (request_->method == HTTPMethod::HEAD) {
     response_->data->clear();
   }
   response_->prependHeaders(request_->version);
-  if (response_->statusCode < 400) {
-    RDDLOG(INFO) << *this << response_->statusCode;
-  } else if (response_->statusCode < 500) {
-    RDDLOG(WARN) << *this << response_->statusCode;
-  } else {
-    RDDLOG(ERROR) << *this << response_->statusCode;
-  }
   wbuf.swap(response_->data);
+
+  auto level = response_->statusCode < 400 ? ::rdd::logging::LOG_INFO :
+               response_->statusCode < 500 ? ::rdd::logging::LOG_WARN :
+                                             ::rdd::logging::LOG_ERROR;
+  RDDLOG_STREAM(level)
+    << response_->statusCode << " "
+    << request_ << " "
+    << this->cost()/1000.0 << "ms";
+
   state_ = ON_WRITING_FINISH;
 }
 

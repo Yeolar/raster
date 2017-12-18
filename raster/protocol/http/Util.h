@@ -15,7 +15,7 @@ namespace rdd {
 
 bool isValidResponseCode(int code);
 
-std::string getResponseW3CName(int code);
+const std::string& getResponseW3CName(int code);
 
 /**
  * Join a base URL and a possibly relative URL to form an absolute

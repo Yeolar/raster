@@ -72,4 +72,10 @@ Cookie* HTTPRequest::getCookies() {
   return cookies_.get();
 }
 
+std::ostream& operator<<(std::ostream& os, const HTTPRequest& req) {
+  os << methodToString(req.method) << " " << req.uri
+     << " (" << req.remoteIP << ")";
+  return os;
+}
+
 } // namespace rdd

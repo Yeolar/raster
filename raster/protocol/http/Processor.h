@@ -7,36 +7,16 @@
 #include <boost/regex.hpp>
 
 #include "raster/net/Processor.h"
-#include "raster/protocol/http/HTTPEvent.h"
-#include "raster/protocol/http/HTTPException.h"
-#include "raster/protocol/http/HTTPMethod.h"
-#include "raster/util/ReflectObject.h"
+#include "raster/protocol/http/RequestHandler.h"
 
 namespace rdd {
-
-class HTTPMethodProcessor {
-public:
-  virtual void prepare();
-
-  virtual void onGet     ();
-  virtual void onPost    ();
-  virtual void onPut     ();
-  virtual void onHead    ();
-  virtual void onDelete  ();
-  virtual void onConnect ();
-  virtual void onOptions ();
-  virtual void onTrace   ();
-
-  HTTPRequest* request;
-  HTTPResponse* response;
-};
 
 class HTTPProcessor : public Processor {
 public:
   HTTPProcessor(
       Event* event,
-      const std::shared_ptr<HTTPMethodProcessor>& processor)
-    : Processor(event), processor_(processor) {}
+      const std::shared_ptr<RequestHandler>& handler)
+    : Processor(event), handler_(handler) {}
 
   virtual ~HTTPProcessor() {}
 
@@ -51,7 +31,7 @@ public:
   virtual bool run();
 
 protected:
-  std::shared_ptr<HTTPMethodProcessor> processor_;
+  std::shared_ptr<RequestHandler> handler_;
   HTTPRequest* request_;
   HTTPResponse* response_;
 };

@@ -12,6 +12,7 @@ set(RASTER_PROTOCOL_HTTP_SRCS
     ParseQuery.cpp
     ParseURL.cpp
     Processor.cpp
+    RequestHandler.cpp
     Util.cpp
 )
 add_library(raster_protocol_http OBJECT ${RASTER_PROTOCOL_HTTP_SRCS})
@@ -29,5 +30,6 @@ install(FILES
     ParseURL.h
     Processor.h
     Protocol.h
+    RequestHandler.h
     Util.h
     DESTINATION include/raster/protocol/http)
