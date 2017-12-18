@@ -2,6 +2,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/io/Cursor.h"
+#include "raster/net/Protocol.h"
 #include "raster/protocol/http/HTTPResponse.h"
 #include "raster/protocol/http/Util.h"
 #include "raster/ssl/OpenSSLHash.h"
@@ -23,7 +25,15 @@ void HTTPResponse::prependHeaders(StringPiece version) {
            getResponseW3CName(statusCode), "\r\n", &header);
   toAppend(headers->str(), "\r\n", &header);
   toAppend(cookies->str(), "\r\n\r\n", &header);
-  // TODO data->prepend(header);
+  auto buf = IOBuf::create(header.size());
+  rdd::io::Appender appender(buf.get(), 0);
+  appender(StringPiece(header));
+  data->prependChain(std::move(buf));
+}
+
+void HTTPResponse::appendData(StringPiece sp) {
+  rdd::io::Appender appender(data.get(), Protocol::CHUNK_SIZE);
+  appender(sp);
 }
 
 } // namespace rdd

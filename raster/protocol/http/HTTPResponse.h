@@ -23,7 +23,7 @@ public:
 
   void prependHeaders(StringPiece version);
 
-  void appendData();
+  void appendData(StringPiece sp);
 
   std::unique_ptr<IOBuf> data;
   int statusCode;
