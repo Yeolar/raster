@@ -20,11 +20,11 @@ public:
   virtual bool process(Res& response, const Req& request) = 0;
 
   virtual bool decodeData(Event* event) {
-    return binary::decodeData(event->rbuf(), &ibuf_);
+    return binary::decodeData(event->rbuf, &ibuf_);
   }
 
   virtual bool encodeData(Event* event) {
-    return binary::encodeData(event->wbuf(), &obuf_);
+    return binary::encodeData(event->wbuf, &obuf_);
   }
 
   virtual bool run() {

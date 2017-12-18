@@ -144,14 +144,14 @@ protected:
         }
       }
     };
-    return rdd::thrift::decodeData(event_->rbuf(), pibuf_.get());
+    return rdd::thrift::decodeData(event_->rbuf, pibuf_.get());
   }
 
   bool encodeData() {
     if (keepalive_) {
       thrift::setSeqId(pobuf_.get(), event_->seqid());
     }
-    return rdd::thrift::encodeData(event_->wbuf(), pobuf_.get());
+    return rdd::thrift::encodeData(event_->wbuf, pobuf_.get());
   }
 
 private:

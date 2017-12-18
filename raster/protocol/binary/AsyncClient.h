@@ -30,7 +30,7 @@ public:
     if (!event_ || event_->type() == Event::FAIL) {
       return false;
     }
-    binary::decodeData(event_->rbuf(), &_return);
+    binary::decodeData(event_->rbuf, &_return);
     return true;
   }
 
@@ -39,7 +39,7 @@ public:
     if (!event_) {
       return false;
     }
-    binary::encodeData(event_->wbuf(), (Req*)&request);
+    binary::encodeData(event_->wbuf, (Req*)&request);
     return true;
   }
 

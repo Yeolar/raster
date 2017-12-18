@@ -20,7 +20,7 @@ void HTTPEvent::reset() {
 }
 
 void HTTPEvent::onReadingHeaders() {
-  IOBuf* buf = rbuf().get();
+  IOBuf* buf = rbuf.get();
   headerSize_ = buf->computeChainDataLength();
 
   StringPiece data(buf->coalesce());
@@ -62,15 +62,15 @@ void HTTPEvent::onReadingHeaders() {
     }
     /* TODO
     if (request_->headers.get("Expect") == "100-continue") {
-      wbuf()->append("HTTP/1.1 100 (Continue)\r\n\r\n");
+      wbuf->append("HTTP/1.1 100 (Continue)\r\n\r\n");
     }*/
-    rlen() += n;
+    rlen += n;
     state_ = ON_READING_BODY;
   }
 }
 
 void HTTPEvent::onReadingBody() {
-  IOBuf* buf = rbuf().get();
+  IOBuf* buf = rbuf.get();
   StringPiece data(buf->coalesce());
   request_->body = data.subpiece(headerSize_);
 
@@ -115,7 +115,7 @@ void HTTPEvent::onWritingFinish() {
   } else {
     RDDLOG(ERROR) << *this << response_->statusCode;
   }
-  wbuf().swap(response_->data);
+  wbuf.swap(response_->data);
   state_ = ON_WRITING_FINISH;
 }
 

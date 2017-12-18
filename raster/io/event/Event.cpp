@@ -61,10 +61,10 @@ void Event::reset() {
   action_ = NONE;
   waker_ = nullptr;
   executor_ = nullptr;
-  rbuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
-  wbuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
-  rlen_ = 0;
-  wlen_ = 0;
+  rbuf = IOBuf::create(Protocol::CHUNK_SIZE);
+  wbuf = IOBuf::create(Protocol::CHUNK_SIZE);
+  rlen = 0;
+  wlen = 0;
 }
 
 void Event::restart() {

@@ -60,7 +60,7 @@ public:
       return false;
     }
     std::unique_ptr<IOBuf> buf;
-    proto::decodeData(event_->rbuf(), buf);
+    proto::decodeData(event_->rbuf, buf);
     rpcChannel_->process(buf);
     return true;
   }

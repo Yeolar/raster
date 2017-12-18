@@ -94,12 +94,6 @@ public:
   int readData();
   int writeData();
 
-  std::unique_ptr<IOBuf>& rbuf() { return rbuf_; }
-  std::unique_ptr<IOBuf>& wbuf() { return wbuf_; }
-
-  size_t& rlen() { return rlen_; }
-  size_t& wlen() { return wlen_; }
-
   void restart();
 
   void record(Timestamp timestamp);
@@ -155,6 +149,12 @@ public:
 
   NOCOPY(Event);
 
+  std::unique_ptr<IOBuf> rbuf;
+  std::unique_ptr<IOBuf> wbuf;
+
+  size_t rlen;  // left to read
+  size_t wlen;  // already write
+
 private:
   uint64_t timeout() const {
     switch (socket_->role()) {
@@ -176,11 +176,6 @@ private:
 
   Waker* waker_;
   Executor* executor_;
-
-  std::unique_ptr<IOBuf> rbuf_;
-  std::unique_ptr<IOBuf> wbuf_;
-  size_t rlen_; // left to read
-  size_t wlen_; // already write
 
   std::vector<Timestamp> timestamps_;
   TimeoutOption timeoutOpt_;

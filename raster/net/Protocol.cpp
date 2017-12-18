@@ -8,10 +8,10 @@
 namespace rdd {
 
 int Protocol::readData(Event* event) {
-  io::Appender appender(event->rbuf().get(), CHUNK_SIZE);
-  appender.ensure(event->rlen());
-  while (event->rlen() > 0) {
-    int r = event->socket()->recv(appender.writableData(), event->rlen());
+  io::Appender appender(event->rbuf.get(), CHUNK_SIZE);
+  appender.ensure(event->rlen);
+  while (event->rlen > 0) {
+    int r = event->socket()->recv(appender.writableData(), event->rlen);
     if (r < 0) {
       if (errno == EWOULDBLOCK || errno == EAGAIN) {
         if (event->isReadTimeout()) {
@@ -29,13 +29,13 @@ int Protocol::readData(Event* event) {
       return 2;
     }
     appender.append(r);
-    event->rlen() -= r;
+    event->rlen -= r;
   }
   return 0;
 }
 
 int Protocol::readDataUntil(Event* event, ByteRange bytes) {
-  io::Appender appender(event->rbuf().get(), CHUNK_SIZE);
+  io::Appender appender(event->rbuf.get(), CHUNK_SIZE);
   while (true) {
     if (appender.length() == 0) {
       appender.ensure(CHUNK_SIZE);
@@ -58,7 +58,7 @@ int Protocol::readDataUntil(Event* event, ByteRange bytes) {
       return 2;
     }
     appender.append(r);
-    if (event->rbuf()->coalesce().find(bytes) != ByteRange::npos) {
+    if (event->rbuf->coalesce().find(bytes) != ByteRange::npos) {
       break;
     }
   }
@@ -66,8 +66,8 @@ int Protocol::readDataUntil(Event* event, ByteRange bytes) {
 }
 
 int Protocol::writeData(Event* event) {
-  rdd::io::Cursor cursor(event->wbuf().get());
-  cursor += event->wlen();
+  rdd::io::Cursor cursor(event->wbuf.get());
+  cursor += event->wlen;
   while (!cursor.isAtEnd()) {
     auto p = cursor.peek();
     int r = event->socket()->send((uint8_t*)p.first, p.second);
@@ -82,7 +82,7 @@ int Protocol::writeData(Event* event) {
       return -1;
     }
     cursor += r;
-    event->wlen() += r;
+    event->wlen += r;
   }
   return 0;
 }

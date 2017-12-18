@@ -121,8 +121,8 @@ void Actor::forwardEvent(Event* event, const Peer& peer) {
     return;
   }
   Event* evcopy = createEvent(event->channel(), socket);
-  event->wbuf()->cloneInto(*evcopy->wbuf());
-  event->wbuf()->unshare();
+  event->wbuf->cloneInto(*evcopy->wbuf);
+  event->wbuf->unshare();
   evcopy->setForward();
   evcopy->setType(Event::WRITED);
   ioPool_->getEventLoop()->addEvent(evcopy);

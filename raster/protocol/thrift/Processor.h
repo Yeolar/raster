@@ -31,11 +31,11 @@ public:
   virtual ~ThriftProcessor() {}
 
   virtual bool decodeData(Event* event) {
-    return rdd::thrift::decodeData(event->rbuf(), pibuf_.get());
+    return rdd::thrift::decodeData(event->rbuf, pibuf_.get());
   }
 
   virtual bool encodeData(Event* event) {
-    return rdd::thrift::encodeData(event->wbuf(), pobuf_.get());
+    return rdd::thrift::encodeData(event->wbuf, pobuf_.get());
   }
 
   virtual bool run() {
@@ -68,11 +68,11 @@ public:
   virtual ~ThriftZlibProcessor() {}
 
   virtual bool decodeData(Event* event) {
-    return rdd::thrift::decodeZlibData(event->rbuf(), pibuf_.get());
+    return rdd::thrift::decodeZlibData(event->rbuf, pibuf_.get());
   }
 
   virtual bool encodeData(Event* event) {
-    return rdd::thrift::encodeZlibData(event->wbuf(), pobuf_.get());
+    return rdd::thrift::encodeZlibData(event->wbuf, pobuf_.get());
   }
 };
 

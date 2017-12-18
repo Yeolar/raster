@@ -121,7 +121,7 @@ private:
   virtual void send(
       std::unique_ptr<IOBuf>& buf,
       std::function<void(bool, const std::string&)> resultCb) {
-    proto::encodeData(event_->wbuf(), buf);
+    proto::encodeData(event_->wbuf, buf);
     resultCb(true, "");
   }
 

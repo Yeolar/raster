@@ -22,11 +22,11 @@ public:
   virtual ~PBProcessor() {}
 
   virtual bool decodeData(Event* event) {
-    return rdd::proto::decodeData(event->rbuf(), ibuf_);
+    return rdd::proto::decodeData(event->rbuf, ibuf_);
   }
 
   virtual bool encodeData(Event* event) {
-    return rdd::proto::encodeData(event->wbuf(), obuf_);
+    return rdd::proto::encodeData(event->wbuf, obuf_);
   }
 
   virtual bool run() {

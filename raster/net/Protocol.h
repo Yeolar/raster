@@ -43,9 +43,9 @@ public:
   virtual ~HBinaryProtocol() {}
 
   virtual int readData(Event* event) {
-    IOBuf* buf = event->rbuf().get();
+    IOBuf* buf = event->rbuf.get();
     if (buf->empty()) {
-      event->rlen() = headerSize();
+      event->rlen = headerSize();
     }
     int r = Protocol::readData(event);
     if (buf->computeChainDataLength() == headerSize() && r == 0) {
@@ -56,7 +56,7 @@ public:
       } else {
         RDDLOG(V3) << *event << " bodyLength=" << n;
       }
-      event->rlen() = n;
+      event->rlen = n;
       r = Protocol::readData(event);
     }
     return r;
