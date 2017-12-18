@@ -17,6 +17,14 @@ namespace rdd {
 extern const std::string empty_string;
 
 /**
+ * Byte counters related to the HTTP headers.
+ */
+struct HTTPHeaderSize {
+  size_t compressed{0};   // 0 for compression not supported
+  size_t uncompressed{0};
+};
+
+/**
  * A collection of HTTP headers.
  *
  * Headers are stored as Name/Value pairs, in the order they are received on

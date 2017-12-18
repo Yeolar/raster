@@ -14,6 +14,81 @@
 
 namespace rdd {
 
+void uriEscape(StringPiece str, std::string& out, UriEscapeMode mode) {
+  static const char hexValues[] = "0123456789abcdef";
+  char esc[3];
+  esc[0] = '%';
+  // Preallocate assuming that 25% of the input string will be escaped
+  out.reserve(out.size() + str.size() + 3 * (str.size() / 4));
+  auto p = str.begin();
+  auto last = p;  // last regular character
+  // We advance over runs of passthrough characters and copy them in one go;
+  // this is faster than calling push_back repeatedly.
+  unsigned char minEncode = static_cast<unsigned char>(mode);
+  while (p != str.end()) {
+    char c = *p;
+    unsigned char v = static_cast<unsigned char>(c);
+    unsigned char discriminator = detail::uriEscapeTable[v];
+    if (LIKELY(discriminator <= minEncode)) {
+      ++p;
+    } else if (mode == UriEscapeMode::QUERY && discriminator == 3) {
+      out.append(&*last, size_t(p - last));
+      out.push_back('+');
+      ++p;
+      last = p;
+    } else {
+      out.append(&*last, size_t(p - last));
+      esc[1] = hexValues[v >> 4];
+      esc[2] = hexValues[v & 0x0f];
+      out.append(esc, 3);
+      ++p;
+      last = p;
+    }
+  }
+  out.append(&*last, size_t(p - last));
+}
+
+void uriUnescape(StringPiece str, std::string& out, UriEscapeMode mode) {
+  out.reserve(out.size() + str.size());
+  auto p = str.begin();
+  auto last = p;
+  // We advance over runs of passthrough characters and copy them in one go;
+  // this is faster than calling push_back repeatedly.
+  while (p != str.end()) {
+    char c = *p;
+    switch (c) {
+    case '%':
+      {
+        if (UNLIKELY(std::distance(p, str.end()) < 3)) {
+          throw std::invalid_argument("incomplete percent encode sequence");
+        }
+        auto h1 = detail::hexTable[static_cast<unsigned char>(p[1])];
+        auto h2 = detail::hexTable[static_cast<unsigned char>(p[2])];
+        if (UNLIKELY(h1 == 16 || h2 == 16)) {
+          throw std::invalid_argument("invalid percent encode sequence");
+        }
+        out.append(&*last, size_t(p - last));
+        out.push_back((h1 << 4) | h2);
+        p += 3;
+        last = p;
+        break;
+      }
+    case '+':
+      if (mode == UriEscapeMode::QUERY) {
+        out.append(&*last, size_t(p - last));
+        out.push_back(' ');
+        ++p;
+        last = p;
+        break;
+      }
+    default:
+      ++p;
+      break;
+    }
+  }
+  out.append(&*last, size_t(p - last));
+}
+
 namespace {
 
 int stringAppendfImplHelper(char* buf, size_t bufsize, const char* format,

@@ -10,11 +10,23 @@
 
 namespace rdd {
 
+namespace detail {
+// Map from the character code to the hex value, or 16 if invalid hex char.
+extern const unsigned char hexTable[];
+
+// Map from character code to escape mode:
+// 0 = pass through
+// 1 = unused
+// 2 = pass through in PATH mode
+// 3 = space, replace with '+' in QUERY mode
+// 4 = percent-encode
+extern const unsigned char uriEscapeTable[];
+} // namespace detail
+
 template <class InputString>
 bool hexlify(const InputString& input, std::string& output,
              bool append_output) {
-  if (!append_output)
-    output.clear();
+  if (!append_output) output.clear();
 
   static char hexValues[] = "0123456789abcdef";
   auto j = output.size();
@@ -27,13 +39,6 @@ bool hexlify(const InputString& input, std::string& output,
   return true;
 }
 
-inline int unhex(char c) {
-  return c >= '0' && c <= '9' ? c - '0' :
-         c >= 'A' && c <= 'F' ? c - 'A' + 10 :
-         c >= 'a' && c <= 'f' ? c - 'a' + 10 :
-         -1;
-};
-
 template <class InputString>
 bool unhexlify(const InputString& input, std::string& output) {
   if (input.size() % 2 != 0) {
@@ -41,10 +46,12 @@ bool unhexlify(const InputString& input, std::string& output) {
   }
   output.resize(input.size() / 2);
   int j = 0;
+
   for (size_t i = 0; i < input.size(); i += 2) {
-    int highBits = unhex(input[i]);
-    int lowBits = unhex(input[i + 1]);
-    if (highBits < 0 || lowBits < 0) {
+    int highBits = detail::hexTable[static_cast<uint8_t>(input[i])];
+    int lowBits = detail::hexTable[static_cast<uint8_t>(input[i + 1])];
+    if ((highBits | lowBits) & 0x10) {
+      // One of the characters wasn't a hex digit
       return false;
     }
     output[j++] = (highBits << 4) + lowBits;

@@ -7,6 +7,7 @@ set(RASTER_UTIL_SRCS
     Conv.cpp
     Demangle.cpp
     dynamic.cpp
+    EscapeTables.cpp
     Futex.cpp
     json.cpp
     MemoryMapping.cpp
