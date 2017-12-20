@@ -32,8 +32,6 @@ public:
 
 protected:
   std::shared_ptr<RequestHandler> handler_;
-  HTTPRequest* request_;
-  HTTPResponse* response_;
 };
 
 class HTTPProcessorFactory : public ProcessorFactory {

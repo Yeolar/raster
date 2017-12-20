@@ -3,6 +3,7 @@
 set(RASTER_NET_SRCS
     Actor.cpp
     AsyncClient.cpp
+    ErrorEnum.cpp
     NetUtil.cpp
     Protocol.cpp
     Socket.cpp
@@ -14,6 +15,8 @@ install(FILES
     AsyncClientExecutor.h
     AsyncClient.h
     Channel.h
+    ErrorEnum.h
+    Exception.h
     NetUtil.h
     Processor.h
     Protocol.h

@@ -7,6 +7,7 @@ set(RASTER_IO_SRCS
     FSUtil.cpp
     HugePages.cpp
     IOBuf.cpp
+    IOBufQueue.cpp
     MMapIOAlloc.cpp
     Path.cpp
     RecordIO.cpp
@@ -18,6 +19,7 @@ add_library(raster_io OBJECT ${RASTER_IO_SRCS})
 install(FILES
     Compression.h
     Cursor.h
+    Cursor-inl.h
     Descriptor.h
     File.h
     FileUtil.h
@@ -25,6 +27,7 @@ install(FILES
     FSUtil.h
     HugePages.h
     IOBuf.h
+    IOBufQueue.h
     MMapFlatDict.h
     MMapIOAlloc.h
     Path.h

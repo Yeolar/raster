@@ -5,8 +5,8 @@
 #pragma once
 
 #include "raster/protocol/http/HTTPException.h"
-#include "raster/protocol/http/HTTPRequest.h"
-#include "raster/protocol/http/HTTPResponse.h"
+#include "raster/protocol/http/HTTPMessage.h"
+#include "raster/protocol/http/ResponseBuilder.h"
 #include "raster/util/json.h"
 
 namespace rdd {
@@ -34,20 +34,24 @@ public:
   int getStatusCode() const;
 
   void write(StringPiece sp);
-  void write(const dynamic& json);
+  void writeHtml(StringPiece sp);
+  void writeJson(const dynamic& json);
+  void writeText(StringPiece sp);
 
   void handleException(const HTTPException& e);
   void handleException(const std::exception& e);
   void handleException();
 
-  void sendError(int code = 500);
+  void sendError(uint16_t code = 500);
 
   std::string getLocale();
   std::string getBrowserLocale();
   virtual std::string getUserLocale() { return ""; }
 
-  HTTPRequest* request;
-  HTTPResponse* response;
+  HTTPMessage* message;
+  IOBuf* body;
+  HTTPHeaders* trailers;
+  ResponseBuilder response;
 
 protected:
   std::string locale_;

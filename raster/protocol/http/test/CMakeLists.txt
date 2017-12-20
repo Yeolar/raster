@@ -1,7 +1,6 @@
 # Copyright (C) 2017, Yeolar
 
 set(RASTER_PROTOCOL_HTTP_TEST_SRCS
-    CookieTest.cpp
     HTTPHeadersTest.cpp
     UtilTest.cpp
 )

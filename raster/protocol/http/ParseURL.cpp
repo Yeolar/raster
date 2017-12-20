@@ -146,23 +146,4 @@ void ParseURL::stripBrackets() {
   }
 }
 
-std::string urlUnparse(StringPiece scheme,
-                       StringPiece authority,
-                       StringPiece path,
-                       StringPiece query,
-                       StringPiece fragment) {
-  std::string url;
-  if (!scheme.empty())
-    toAppend(scheme, ':', &url);
-  if (!authority.empty()) {
-    toAppend("//", authority, &url);
-  }
-  toAppend(path, &url);
-  if (!query.empty())
-    toAppend('?', query, &url);
-  if (!fragment.empty())
-    toAppend('#', fragment, &url);
-  return url;
-}
-
 } // namespace rdd

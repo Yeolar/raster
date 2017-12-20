@@ -2,6 +2,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/io/IOBufQueue.h"
+#include "raster/protocol/http/HTTPMessage.h"
 #include "raster/protocol/http/RequestHandler.h"
 
 namespace rdd {
@@ -31,6 +33,7 @@ void RequestHandler::onTrace() {
   throw HTTPException(405);
 }
 
+#if 0
 void RequestHandler::clear() {
   response->headers.removeAll();
   response->headers.set(HTTP_HEADER_SERVER, "Raster/1.0");
@@ -44,7 +47,6 @@ void RequestHandler::clear() {
 }
 
 void RequestHandler::setStatusCode(int code) {
-  RDDCHECK(isValidResponseCode(code));
   response->statusCode = code;
 }
 
@@ -56,42 +58,49 @@ void RequestHandler::write(StringPiece sp) {
   response->appendData(sp);
 }
 
-void RequestHandler::write(const dynamic& json) {
+void RequestHandler::writeHtml(StringPiece sp) {
+  response->headers.set(HTTP_HEADER_CONTENT_TYPE,
+                        "text/html; charset=UTF-8");
+  response->appendData(sp);
+}
+
+void RequestHandler::writeJson(const dynamic& json) {
   response->headers.set(HTTP_HEADER_CONTENT_TYPE,
                         "application/json; charset=UTF-8");
   response->appendData(toJson(json));
 }
 
+void RequestHandler::writeText(StringPiece sp) {
+  response->headers.set(HTTP_HEADER_CONTENT_TYPE,
+                        "text/plain; charset=UTF-8");
+  response->appendData(sp);
+}
+#endif
+
 void RequestHandler::handleException(const HTTPException& e) {
-  RDDLOG(WARN) << e << ", " << *request;
-  if (!isValidResponseCode(e.getCode())) {
-    RDDLOG(ERROR) << "Bad HTTP status code: " << e.getCode();
-    sendError(500);
-  } else {
-    sendError(e.getCode());
-  }
+  RDDLOG(WARN) << e;
+  sendError(e.getStatusCode());
 }
 
 void RequestHandler::handleException(const std::exception& e) {
-  RDDLOG(ERROR) << "Exception: " << e.what() << ", " << *request;
+  RDDLOG(ERROR) << "Exception: " << e.what();
   sendError(500);
 }
 
 void RequestHandler::handleException() {
-  RDDLOG(ERROR) << "Unknown exception, " << *request;
+  RDDLOG(ERROR) << "Unknown exception";
   sendError(500);
 }
 
-void RequestHandler::sendError(int code) {
-  clear();
-  setStatusCode(code);
-  auto scode = to<std::string>(response->statusCode);
-  auto& msg = getResponseW3CName(response->statusCode);
-  response->appendData(
-      "<html><title>", scode, ": ", msg, "</title>"
-      "<body>", scode, ": ", msg, "</body></html>");
+void RequestHandler::sendError(uint16_t code) {
+  auto msg = HTTPMessage::getDefaultReason(code);
+  response
+    .status(code)
+    .body(code).body(": ").body(msg).body("\r\n")
+    .sendWithEOM();
 }
 
+#if 0
 std::string RequestHandler::getLocale() {
   if (locale_.empty()) locale_ = getUserLocale();
   if (locale_.empty()) locale_ = getBrowserLocale();
@@ -129,5 +138,6 @@ std::string RequestHandler::getBrowserLocale() {
   }
   return "en_US";
 }
+#endif
 
 } // namespace rdd

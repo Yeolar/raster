@@ -10,13 +10,28 @@ namespace rdd {
 
 HTTPEvent::HTTPEvent(const std::shared_ptr<Channel>& channel,
                      const std::shared_ptr<Socket>& socket)
-  : Event(channel, socket) {}
+  : Event(channel, socket),
+    state_(kInit),
+    codec_(TransportDirection::DOWNSTREAM) {
+  codec_.setCallback(this);
+}
 
 void HTTPEvent::reset() {
   Event::reset();
-  state_ = INIT;
+  state_ = kInit;
 }
 
+void HTTPEvent::parseReadData() {
+  rbuf->coalesce();
+  codec_.onIngress(*rbuf);
+  rbuf->trimStart(rbuf->length());
+}
+
+void HTTPEvent::pushWriteData() {
+  wbuf = writeBuf_.move();
+}
+
+#if 0
 void HTTPEvent::onReadingHeaders() {
   RDDCHECK(state_ == INIT);
 
@@ -77,9 +92,11 @@ void HTTPEvent::onReadingBody() {
 
   if (request_->method == HTTPMethod::POST ||
       request_->method == HTTPMethod::PUT) {
+    /*
     parseBodyArguments(
         request_->headers.getSingleOrEmpty(HTTP_HEADER_CONTENT_TYPE),
         data, request_->arguments, request_->files);
+        */
   }
   state_ = ON_READING_FINISH;
 }
@@ -105,7 +122,7 @@ void HTTPEvent::onWriting() {
     RDDCHECK(response_->data->empty());
     response_->headers.clearHeadersFor304();
   } else if (!response_->headers.exists(HTTP_HEADER_CONTENT_LENGTH)) {
-    size_t n = response_->data->computeChainDataLength() + 2;
+    size_t n = response_->data->computeChainDataLength();
     response_->headers.set(HTTP_HEADER_CONTENT_LENGTH, to<std::string>(n));
   }
 
@@ -124,6 +141,74 @@ void HTTPEvent::onWriting() {
     << this->cost()/1000.0 << "ms";
 
   state_ = ON_WRITING_FINISH;
+}
+#endif
+
+void HTTPEvent::onMessageBegin(HTTPMessage* msg) {
+  state_ = kOnReading;
+}
+
+void HTTPEvent::onHeadersComplete(std::unique_ptr<HTTPMessage> msg) {
+  auto value = msg->getHeaders().getSingleOrEmpty(HTTP_HEADER_CONTENT_LENGTH);
+  size_t n = value.empty() ? 0 : to<size_t>(value);
+  rlen += n;
+  if (n > Protocol::BODYLEN_LIMIT) {
+    RDDLOG(WARN) << *this << " big request, bodyLength=" << n;
+  } else {
+    RDDLOG(V3) << *this << " bodyLength=" << n;
+  }
+  if (n == 0) {
+    state_ = kOnReadingFinish;
+  }
+  msg_ = std::move(msg);
+}
+
+void HTTPEvent::onBody(std::unique_ptr<IOBuf> chain) {
+  body_ = std::move(chain);
+}
+
+void HTTPEvent::onChunkHeader(size_t length) {}
+
+void HTTPEvent::onChunkComplete() {}
+
+void HTTPEvent::onTrailersComplete(std::unique_ptr<HTTPHeaders> trailers) {
+  trailers_ = std::move(trailers);
+}
+
+void HTTPEvent::onMessageComplete() {
+  state_ = kOnReadingFinish;
+}
+
+void HTTPEvent::onError(const HTTPException& error) {
+  state_ = kError;
+}
+
+void HTTPEvent::sendHeaders(const HTTPMessage& headers, HTTPHeaderSize* size) {
+  codec_.generateHeader(writeBuf_, headers, false, size);
+}
+
+size_t HTTPEvent::sendBody(std::unique_ptr<IOBuf> body, bool includeEOM) {
+  return codec_.generateBody(writeBuf_, std::move(body), includeEOM);
+}
+
+size_t HTTPEvent::sendChunkHeader(size_t length) {
+  return codec_.generateChunkHeader(writeBuf_, length);
+}
+
+size_t HTTPEvent::sendChunkTerminator() {
+  return codec_.generateChunkTerminator(writeBuf_);
+}
+
+size_t HTTPEvent::sendTrailers(const HTTPHeaders& trailers) {
+  return codec_.generateTrailers(writeBuf_, trailers);
+}
+
+size_t HTTPEvent::sendEOM() {
+  return codec_.generateEOM(writeBuf_);
+}
+
+size_t HTTPEvent::sendAbort() {
+  return codec_.generateAbort(writeBuf_);
 }
 
 } // namespace rdd

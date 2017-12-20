@@ -1,15 +1,13 @@
 # Copyright (C) 2017, Yeolar
 
 set(RASTER_PROTOCOL_HTTP_SRCS
-    Cookie.cpp
+    HTTP1xCodec.cpp
     HTTPCommonHeaders.cpp
     HTTPEvent.cpp
     HTTPException.cpp
     HTTPHeaders.cpp
+    HTTPMessage.cpp
     HTTPMethod.cpp
-    HTTPRequest.cpp
-    HTTPResponse.cpp
-    ParseQuery.cpp
     ParseURL.cpp
     Processor.cpp
     RequestHandler.cpp
@@ -18,18 +16,19 @@ set(RASTER_PROTOCOL_HTTP_SRCS
 add_library(raster_protocol_http OBJECT ${RASTER_PROTOCOL_HTTP_SRCS})
 
 install(FILES
-    Cookie.h
+    AsyncServer.h
+    HTTP1xCodec.h
     HTTPCommonHeaders.h
     HTTPEvent.h
     HTTPException.h
     HTTPHeaders.h
+    HTTPMessage.h
     HTTPMethod.h
-    HTTPRequest.h
-    HTTPResponse.h
-    ParseQuery.h
     ParseURL.h
     Processor.h
     Protocol.h
     RequestHandler.h
+    ResponseBuilder.h
+    Transport.h
     Util.h
     DESTINATION include/raster/protocol/http)

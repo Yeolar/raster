@@ -26,7 +26,10 @@ public:
   }
 
   virtual void onGet() {
-    throw HTTPException(405);
+    response
+      .status(200)
+      .body("Yes, got it.\r\n")
+      .sendWithEOM();
   }
 };
 

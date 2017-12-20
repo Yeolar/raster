@@ -72,8 +72,6 @@ public:
   template <typename T> // T = string
   void add(HTTPHeaderCode code, T&& value);
 
-  void addFromCodec(const char* str, size_t len, std::string&& value);
-
   void set(StringPiece name, const std::string& value) {
     remove(name);
     add(name, value);

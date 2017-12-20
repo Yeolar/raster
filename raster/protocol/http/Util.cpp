@@ -2,6 +2,7 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/protocol/http/HTTPMessage.h"
 #include "raster/protocol/http/ParseURL.h"
 #include "raster/protocol/http/Util.h"
 #include "raster/util/Algorithm.h"
@@ -12,65 +13,74 @@
 
 namespace rdd {
 
-namespace {
+namespace RFC2616 {
 
-typedef std::map<int, std::string> CodeMap;
-DEFINE_UNION_STATIC_CONST_NO_INIT(CodeMap, Map, sW3CCodeMap);
-
-__attribute__((__constructor__))
-void initW3CCodeMap() {
-  new (const_cast<CodeMap*>(&sW3CCodeMap.data)) CodeMap {
-    {100, "Continue"},
-    {101, "Switching Protocols"},
-    {102, "Processing (WEBDAV)"},
-    {200, "OK"},
-    {201, "Created"},
-    {202, "Accepted"},
-    {203, "Non-Authoritative Information"},
-    {204, "No Content"},
-    {205, "Reset Content"},
-    {206, "Partial Content"},
-    {207, "Multi Status (WEBDAV)"},
-    {226, "Im Used (Delta encoding)"},
-    {300, "Multiple Choices"},
-    {301, "Moved Permanently"},
-    {302, "Found"},
-    {303, "See Other"},
-    {304, "Not Modified"},
-    {305, "Use Proxy"},
-    {307, "Temporary Redirect"},
-    {400, "Bad Request"},
-    {401, "Unauthorized"},
-    {402, "Payment Required"},
-    {403, "Forbidden"},
-    {404, "Not Found"},
-    {405, "Method Not Allowed"},
-    {406, "Not Acceptable"},
-    {407, "Proxy Authentication Required"},
-    {408, "Request Timeout"},
-    {409, "Conflict"},
-    {410, "Gone"},
-    {411, "Length Required"},
-    {412, "Precondition Failed"},
-    {413, "Request Entity Too Large"},
-    {414, "Request-URI Too Long"},
-    {415, "Unsupported Media Type"},
-    {416, "Requested Range Not Satisfiable"},
-    {417, "Expectation Failed"},
-    {422, "Unprocessable Entity (WEBDAV)"},
-    {423, "Locked (WEBDAV)"},
-    {424, "Failed Dependency (WEBDAV)"},
-    {426, "Upgrade Required (Upgrade to TLS)"},
-    {500, "Internal Server Error"},
-    {501, "Not Implemented"},
-    {502, "Bad Gateway"},
-    {503, "Service Unavailable"},
-    {504, "Gateway Timeout"},
-    {505, "HTTP Version Not Supported"},
-    {507, "Insufficient Storage (WEBDAV)"},
-    {510, "Not Extended (An Extension Framework)"},
-  };
+BodyAllowed isRequestBodyAllowed(HTTPMethod method) {
+  if (method == HTTPMethod::TRACE) {
+    return BodyAllowed::NOT_ALLOWED;
+  }
+  if (method == HTTPMethod::OPTIONS ||
+      method == HTTPMethod::POST ||
+      method == HTTPMethod::PUT ||
+      method == HTTPMethod::CONNECT) {
+    return BodyAllowed::DEFINED;
+  }
+  return BodyAllowed::NOT_DEFINED;
 }
+
+bool responseBodyMustBeEmpty(unsigned status) {
+  return (status == 304 || status == 204 || (100 <= status && status < 200));
+}
+
+bool bodyImplied(const HTTPHeaders& headers) {
+  return headers.exists(HTTP_HEADER_TRANSFER_ENCODING) ||
+    headers.exists(HTTP_HEADER_CONTENT_LENGTH);
+}
+
+bool parseQvalues(StringPiece value, std::vector<TokenQPair> &output) {
+  bool result = true;
+  static ThreadLocal<std::vector<StringPiece>> tokens;
+  tokens->clear();
+  split(",", value, *tokens, true /*ignore empty*/);
+  for (auto& token: *tokens) {
+    auto pos = token.find(';');
+    double qvalue = 1.0;
+    if (pos != std::string::npos) {
+      auto qpos = token.find("q=", pos);
+      if (qpos != std::string::npos) {
+        StringPiece qvalueStr(token.data() + qpos + 2,
+                              token.size() - (qpos + 2));
+        try {
+          qvalue = to<double>(&qvalueStr);
+        } catch (const std::range_error&) {
+          // q=<some garbage>
+          result = false;
+        }
+        // we could validate that the remainder of qvalueStr was all whitespace,
+        // for now we just discard it
+      } else {
+        // ; but no q=
+        result = false;
+      }
+      token.reset(token.start(), pos);
+    }
+    // strip leading whitespace
+    while (token.size() > 0 && isspace(token[0])) {
+      token.reset(token.start() + 1, token.size() - 1);
+    }
+    if (token.size() == 0) {
+      // empty token
+      result = false;
+    } else {
+      output.emplace_back(token, qvalue);
+    }
+  }
+  return result && output.size() > 0;
+}
+
+} // namespace RFC2616
+
+namespace {
 
 std::string unquote(StringPiece sp) {
   if (sp.size() < 2)
@@ -100,15 +110,6 @@ std::string unquote(StringPiece sp) {
 
 }
 
-bool isValidResponseCode(int code) {
-  return contain(sW3CCodeMap.data, code);
-}
-
-const std::string& getResponseW3CName(int code) {
-  static const std::string unknown = "Unknown";
-  return get_ref_default(sW3CCodeMap.data, code, unknown);
-}
-
 std::string urlJoin(const std::string& base, const std::string& url) {
   if (base.empty()) return url;
   if (url.empty()) return base;
@@ -124,15 +125,15 @@ std::string urlJoin(const std::string& base, const std::string& url) {
   if (scheme != b.scheme())
     return url;
   if (!authority.empty())
-    return urlUnparse(scheme, authority, path, query, fragment);
+    return HTTPMessage::createUrl(scheme, authority, path, query, fragment);
   authority = b.authority();
   if (path.subpiece(0, 1) == "/")
-    return urlUnparse(scheme, authority, path, query, fragment);
+    return HTTPMessage::createUrl(scheme, authority, path, query, fragment);
   if (path.empty()) {
     path = b.path();
     if (query.empty())
       query = b.query();
-    return urlUnparse(scheme, authority, path, query, fragment);
+    return HTTPMessage::createUrl(scheme, authority, path, query, fragment);
   }
 
   std::vector<StringPiece> segments;
@@ -167,20 +168,33 @@ std::string urlJoin(const std::string& base, const std::string& url) {
     segments.pop_back();
     segments.back() = "";
   }
-  return urlUnparse(scheme, authority, join('/', segments), query, fragment);
+  return HTTPMessage::createUrl(
+      scheme, authority, join('/', segments), query, fragment);
 }
 
-std::string urlConcat(const std::string& url, const URLQuery& query) {
-  if (query.empty()) return url;
+std::string urlConcat(const std::string& url,
+                      const std::map<std::string, std::string>& params) {
+  if (params.empty())
+    return url;
 
-  std::string out(url);
+  std::string out = url;
   char c = url.back();
   if (c != '?' && c != '&') {
-    out.push_back(url.find('?') != std::string::npos ? '&' : '?');
+    out.push_back(url.rfind('?') != std::string::npos ? '&' : '?');
   }
-  return out + encodeQuery(query);
+  for (auto it = params.begin(); it != params.end(); it++) {
+    if (it != params.begin()) {
+      out.push_back('&');
+    }
+    uriEscape(it->first, out, UriEscapeMode::QUERY);
+    out.push_back('=');
+    uriEscape(it->second, out, UriEscapeMode::QUERY);
+  }
+  out.shrink_to_fit();
+  return out;
 }
 
+/*
 static StringPiece splitParam(StringPiece& sp) {
   auto count = [](StringPiece s, StringPiece p) -> int {
     int n = 0;
@@ -305,5 +319,6 @@ void parseMultipartFormData(
     }
   }
 }
+*/
 
 } // namespace rdd

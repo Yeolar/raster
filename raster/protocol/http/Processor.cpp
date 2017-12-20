@@ -11,17 +11,19 @@
 namespace rdd {
 
 bool HTTPProcessor::run() {
-  handler_->request = request_ = event<HTTPEvent>()->request();
-  handler_->response = response_ = event<HTTPEvent>()->response();
-  handler_->clear();
+  HTTPEvent* httpev = event<HTTPEvent>();
+  handler_->message = httpev->message();
+  handler_->body = httpev->body();
+  handler_->trailers = httpev->trailers();
+  handler_->response.setupTransport(httpev);
 
   SCOPE_EXIT {
-    event<HTTPEvent>()->setState(HTTPEvent::ON_WRITING);
+    httpev->pushWriteData();
   };
 
   try {
     handler_->prepare();
-    switch (request_->method) {
+    switch (httpev->message()->getMethod()) {
       case HTTPMethod::GET:
         handler_->onGet();
         break;
@@ -68,17 +70,18 @@ HTTPProcessorFactory::HTTPProcessorFactory(
 
 std::shared_ptr<Processor> HTTPProcessorFactory::create(Event* event) {
   HTTPEvent* httpev = reinterpret_cast<HTTPEvent*>(event);
-  auto uri = httpev->request()->uri;
+  auto url = httpev->message()->getURL();
   for (auto& kv : routers_) {
     boost::cmatch match;
-    if (boost::regex_match(uri.begin(), uri.end(), match, kv.second)) {
+    if (boost::regex_match(url.c_str(), match, kv.second)) {
       return std::shared_ptr<Processor>(
         new HTTPProcessor(
             event,
             makeSharedReflectObject<RequestHandler>(kv.first)));
     }
   }
-  throw HTTPException(404);
+  return std::shared_ptr<Processor>(
+    new HTTPProcessor(event, std::make_shared<RequestHandler>()));
 }
 
 } // namespace rdd

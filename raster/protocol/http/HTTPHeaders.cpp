@@ -83,16 +83,6 @@ void HTTPHeaders::add(StringPiece name, StringPiece value) {
   headerValues_.emplace_back(value.data(), value.size());
 }
 
-void HTTPHeaders::addFromCodec(const char* str, size_t len,
-                               std::string&& value) {
-  const HTTPHeaderCode code = HTTPCommonHeaders::hash(str, len);
-  codes_.push_back(code);
-  headerNames_.push_back((code == HTTP_HEADER_OTHER)
-      ? new std::string(str, len)
-      : HTTPCommonHeaders::getPointerToHeaderName(code));
-  headerValues_.emplace_back(std::move(value));
-}
-
 bool HTTPHeaders::exists(StringPiece name) const {
   const HTTPHeaderCode code = HTTPCommonHeaders::hash(name.data(), name.size());
   if (code != HTTP_HEADER_OTHER) {

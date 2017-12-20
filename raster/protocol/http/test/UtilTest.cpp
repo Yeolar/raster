@@ -27,6 +27,7 @@ TEST(urlConcat, all) {
   EXPECT_STREQ("https://localhost/path?r=1&t=2", url.c_str());
 }
 
+/*
 TEST(MultipartFormData, file_upload) {
   URLQuery args;
   std::multimap<std::string, HTTPFile> files;
@@ -135,3 +136,4 @@ TEST(MultipartFormData, data_after_final_boundary) {
   EXPECT_STREQ("ab.txt", v[0].filename.c_str());
   EXPECT_STREQ("Foo", v[0].body.c_str());
 }
+*/

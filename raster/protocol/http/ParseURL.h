@@ -81,10 +81,4 @@ private:
   bool initialized_{false};
 };
 
-std::string urlUnparse(StringPiece scheme,
-                       StringPiece authority,
-                       StringPiece path,
-                       StringPiece query,
-                       StringPiece fragment);
-
 } // namespace rdd

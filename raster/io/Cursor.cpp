@@ -8,7 +8,8 @@
 #include "raster/io/Cursor.h"
 #include "raster/util/ScopeGuard.h"
 
-namespace rdd { namespace io {
+namespace rdd {
+namespace io {
 
 void Appender::printf(const char* fmt, ...) {
   va_list ap;
@@ -33,29 +34,31 @@ void Appender::vprintf(const char* fmt, va_list ap) {
   if (ret < 0) {
     throw std::runtime_error("error formatting printf() data");
   }
+  auto len = size_t(ret);
   // vsnprintf() returns the number of characters that would be printed,
   // not including the terminating nul.
-  if (size_t(ret) < length()) {
+  if (len < length()) {
     // All of the data was successfully written.
-    append(ret);
+    append(len);
     return;
   }
 
   // There wasn't enough room for the data.
   // Allocate more room, and then retry.
-  ensure(ret + 1);
+  ensure(len + 1);
   ret = vsnprintf(reinterpret_cast<char*>(writableData()), length(),
                   fmt, apCopy);
   if (ret < 0) {
     throw std::runtime_error("error formatting printf() data");
   }
-  if (size_t(ret) >= length()) {
+  len = size_t(ret);
+  if (len >= length()) {
     // This shouldn't ever happen.
     throw std::runtime_error("unexpectedly out of buffer space on second "
                              "vsnprintf() attmept");
   }
-  append(ret);
+  append(len);
 }
 
-}}  // rdd::io
-
+} // namespace io
+} // namespace rdd
