@@ -89,34 +89,32 @@ void EventHandler::onRead(Event* event) {
   event->setType(Event::READING);
   int r = event->readData();
   switch (r) {
-    case -1:
-    {
-      if (event->type() == Event::TIMEOUT) {
-        RDDLOG(WARN) << *event << " remove read timeout request: >"
-          << event->timeoutOption().rtimeout;
-        onTimeout(event);
-      } else {
-        RDDLOG(ERROR) << *event << " read: close for error: "
-          << strerror(errno);
-        event->setType(Event::ERROR);
-        onError(event);
-      }
-      break;
-    }
-    case 0:
-    {
+    case 1: {
       RDDLOG(V1) << *event << " read: complete";
       event->setType(Event::READED);
       onComplete(event);
       break;
     }
-    case 1:
-    {
-      RDDLOG(V1) << *event << " read: again";
+    case -1: {
+      RDDLOG(ERROR) << *event << " read: close for error: "
+        << strerror(errno);
+      event->setType(Event::ERROR);
+      onError(event);
       break;
     }
-    case 2:
-    {
+    case -2: {
+      if (event->isReadTimeout()) {
+        event->setType(Event::TIMEOUT);
+        RDDLOG(WARN) << *event << " remove read timeout request: >"
+          << event->timeoutOption().rtimeout;
+        onTimeout(event);
+      } else {
+        RDDLOG(V1) << *event << " read: again";
+      }
+      break;
+    }
+    case 0:
+    case -3: {
       RDDLOG(V1) << *event << " read: peer is closed";
       closePeer(event);
       break;
@@ -129,30 +127,28 @@ void EventHandler::onWrite(Event* event) {
   event->setType(Event::WRITING);
   int r = event->writeData();
   switch (r) {
-    case -1:
-    {
-      if (event->type() == Event::TIMEOUT) {
-        RDDLOG(WARN) << *event << " remove write timeout request: >"
-          << event->timeoutOption().wtimeout;
-        onTimeout(event);
-      } else {
-        RDDLOG(ERROR) << *event << " write: close for error: "
-          << strerror(errno);
-        event->setType(Event::ERROR);
-        onError(event);
-      }
-      break;
-    }
-    case 0:
-    {
+    case 1: {
       RDDLOG(V1) << *event << " write: complete";
       event->setType(Event::WRITED);
       onComplete(event);
       break;
     }
-    case 1:
-    {
-      RDDLOG(V1) << *event << " write: again";
+    case -1: {
+      RDDLOG(ERROR) << *event << " write: close for error: "
+        << strerror(errno);
+      event->setType(Event::ERROR);
+      onError(event);
+      break;
+    }
+    case -2: {
+      if (event->isWriteTimeout()) {
+        event->setType(Event::TIMEOUT);
+        RDDLOG(WARN) << *event << " remove write timeout request: >"
+          << event->timeoutOption().wtimeout;
+        onTimeout(event);
+      } else {
+        RDDLOG(V1) << *event << " write: again";
+      }
       break;
     }
     default: break;

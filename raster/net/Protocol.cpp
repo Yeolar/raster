@@ -11,27 +11,12 @@ int Protocol::readData(Event* event) {
   io::Appender appender(event->rbuf.get(), CHUNK_SIZE);
   appender.ensure(event->rlen);
   while (event->rlen > 0) {
-    int r = event->socket()->recv(appender.writableData(), event->rlen);
-    if (r < 0) {
-      if (errno == EWOULDBLOCK || errno == EAGAIN) {
-        if (event->isReadTimeout()) {
-          event->setType(Event::TIMEOUT);
-          return -1;
-        }
-        return 1;
-      }
-      if (errno == ECONNRESET) {
-        return 2;
-      }
-      return -1;
-    }
-    if (r == 0) {
-      return 2;
-    }
+    ssize_t r = event->socket()->recv(appender.writableData(), event->rlen);
+    if (r <= 0) return r;
     appender.append(r);
     event->rlen -= r;
   }
-  return 0;
+  return 1;
 }
 
 int Protocol::readDataUntil(Event* event, ByteRange bytes) {
@@ -40,29 +25,14 @@ int Protocol::readDataUntil(Event* event, ByteRange bytes) {
     if (appender.length() == 0) {
       appender.ensure(CHUNK_SIZE);
     }
-    int r = event->socket()->recv(appender.writableData(), appender.length());
-    if (r < 0) {
-      if (errno == EWOULDBLOCK || errno == EAGAIN) {
-        if (event->isReadTimeout()) {
-          event->setType(Event::TIMEOUT);
-          return -1;
-        }
-        return 1;
-      }
-      if (errno == ECONNRESET) {
-        return 2;
-      }
-      return -1;
-    }
-    if (r == 0) {
-      return 2;
-    }
+    ssize_t r = event->socket()->recv(appender.writableData(), appender.length());
+    if (r <= 0) return r;
     appender.append(r);
     if (event->rbuf->coalesce().find(bytes) != ByteRange::npos) {
       break;
     }
   }
-  return 0;
+  return 1;
 }
 
 int Protocol::writeData(Event* event) {
@@ -70,21 +40,12 @@ int Protocol::writeData(Event* event) {
   cursor += event->wlen;
   while (!cursor.isAtEnd()) {
     auto p = cursor.peek();
-    int r = event->socket()->send((uint8_t*)p.first, p.second);
-    if (r < 0) {
-      if (errno == EWOULDBLOCK || errno == EAGAIN) {
-        if (event->isWriteTimeout()) {
-          event->setType(Event::TIMEOUT);
-          return -1;
-        }
-        return 1;
-      }
-      return -1;
-    }
+    ssize_t r = event->socket()->send((uint8_t*)p.first, p.second);
+    if (r < 0) return r;
     cursor += r;
     event->wlen += r;
   }
-  return 0;
+  return 1;
 }
 
 } // namespace rdd

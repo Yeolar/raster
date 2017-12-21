@@ -21,7 +21,7 @@ public:
     auto state = httpev->transport.state();
     if (state == HTTPTransport::kInit) {
       int r = Protocol::readDataUntil(event, kEnd);
-      if (r == 0) {
+      if (r == 1) {
         httpev->transport.parseReadData(httpev->rbuf.get());
         size_t n = httpev->transport.getContentLength();
         if (n > Protocol::BODYLEN_LIMIT) {
@@ -30,12 +30,12 @@ public:
           RDDLOG(V3) << "bodyLength=" << n;
         }
         if (n == 0) {
-          return 0;
+          return 1;
         }
         httpev->rlen += n;
         switch (httpev->transport.state()) {
-          case HTTPTransport::kOnReading: return 1;
-          case HTTPTransport::kOnReadingFinish: return 0;
+          case HTTPTransport::kOnReading: return -2;
+          case HTTPTransport::kOnReadingFinish: return 1;
           case HTTPTransport::kError: return -1;
           default:
             throw std::runtime_error(
@@ -46,7 +46,7 @@ public:
     }
     if (state == HTTPTransport::kOnReading) {
       int r = Protocol::readData(event);
-      if (r == 0) {
+      if (r == 1) {
         httpev->transport.parseReadData(httpev->rbuf.get());
       }
       return r;

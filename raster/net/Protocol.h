@@ -23,10 +23,8 @@ public:
 
   /*
    * return:
-   *  -1: error
-   *   0: complete
-   *   1: again
-   *   2: peer is closed
+   *  <=0: same to socket recv/send
+   *    1: complete
    */
 
   virtual int readData(Event* event);
@@ -48,7 +46,7 @@ public:
       event->rlen = headerSize();
     }
     int r = Protocol::readData(event);
-    if (buf->computeChainDataLength() == headerSize() && r == 0) {
+    if (buf->computeChainDataLength() == headerSize() && r == 1) {
       const H* header = TypedIOBuf<H>(buf).data();
       size_t n = bodyLength(*header);
       if (n > BODYLEN_LIMIT) {

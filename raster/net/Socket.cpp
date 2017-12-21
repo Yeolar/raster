@@ -128,23 +128,36 @@ bool Socket::isClosed() {
   return recv(p, sizeof(p)) == 0;
 }
 
-int Socket::recv(void* buf, size_t n) {
+ssize_t Socket::recv(void* buf, size_t n) {
   while (true) {
-    int r = ::recv(fd_, buf, n, 0);
-    if (r == -1 && errno == EINTR) {
-      continue;
+    ssize_t r = ::recv(fd_, buf, n, 0);
+    if (r == -1) {
+      if (errno == EINTR) {
+        continue;
+      }
+      if (errno == EWOULDBLOCK || errno == EAGAIN) {
+        return -2;
+      }
+      if (errno == ECONNRESET) {
+        return -3;
+      }
     }
     return r;
   }
 }
 
-int Socket::send(void* buf, size_t n) {
+ssize_t Socket::send(void* buf, size_t n) {
   // Note the use of MSG_NOSIGNAL to suppress SIGPIPE errors, instead we
   // check for the EPIPE return condition and close the socket in that case
   while (true) {
-    int r = ::send(fd_, buf, n, MSG_NOSIGNAL);
-    if (r == -1 && errno == EINTR) {
-      continue;
+    ssize_t r = ::send(fd_, buf, n, MSG_NOSIGNAL);
+    if (r == -1) {
+      if (errno == EINTR) {
+        continue;
+      }
+      if (errno == EWOULDBLOCK || errno == EAGAIN) {
+        return -2;
+      }
     }
     return r;
   }
