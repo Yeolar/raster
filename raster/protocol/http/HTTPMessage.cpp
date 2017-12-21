@@ -470,9 +470,10 @@ void HTTPMessage::splitNameValue(
 }
 
 void HTTPMessage::dumpMessage(int vlogLevel) const {
-  RDDLOG(V5) << "Version: " << versionStr_
-             << ", chunked: " << chunked_
-             << ", Fields for message:";
+  RDDLOG_STREAM(vlogLevel)
+    << "Version: " << versionStr_
+    << ", chunked: " << chunked_
+    << ", Fields for message:";
 
   std::string dstPort = to<std::string>(dstAddr_.port);
   std::string clientPort;
@@ -504,12 +505,14 @@ void HTTPMessage::dumpMessage(int vlogLevel) const {
 
   for (auto field : fields) {
     if (!field.second->empty()) {
-      RDDLOG(V5) << " " << field.first << ":" << stripCntrlChars(*field.second);
+      RDDLOG_STREAM(vlogLevel)
+        << " " << field.first << ":" << stripCntrlChars(*field.second);
     }
   }
 
   headers_.forEach([&] (const std::string& h, const std::string& v) {
-    RDDLOG(V5) << " " << stripCntrlChars(h) << ": " << stripCntrlChars(v);
+    RDDLOG_STREAM(vlogLevel)
+      << " " << stripCntrlChars(h) << ": " << stripCntrlChars(v);
   });
 }
 

@@ -9,6 +9,10 @@
 
 namespace {
 
+const char VERSION[] =
+#include "raster/VERSION"
+;
+
 const char CRLF[] = "\r\n";
 
 unsigned u64toa(uint64_t value, void* dst) {
@@ -304,6 +308,7 @@ void HTTP1xCodec::generateHeader(IOBufQueue& writeBuf,
   appendLiteral(writeBuf, len, CRLF);
   const std::string* deferredContentLength = nullptr;
   bool hasTransferEncodingChunked = false;
+  bool hasServerHeader = false;
   bool hasDateHeader = false;
   msg.getHeaders().forEachWithCode([&] (HTTPHeaderCode code,
                                         const std::string& header,
@@ -331,6 +336,8 @@ void HTTP1xCodec::generateHeader(IOBufQueue& writeBuf,
       if (!mayChunkEgress_) {
         return;
       }
+    } else if (!hasServerHeader && code == HTTP_HEADER_SERVER) {
+      hasServerHeader = true;
     } else if (!hasDateHeader && code == HTTP_HEADER_DATE) {
       hasDateHeader = true;
     }
@@ -371,6 +378,11 @@ void HTTP1xCodec::generateHeader(IOBufQueue& writeBuf,
       keepalive_ = false;
     }
   }
+  if (downstream && !hasServerHeader) {
+    appendLiteral(writeBuf, len, "Server: Raster/");
+    appendLiteral(writeBuf, len, VERSION);
+    appendLiteral(writeBuf, len, CRLF);
+  }
   if (downstream && !hasDateHeader) {
     addDateHeader(writeBuf, len);
   }
@@ -385,7 +397,7 @@ void HTTP1xCodec::generateHeader(IOBufQueue& writeBuf,
   if (deferredContentLength) {
     appendLiteral(writeBuf, len, "Content-Length: ");
     appendString(writeBuf, len, *deferredContentLength);
-    appendString(writeBuf, len, CRLF);
+    appendLiteral(writeBuf, len, CRLF);
   }
   appendLiteral(writeBuf, len, CRLF);
   if (eom) {

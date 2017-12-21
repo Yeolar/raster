@@ -3,7 +3,6 @@
 set(RASTER_PROTOCOL_HTTP_SRCS
     HTTP1xCodec.cpp
     HTTPCommonHeaders.cpp
-    HTTPEvent.cpp
     HTTPException.cpp
     HTTPHeaders.cpp
     HTTPMessage.cpp
@@ -11,11 +10,13 @@ set(RASTER_PROTOCOL_HTTP_SRCS
     ParseURL.cpp
     Processor.cpp
     RequestHandler.cpp
+    Transport.cpp
     Util.cpp
 )
 add_library(raster_protocol_http OBJECT ${RASTER_PROTOCOL_HTTP_SRCS})
 
 install(FILES
+    AsyncClient.h
     AsyncServer.h
     HTTP1xCodec.h
     HTTPCommonHeaders.h
@@ -29,6 +30,8 @@ install(FILES
     Protocol.h
     RequestHandler.h
     ResponseBuilder.h
+    SyncClient.h
+    SyncTransport.h
     Transport.h
     Util.h
     DESTINATION include/raster/protocol/http)

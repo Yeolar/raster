@@ -3,36 +3,33 @@
  */
 
 #include "raster/net/Protocol.h"
-#include "raster/protocol/http/HTTPEvent.h"
+#include "raster/protocol/http/Transport.h"
 #include "raster/protocol/http/Util.h"
+#include "raster/util/Logging.h"
 
 namespace rdd {
 
-HTTPEvent::HTTPEvent(const std::shared_ptr<Channel>& channel,
-                     const std::shared_ptr<Socket>& socket)
-  : Event(channel, socket),
-    state_(kInit),
-    codec_(TransportDirection::DOWNSTREAM) {
-  codec_.setCallback(this);
+void HTTPTransport::parseReadData(IOBuf* buf) {
+  buf->coalesce();
+  codec_.onIngress(*buf);
+  buf->trimStart(buf->length());
 }
 
-void HTTPEvent::reset() {
-  Event::reset();
-  state_ = kInit;
+void HTTPTransport::pushWriteData(IOBuf* buf) {
+  buf->appendChain(writeBuf_.move());
 }
 
-void HTTPEvent::parseReadData() {
-  rbuf->coalesce();
-  codec_.onIngress(*rbuf);
-  rbuf->trimStart(rbuf->length());
-}
-
-void HTTPEvent::pushWriteData() {
-  wbuf = writeBuf_.move();
+size_t HTTPTransport::getContentLength() {
+  if (headers) {
+    auto value = headers->getHeaders().getSingleOrEmpty(
+        HTTP_HEADER_CONTENT_LENGTH);
+    return value.empty() ? 0 : to<size_t>(value);
+  }
+  return 0;
 }
 
 #if 0
-void HTTPEvent::onReadingHeaders() {
+void HTTPTransport::onReadingHeaders() {
   RDDCHECK(state_ == INIT);
 
   IOBuf* buf = rbuf.get();
@@ -83,7 +80,7 @@ void HTTPEvent::onReadingHeaders() {
   }
 }
 
-void HTTPEvent::onReadingBody() {
+void HTTPTransport::onReadingBody() {
   RDDCHECK(state_ == ON_READING);
 
   IOBuf* buf = rbuf.get();
@@ -101,7 +98,7 @@ void HTTPEvent::onReadingBody() {
   state_ = ON_READING_FINISH;
 }
 
-void HTTPEvent::onWriting() {
+void HTTPTransport::onWriting() {
   RDDCHECK(state_ == ON_WRITING);
 
   if (response_->statusCode == 200 &&
@@ -144,70 +141,60 @@ void HTTPEvent::onWriting() {
 }
 #endif
 
-void HTTPEvent::onMessageBegin(HTTPMessage* msg) {
+void HTTPTransport::onMessageBegin(HTTPMessage* msg) {
   state_ = kOnReading;
 }
 
-void HTTPEvent::onHeadersComplete(std::unique_ptr<HTTPMessage> msg) {
-  auto value = msg->getHeaders().getSingleOrEmpty(HTTP_HEADER_CONTENT_LENGTH);
-  size_t n = value.empty() ? 0 : to<size_t>(value);
-  rlen += n;
-  if (n > Protocol::BODYLEN_LIMIT) {
-    RDDLOG(WARN) << *this << " big request, bodyLength=" << n;
-  } else {
-    RDDLOG(V3) << *this << " bodyLength=" << n;
-  }
-  if (n == 0) {
-    state_ = kOnReadingFinish;
-  }
-  msg_ = std::move(msg);
+void HTTPTransport::onHeadersComplete(std::unique_ptr<HTTPMessage> msg) {
+  headers = std::move(msg);
 }
 
-void HTTPEvent::onBody(std::unique_ptr<IOBuf> chain) {
-  body_ = std::move(chain);
+void HTTPTransport::onBody(std::unique_ptr<IOBuf> chain) {
+  body = std::move(chain);
 }
 
-void HTTPEvent::onChunkHeader(size_t length) {}
+void HTTPTransport::onChunkHeader(size_t length) {}
 
-void HTTPEvent::onChunkComplete() {}
+void HTTPTransport::onChunkComplete() {}
 
-void HTTPEvent::onTrailersComplete(std::unique_ptr<HTTPHeaders> trailers) {
-  trailers_ = std::move(trailers);
+void HTTPTransport::onTrailersComplete(std::unique_ptr<HTTPHeaders> trailers_) {
+  trailers = std::move(trailers_);
 }
 
-void HTTPEvent::onMessageComplete() {
+void HTTPTransport::onMessageComplete() {
   state_ = kOnReadingFinish;
 }
 
-void HTTPEvent::onError(const HTTPException& error) {
+void HTTPTransport::onError(const HTTPException& error) {
   state_ = kError;
 }
 
-void HTTPEvent::sendHeaders(const HTTPMessage& headers, HTTPHeaderSize* size) {
+void HTTPTransport::sendHeaders(const HTTPMessage& headers,
+                                HTTPHeaderSize* size) {
   codec_.generateHeader(writeBuf_, headers, false, size);
 }
 
-size_t HTTPEvent::sendBody(std::unique_ptr<IOBuf> body, bool includeEOM) {
+size_t HTTPTransport::sendBody(std::unique_ptr<IOBuf> body, bool includeEOM) {
   return codec_.generateBody(writeBuf_, std::move(body), includeEOM);
 }
 
-size_t HTTPEvent::sendChunkHeader(size_t length) {
+size_t HTTPTransport::sendChunkHeader(size_t length) {
   return codec_.generateChunkHeader(writeBuf_, length);
 }
 
-size_t HTTPEvent::sendChunkTerminator() {
+size_t HTTPTransport::sendChunkTerminator() {
   return codec_.generateChunkTerminator(writeBuf_);
 }
 
-size_t HTTPEvent::sendTrailers(const HTTPHeaders& trailers) {
+size_t HTTPTransport::sendTrailers(const HTTPHeaders& trailers) {
   return codec_.generateTrailers(writeBuf_, trailers);
 }
 
-size_t HTTPEvent::sendEOM() {
+size_t HTTPTransport::sendEOM() {
   return codec_.generateEOM(writeBuf_);
 }
 
-size_t HTTPEvent::sendAbort() {
+size_t HTTPTransport::sendAbort() {
   return codec_.generateAbort(writeBuf_);
 }
 

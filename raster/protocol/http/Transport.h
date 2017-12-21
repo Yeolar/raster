@@ -4,26 +4,61 @@
 
 #pragma once
 
-#include "raster/protocol/http/HTTPMessage.h"
+#include "raster/protocol/http/HTTP1xCodec.h"
 
 namespace rdd {
 
-class HTTPTransport {
+class HTTPTransport : public HTTP1xCodec::Callback {
 public:
-  virtual void sendHeaders(const HTTPMessage& headers,
-                           HTTPHeaderSize* size) = 0;
+  enum TransportState {
+    kInit,
+    kOnReading,
+    kOnReadingFinish,
+    kOnWriting,
+    kOnWritingFinish,
+    kError,
+  };
 
-  virtual size_t sendBody(std::unique_ptr<IOBuf> body, bool includeEOM) = 0;
+  HTTPTransport(TransportDirection direction)
+    : codec_(direction),
+      state_(kInit) {
+    codec_.setCallback(this);
+  }
 
-  virtual size_t sendChunkHeader(size_t length) = 0;
+  // HTTP1xCodec::Callback
+  virtual void onMessageBegin(HTTPMessage* msg);
+  virtual void onHeadersComplete(std::unique_ptr<HTTPMessage> msg);
+  virtual void onBody(std::unique_ptr<IOBuf> chain);
+  virtual void onChunkHeader(size_t length);
+  virtual void onChunkComplete();
+  virtual void onTrailersComplete(std::unique_ptr<HTTPHeaders> trailers);
+  virtual void onMessageComplete();
+  virtual void onError(const HTTPException& error);
 
-  virtual size_t sendChunkTerminator() = 0;
+  void sendHeaders(const HTTPMessage& headers, HTTPHeaderSize* size);
+  size_t sendBody(std::unique_ptr<IOBuf> body, bool includeEOM);
+  size_t sendChunkHeader(size_t length);
+  size_t sendChunkTerminator();
+  size_t sendTrailers(const HTTPHeaders& trailers);
+  size_t sendEOM();
+  size_t sendAbort();
 
-  virtual size_t sendTrailers(const HTTPHeaders& trailers) = 0;
+  void parseReadData(IOBuf* buf);
+  void pushWriteData(IOBuf* buf);
 
-  virtual size_t sendEOM() = 0;
+  size_t getContentLength();
 
-  virtual size_t sendAbort() = 0;
+  TransportState state() const { return state_; }
+  void setState(TransportState state) { state_ = state; }
+
+  std::unique_ptr<HTTPMessage> headers;
+  std::unique_ptr<IOBuf> body;
+  std::unique_ptr<HTTPHeaders> trailers;
+
+private:
+  TransportState state_;
+  HTTP1xCodec codec_;
+  IOBufQueue writeBuf_{IOBufQueue::cacheChainLength()};
 };
 
 } // namespace rdd

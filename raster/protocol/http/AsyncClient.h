@@ -8,36 +8,10 @@
 
 #include "raster/net/AsyncClient.h"
 #include "raster/protocol/http/Protocol.h"
+#include "raster/protocol/http/Transport.h"
 #include "raster/util/Logging.h"
 #include "raster/util/ScopeGuard.h"
 
-/*
- * callback mode:
- * (if you have a thrift TClient, and want to do some custom work)
- *
- *  class MyAsyncClient : public HTTPAsyncClient {
- *  public:
- *    MyAsyncClient(const ClientOption& option)
- *      : HTTPAsyncClient<TClient>(option, true) {}  // use callback mode
- *
- *    virtual void callback() {
- *      Res res;
- *      recv(&TClient::recv_Func, res);
- *      doSomeWorkOnResult(res);  // do some custom work
- *    }
- *  };
- *
- *  MyAsyncClient* client = new MyAsyncClient(option);
- *  if (!client->connect()) {
- *    delete client;
- *  }
- *  if (!client->fetch(send_func, req)) {
- *    delete client;
- *  }
- *
- *  // when client fetch finished, the callback method
- *  // will be called atomatically.
- */
 namespace rdd {
 
 class HTTPAsyncClient : public AsyncClient {
@@ -55,6 +29,15 @@ public:
   }
   virtual ~HTTPAsyncClient() {}
 
+  void setHTTPVersionOverride(bool enabled) {
+    forceHTTP1xCodecTo1_1_ = enabled;
+  }
+
+  virtual void onConnect() {
+    codec_ = make_unique<HTTP1xCodec>(TransportDirection::UPSTREAM,
+                                      forceHTTP1xCodecTo1_1_);
+  }
+
   bool recv() {
     if (!event_ || event_->type() == Event::FAIL) {
       return false;
@@ -62,26 +45,34 @@ public:
     return true;
   }
 
-  bool send(XXX) {
+  bool send(const HTTPMessage& headers, std::unique_ptr<IOBuf> body) {
     if (!event_) {
       return false;
     }
+    transport()->sendHeaders(headers, nullptr);
+    transport()->sendBody(std::move(body), false);
+    transport()->sendEOM();
+    event<HTTPEvent>()->pushWriteData();
     return true;
   }
 
-  bool fetch(XXX) {
-    return (send(XXX) &&
+  bool fetch(const HTTPMessage& headers, std::unique_ptr<IOBuf> body) {
+    return (send(headers, std::move(body)) &&
             FiberManager::yield() &&
             recv());
   }
 
-  bool fetchNoWait(XXX) {
-    if (send(XXX)) {
+  bool fetchNoWait(const HTTPMessage& headers, std::unique_ptr<IOBuf> body) {
+    if (send(headers, std::move(body))) {
       Singleton<Actor>::get()->execute((AsyncClient*)this);
       return true;
     }
     return false;
   }
+
+  HTTPMessage* message() const { return event<HTTPEvent>()->message(); }
+  IOBuf* body() const { return event<HTTPEvent>()->body(); }
+  HTTPHeaders* trailers() const { return event<HTTPEvent>()->trailers(); }
 
 protected:
   virtual std::shared_ptr<Channel> makeChannel() {
@@ -89,6 +80,14 @@ protected:
     return std::make_shared<Channel>(
         Channel::HTTP, peer_, timeoutOpt_, protocol);
   }
+
+private:
+  HTTPTransport* transport() const {
+    return event<HTTPTransport>();
+  }
+
+  std::unique_ptr<HTTP1xCodec> codec_;
+  bool forceHTTP1xCodecTo1_1_;
 };
 
 } // namespace rdd

@@ -11,19 +11,22 @@
 namespace rdd {
 
 bool HTTPProcessor::run() {
-  HTTPEvent* httpev = event<HTTPEvent>();
-  handler_->message = httpev->message();
-  handler_->body = httpev->body();
-  handler_->trailers = httpev->trailers();
-  handler_->response.setupTransport(httpev);
+  HTTPTransport& transport = event<HTTPEvent>()->transport;
+
+  transport.headers->dumpMessage(logging::LOG_V1);
+
+  handler_->headers = transport.headers.get();
+  handler_->body = transport.body.get();
+  handler_->trailers = transport.trailers.get();
+  handler_->response.setupTransport(&transport);
 
   SCOPE_EXIT {
-    httpev->pushWriteData();
+    transport.pushWriteData(event_->wbuf.get());
   };
 
   try {
     handler_->prepare();
-    switch (httpev->message()->getMethod()) {
+    switch (transport.headers->getMethod()) {
       case HTTPMethod::GET:
         handler_->onGet();
         break;
@@ -70,7 +73,7 @@ HTTPProcessorFactory::HTTPProcessorFactory(
 
 std::shared_ptr<Processor> HTTPProcessorFactory::create(Event* event) {
   HTTPEvent* httpev = reinterpret_cast<HTTPEvent*>(event);
-  auto url = httpev->message()->getURL();
+  auto url = httpev->transport.headers->getURL();
   for (auto& kv : routers_) {
     boost::cmatch match;
     if (boost::regex_match(url.c_str(), match, kv.second)) {

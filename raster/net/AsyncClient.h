@@ -43,7 +43,10 @@ public:
     return event_ != nullptr;
   }
 
-  Event* event() const { return event_.get(); }
+  template <class T = Event>
+  T* event() const {
+    return reinterpret_cast<T*>(event_.get());
+  }
 
 protected:
   virtual std::shared_ptr<Channel> makeChannel() = 0;

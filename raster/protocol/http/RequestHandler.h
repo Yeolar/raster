@@ -48,7 +48,7 @@ public:
   std::string getBrowserLocale();
   virtual std::string getUserLocale() { return ""; }
 
-  HTTPMessage* message;
+  HTTPMessage* headers;
   IOBuf* body;
   HTTPHeaders* trailers;
   ResponseBuilder response;
