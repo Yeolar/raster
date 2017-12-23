@@ -52,4 +52,10 @@ int Transport::writeData(Socket* socket) {
   return 1;
 }
 
+void Transport::clone(Transport* other) {
+  state_ = other->state_;
+  readBuf_.append(other->readBuf_.front()->clone());
+  writeBuf_.append(other->writeBuf_.front()->clone());
+}
+
 } // namespace rdd

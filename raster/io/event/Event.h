@@ -139,8 +139,6 @@ public:
   template <class T>
   const T& userContext() const { return *((T*)userCtx_.ptr); }
 
-  NOCOPY(Event);
-
   template <class T = Transport>
   T* transport() const {
     return reinterpret_cast<T*>(transport_.get());
@@ -152,6 +150,8 @@ public:
   int writeData() {
     return transport_->writeData(socket_.get());
   }
+
+  NOCOPY(Event);
 
 protected:
   std::unique_ptr<Transport> transport_;

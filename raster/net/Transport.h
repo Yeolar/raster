@@ -23,7 +23,7 @@ public:
 
   virtual ~Transport() {}
 
-  virtual void reset() {}
+  virtual void reset() = 0;
 
   virtual void processReadData() = 0;
 
@@ -34,6 +34,8 @@ public:
   int readData(Socket* socket);
 
   int writeData(Socket* socket);
+
+  void clone(Transport* other);
 
 protected:
   IngressState state_;

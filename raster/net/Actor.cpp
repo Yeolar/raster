@@ -111,7 +111,6 @@ void Actor::addEvent(Event* event) {
 }
 
 void Actor::forwardEvent(Event* event, const Peer& peer) {
-}/*
   auto socket = std::make_shared<Socket>(0);
   if (!(*socket) ||
       !(socket->setReuseAddr()) ||
@@ -122,12 +121,11 @@ void Actor::forwardEvent(Event* event, const Peer& peer) {
     return;
   }
   Event* evcopy = new Event(event->channel(), socket);
-  event->wbuf->cloneInto(*evcopy->wbuf);
-  event->wbuf->unshare();
+  evcopy->transport()->clone(event->transport());
   evcopy->setForward();
   evcopy->setState(Event::kWrited);
   ioPool_->getEventLoop()->addEvent(evcopy);
-}*/
+}
 
 void Actor::monitoring() const {
   RDDMON_AVG("totalfiber", Fiber::count());
