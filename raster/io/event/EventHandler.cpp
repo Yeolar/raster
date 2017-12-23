@@ -8,7 +8,7 @@
 
 namespace rdd {
 
-void EventHandler::handle(Event* event, uint32_t etype) {
+void EventHandler::handle(Event* event, Poll::Event etype) {
   RDDLOG(V2) << *event << " on event, type=" << etype;
   switch (event->state()) {
     case Event::kListen:

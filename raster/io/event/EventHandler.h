@@ -5,6 +5,7 @@
 #pragma once
 
 #include "raster/io/event/Event.h"
+#include "raster/io/event/Poll.h"
 
 namespace rdd {
 
@@ -14,7 +15,7 @@ class EventHandler {
 public:
   EventHandler(EventLoop* loop) : loop_(loop) {}
 
-  void handle(Event* event, uint32_t etype);
+  void handle(Event* event, Poll::Event etype);
 
   friend class EventLoop;
 

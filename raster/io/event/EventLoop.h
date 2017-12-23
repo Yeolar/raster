@@ -19,7 +19,7 @@ class Channel;
 
 class EventLoop {
 public:
-  EventLoop(int pollSize = Poll::MAX_EVENTS,
+  EventLoop(int pollSize = Poll::kMaxEvents,
             int pollTimeout = 1000/* 1s */);
 
   ~EventLoop() {}

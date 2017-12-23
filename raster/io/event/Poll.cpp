@@ -40,9 +40,9 @@ int Poll::poll(int timeout) {
   return r;
 }
 
-void Poll::control(int op, int fd, uint32_t events, void* ptr) {
+void Poll::control(int op, int fd, Event events, void* ptr) {
   epoll_event ev;
-  ev.events = events;
+  ev.events = events.data;
   ev.data.ptr = ptr;
   int r = epoll_ctl(fd_, op, fd, &ev);
   if (r == -1) {
@@ -52,6 +52,29 @@ void Poll::control(int op, int fd, uint32_t events, void* ptr) {
     RDDPLOG(ERROR) << "epoll_ctl " << operationName(op)
       << " ev(" << events << ") on fd(" << fd << ") failed";
   }
+}
+
+std::ostream& operator<<(std::ostream& os, const Poll::Event& event) {
+  int more = 0;
+  auto sepchar = [&]() -> char {
+    return (more || more++) ? '|' : '(';
+  };
+  if (event.data & EPOLLIN) os << sepchar() << "EPOLLIN";
+  if (event.data & EPOLLPRI) os << sepchar() << "EPOLLPRI";
+  if (event.data & EPOLLOUT) os << sepchar() << "EPOLLOUT";
+  if (event.data & EPOLLRDNORM) os << sepchar() << "EPOLLRDNORM";
+  if (event.data & EPOLLRDBAND) os << sepchar() << "EPOLLRDBAND";
+  if (event.data & EPOLLWRNORM) os << sepchar() << "EPOLLWRNORM";
+  if (event.data & EPOLLWRBAND) os << sepchar() << "EPOLLWRBAND";
+  if (event.data & EPOLLMSG) os << sepchar() << "EPOLLMSG";
+  if (event.data & EPOLLERR) os << sepchar() << "EPOLLERR";
+  if (event.data & EPOLLHUP) os << sepchar() << "EPOLLHUP";
+  if (event.data & EPOLLRDHUP) os << sepchar() << "EPOLLRDHUP";
+  if (event.data & EPOLLWAKEUP) os << sepchar() << "EPOLLWAKEUP";
+  if (event.data & EPOLLONESHOT) os << sepchar() << "EPOLLONESHOT";
+  if (event.data & EPOLLET) os << sepchar() << "EPOLLET";
+  os << ")";
+  return os;
 }
 
 } // namespace rdd

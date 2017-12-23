@@ -68,14 +68,13 @@ void EventLoop::loopBody(bool once) {
       int n = poll_.poll(timeout_);
       if (n >= 0) {
         for (int i = 0; i < n; ++i) {
-          epoll_data_t edata;
-          uint32_t etype = poll_.getData(i, edata);
-          Event* event = (Event*) edata.ptr;
+          struct epoll_event p = poll_.get(i);
+          Event* event = (Event*) p.data.ptr;
           if (event) {
             if (event->state() == Event::kWaker) {
               waker_.consume();
             } else {
-              handler_.handle(event, etype);
+              handler_.handle(event, p.events);
             }
           }
         }

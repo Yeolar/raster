@@ -13,7 +13,9 @@ void BinaryTransport::reset() {
   headerSize_ = 0;
   headersComplete_ = false;
   header = 0;
-  body->clear();
+  if (body) {
+    body->clear();
+  }
 }
 
 void BinaryTransport::processReadData() {

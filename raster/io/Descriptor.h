@@ -37,7 +37,7 @@ protected:
 };
 
 inline std::ostream& operator<<(std::ostream& os, Descriptor& d) {
-  os << d.role() << ":" << d.fd() << "[" << d.peer() << "]";
+  os << d.role()[0] << ":" << d.fd() << "[" << d.peer() << "]";
   return os;
 }
 

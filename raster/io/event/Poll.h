@@ -4,13 +4,20 @@
 
 #pragma once
 
+#include <iostream>
+#include <utility>
 #include <sys/epoll.h>
 
 namespace rdd {
 
 class Poll {
 public:
-  static constexpr int MAX_EVENTS = 1024;
+  struct Event {
+    uint32_t data;
+    Event(uint32_t events) : data(events) {}
+  };
+
+  static constexpr int kMaxEvents = 1024;
 
   explicit Poll(int size);
 
@@ -18,7 +25,7 @@ public:
 
   void close();
 
-  void add(int fd, uint32_t events, void* ptr) {
+  void add(int fd, Event events, void* ptr) {
     control(EPOLL_CTL_ADD, fd, events, ptr);
   }
 
@@ -28,9 +35,8 @@ public:
 
   int poll(int timeout);
 
-  uint32_t getData(int i, epoll_data_t& data) const {
-    data = events_[i].data;
-    return events_[i].events;
+  struct epoll_event get(int i) const {
+    return events_[i];
   }
 
 private:
@@ -42,11 +48,13 @@ private:
     return "unknown";
   }
 
-  void control(int op, int fd, uint32_t events, void* ptr);
+  void control(int op, int fd, Event events, void* ptr);
 
   int fd_;
   int size_;
   epoll_event* events_;
 };
+
+std::ostream& operator<<(std::ostream& os, const Poll::Event& event);
 
 } // namespace rdd
