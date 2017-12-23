@@ -19,10 +19,7 @@ public:
   virtual ~EventExecutor() {}
 
   void handle() {
-    auto processor = event_->processor();
-    processor->decodeData();
-    processor->run();
-    processor->encodeData();
+    event_->processor()->run();
     event_->setType(Event::TOWRITE);
   }
 

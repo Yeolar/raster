@@ -5,33 +5,9 @@
 #pragma once
 
 #include "raster/3rd/thrift/transport/TBufferTransports.h"
-#include "raster/net/Protocol.h"
+#include "raster/util/Logging.h"
 
 namespace rdd {
-
-// protocol of thrift framed
-class TFramedProtocol : public HBinaryProtocol<uint32_t> {
-public:
-  TFramedProtocol() : HBinaryProtocol<uint32_t>() {}
-  virtual ~TFramedProtocol() {}
-
-  virtual size_t bodyLength(const uint32_t& header) const {
-    return ntohl(header);
-  }
-};
-
-// protocol of thrift zlib
-class TZlibProtocol : public Protocol {
-public:
-  TZlibProtocol() : Protocol() {}
-  virtual ~TZlibProtocol() {}
-
-  virtual int readData(Event* event) {
-    static const ByteRange kEnd((uint8_t*)"\x00\x00\xff\xff", 4);
-    return Protocol::readDataUntil(event, kEnd);
-  }
-};
-
 namespace thrift {
 
 inline void setSeqId(::apache::thrift::transport::TMemoryBuffer* buf,
@@ -65,5 +41,4 @@ inline int32_t getSeqId(::apache::thrift::transport::TMemoryBuffer* buf) {
 }
 
 } // namespace thrift
-
 } // namespace rdd

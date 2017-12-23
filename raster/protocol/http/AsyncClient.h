@@ -29,15 +29,6 @@ public:
   }
   virtual ~HTTPAsyncClient() {}
 
-  void setHTTPVersionOverride(bool enabled) {
-    forceHTTP1xCodecTo1_1_ = enabled;
-  }
-
-  virtual void onConnect() {
-    codec_ = make_unique<HTTP1xCodec>(TransportDirection::UPSTREAM,
-                                      forceHTTP1xCodecTo1_1_);
-  }
-
   bool recv() {
     if (!event_ || event_->type() == Event::FAIL) {
       return false;
@@ -49,10 +40,10 @@ public:
     if (!event_) {
       return false;
     }
-    transport()->sendHeaders(headers, nullptr);
-    transport()->sendBody(std::move(body), false);
-    transport()->sendEOM();
-    event<HTTPEvent>()->pushWriteData();
+    auto transport = event_->transport<HTTPTransport>();
+    transport->sendHeaders(headers, nullptr);
+    transport->sendBody(std::move(body), false);
+    transport->sendEOM();
     return true;
   }
 
@@ -70,24 +61,23 @@ public:
     return false;
   }
 
-  HTTPMessage* message() const { return event<HTTPEvent>()->message(); }
-  IOBuf* body() const { return event<HTTPEvent>()->body(); }
-  HTTPHeaders* trailers() const { return event<HTTPEvent>()->trailers(); }
+  HTTPMessage* message() const {
+    return event_->transport<HTTPTransport>()->headers.get();
+  }
+  IOBuf* body() const {
+    return event_->transport<HTTPTransport>()->body.get();
+  }
+  HTTPHeaders* trailers() const {
+    return event_->transport<HTTPTransport>()->trailers.get();
+  }
 
 protected:
   virtual std::shared_ptr<Channel> makeChannel() {
-    std::shared_ptr<Protocol> protocol(new HTTPProtocol());
     return std::make_shared<Channel>(
-        Channel::HTTP, peer_, timeoutOpt_, protocol);
+        peer_,
+        timeoutOpt_,
+        make_unique<HTTPTransportFactory>(TransportDirection::UPSTREAM));
   }
-
-private:
-  HTTPTransport* transport() const {
-    return event<HTTPTransport>();
-  }
-
-  std::unique_ptr<HTTP1xCodec> codec_;
-  bool forceHTTP1xCodecTo1_1_;
 };
 
 } // namespace rdd

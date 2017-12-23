@@ -5,35 +5,10 @@
 #pragma once
 
 #include "raster/net/AsyncClient.h"
-#include "raster/protocol/proto/Protocol.h"
+#include "raster/protocol/binary/Transport.h"
 #include "raster/protocol/proto/RpcChannel.h"
 #include "raster/protocol/proto/RpcController.h"
 
-/*
- * callback mode:
- * (if you have a pb Stub, and want to do some custom work)
- *
- *  class MyAsyncClient : public PBAsyncClient<Stub> {
- *  public:
- *    MyAsyncClient(const ClientOption& option)
- *      : PBAsyncClient<Stub>(option, true) {}  // use callback mode
- *
- *    virtual void callback() {
- *      recv();
- *    }
- *  };
- *
- *  MyAsyncClient* client = new MyAsyncClient(option);
- *  if (!client->connect()) {
- *    delete client;
- *  }
- *  if (!client->fetch(func, res, req)) {
- *    delete client;
- *  }
- *
- *  // when client fetch finished, the callback method
- *  // will be called atomatically.
- */
 namespace rdd {
 
 template <class C>
@@ -59,9 +34,8 @@ public:
     if (!event_ || event_->type() == Event::FAIL) {
       return false;
     }
-    std::unique_ptr<IOBuf> buf;
-    proto::decodeData(event_->rbuf, buf);
-    rpcChannel_->process(buf);
+    auto transport = event_->transport<BinaryTransport>();
+    rpcChannel_->process(transport->body);
     return true;
   }
 
@@ -101,9 +75,10 @@ public:
 
 protected:
   virtual std::shared_ptr<Channel> makeChannel() {
-    std::shared_ptr<Protocol> protocol(new PBBinaryProtocol());
     return std::make_shared<Channel>(
-        Channel::DEFAULT, peer_, timeoutOpt_, protocol);
+        peer_,
+        timeoutOpt_,
+        make_unique<BinaryTransportFactory>());
   }
 
 private:

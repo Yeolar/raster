@@ -30,8 +30,8 @@ public:
   virtual bool IsCanceled() const;
   virtual void NotifyOnCancel(google::protobuf::Closure* closure);
 
-  void serializeTo(io::Appender& out) const;
-  void parseFrom(io::RWPrivateCursor& in);
+  void parseFrom(io::Cursor& in);
+  void serializeTo(IOBufQueue& out) const;
 
   void copyFrom(const PBRpcController& o);
 

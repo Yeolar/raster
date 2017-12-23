@@ -102,6 +102,7 @@ add_library(raster_static STATIC
     $<TARGET_OBJECTS:raster_io_event>
     $<TARGET_OBJECTS:raster_net>
     $<TARGET_OBJECTS:raster_plugins_flume>
+    $<TARGET_OBJECTS:raster_protocol_binary>
     $<TARGET_OBJECTS:raster_protocol_http>
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_ssl>
@@ -120,6 +121,7 @@ add_library(raster_shared SHARED
     $<TARGET_OBJECTS:raster_io_event>
     $<TARGET_OBJECTS:raster_net>
     $<TARGET_OBJECTS:raster_plugins_flume>
+    $<TARGET_OBJECTS:raster_protocol_binary>
     $<TARGET_OBJECTS:raster_protocol_http>
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_ssl>

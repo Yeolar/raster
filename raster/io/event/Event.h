@@ -13,16 +13,13 @@
 #include "raster/io/IOBuf.h"
 #include "raster/io/Waker.h"
 #include "raster/net/Socket.h"
+#include "raster/net/Transport.h"
 #include "raster/util/ContextWrapper.h"
 
 namespace rdd {
 
-class Event;
 class Channel;
 class Processor;
-
-Event* createEvent(const std::shared_ptr<Channel>& channel,
-                   const std::shared_ptr<Socket>& socket);
 
 class Event {
 public:
@@ -57,7 +54,7 @@ public:
 
   virtual ~Event();
 
-  virtual void reset();
+  void reset();
 
   Descriptor* descriptor() const { return (socket() ?: (Descriptor*)waker_); }
   int fd() const { return descriptor()->fd(); }
@@ -86,13 +83,10 @@ public:
   void setForward() { action_ = FORWARD; }
 
   std::shared_ptr<Channel> channel() const;
-  std::shared_ptr<Processor> processor();
+  std::unique_ptr<Processor> processor();
 
   Executor* executor() const { return executor_; }
   void setExecutor(Executor* executor) { executor_ = executor; }
-
-  int readData();
-  int writeData();
 
   void restart();
 
@@ -149,11 +143,20 @@ public:
 
   NOCOPY(Event);
 
-  std::unique_ptr<IOBuf> rbuf;
-  std::unique_ptr<IOBuf> wbuf;
+  template <class T = Transport>
+  T* transport() const {
+    return reinterpret_cast<T*>(transport_.get());
+  }
 
-  size_t rlen;  // left to read
-  size_t wlen;  // already write
+  int readData() {
+    return transport_->readData(socket_.get());
+  }
+  int writeData() {
+    return transport_->writeData(socket_.get());
+  }
+
+protected:
+  std::unique_ptr<Transport> transport_;
 
 private:
   uint64_t timeout() const {

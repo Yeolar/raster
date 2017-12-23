@@ -26,7 +26,6 @@ public:
 
   virtual void prepare() {}
   virtual void finish() {}
-  virtual void setDefaultHeaders() {}
 
   void clear();
 

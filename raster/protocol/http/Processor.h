@@ -20,15 +20,7 @@ public:
 
   virtual ~HTTPProcessor() {}
 
-  virtual bool decodeData() {
-    return true;
-  }
-
-  virtual bool encodeData() {
-    return true;
-  }
-
-  virtual bool run();
+  virtual void run();
 
 protected:
   std::shared_ptr<RequestHandler> handler_;
@@ -39,7 +31,7 @@ public:
   HTTPProcessorFactory(const std::map<std::string, std::string>& routers);
   virtual ~HTTPProcessorFactory() {}
 
-  virtual std::shared_ptr<Processor> create(Event* event);
+  virtual std::unique_ptr<Processor> create(Event* event);
 
 private:
   std::map<std::string, boost::regex> routers_;

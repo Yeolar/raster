@@ -5,8 +5,7 @@
 #pragma once
 
 #include "raster/net/AsyncClient.h"
-#include "raster/protocol/binary/Encoding.h"
-#include "raster/protocol/binary/Protocol.h"
+#include "raster/protocol/binary/Transport.h"
 
 namespace rdd {
 
@@ -25,33 +24,32 @@ public:
   }
   virtual ~BinaryAsyncClient() {}
 
-  template <class Res = ByteRange>
-  bool recv(Res& _return) {
+  bool recv(ByteRange& _return) {
     if (!event_ || event_->type() == Event::FAIL) {
       return false;
     }
-    binary::decodeData(event_->rbuf, &_return);
+    auto transport = event_->transport<BinaryTransport>();
+    _return = transport->body->coalesce();
     return true;
   }
 
-  template <class Req = ByteRange>
-  bool send(const Req& request) {
+  bool send(const ByteRange& request) {
     if (!event_) {
       return false;
     }
-    binary::encodeData(event_->wbuf, (Req*)&request);
+    auto transport = event_->transport<BinaryTransport>();
+    transport->sendHeader(request.size());
+    transport->sendBody(IOBuf::copyBuffer(request));
     return true;
   }
 
-  template <class Req = ByteRange, class Res = ByteRange>
-  bool fetch(Res& _return, const Req& request) {
+  bool fetch(ByteRange& _return, const ByteRange& request) {
     return (send(request) &&
             FiberManager::yield() &&
             recv(_return));
   }
 
-  template <class Req = ByteRange>
-  bool fetchNoWait(const Req& request) {
+  bool fetchNoWait(const ByteRange& request) {
     if (send(request)) {
       Singleton<Actor>::get()->execute((AsyncClient*)this);
       return true;
@@ -61,9 +59,10 @@ public:
 
 protected:
   virtual std::shared_ptr<Channel> makeChannel() {
-    std::shared_ptr<Protocol> protocol(new BinaryProtocol());
     return std::make_shared<Channel>(
-        Channel::DEFAULT, peer_, timeoutOpt_, protocol);
+        peer_,
+        timeoutOpt_,
+        make_unique<BinaryTransportFactory>());
   }
 };
 

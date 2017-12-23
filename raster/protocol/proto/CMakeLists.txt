@@ -2,6 +2,7 @@
 
 set(RASTER_PROTOCOL_PROTO_SRCS
     AsyncServer.cpp
+    IOBufInputStream.cpp
     Message.cpp
     RpcChannel.cpp
     RpcController.cpp
@@ -11,10 +12,9 @@ add_library(raster_protocol_proto OBJECT ${RASTER_PROTOCOL_PROTO_SRCS})
 install(FILES
     AsyncClient.h
     AsyncServer.h
-    Encoding.h
+    IOBufInputStream.h
     Message.h
     Processor.h
-    Protocol.h
     RpcChannel.h
     RpcController.h
     SyncClient.h

@@ -3,8 +3,7 @@
 install(FILES
     AsyncClient.h
     AsyncServer.h
-    Encoding.h
     Processor.h
-    Protocol.h
     SyncClient.h
+    Util.h
     DESTINATION include/raster/protocol/thrift)

@@ -29,7 +29,7 @@ void EventLoop::listen(const std::shared_ptr<Channel>& channel, int backlog) {
       !(socket->listen(backlog))) {
     throw std::runtime_error("socket listen failed");
   }
-  Event *event = createEvent(channel, socket);
+  Event *event = new Event(channel, socket);
   if (!event) {
     throw std::runtime_error("create listening event failed");
   }

@@ -7,10 +7,9 @@
 #include <sstream>
 #include <google/protobuf/service.h>
 
-#include "raster/io/event/Event.h"
 #include "raster/net/Processor.h"
+#include "raster/protocol/binary/Transport.h"
 #include "raster/protocol/proto/AsyncServer.h"
-#include "raster/protocol/proto/Encoding.h"
 #include "raster/protocol/proto/Message.h"
 
 namespace rdd {
@@ -22,45 +21,34 @@ public:
 
   virtual ~PBProcessor() {}
 
-  virtual bool decodeData() {
-    return rdd::proto::decodeData(event_->rbuf, ibuf_);
-  }
-
-  virtual bool encodeData() {
-    return rdd::proto::encodeData(event_->wbuf, obuf_);
-  }
-
-  virtual bool run() {
+  virtual void run() {
+    auto transport = event_->transport<BinaryTransport>();
     try {
-      io::RWPrivateCursor in(ibuf_.get());
+      io::Cursor in(transport->body.get());
       int type = proto::readInt(in);
       switch (type) {
-        case proto::REQUEST_MSG:
-        {
+        case proto::REQUEST_MSG: {
           std::string callId;
           std::shared_ptr<google::protobuf::Message> request;
           const google::protobuf::MethodDescriptor* descriptor = nullptr;
           proto::parseRequestFrom(in, callId, descriptor, request);
           process(callId, descriptor, request);
-        }
           break;
-        case proto::CANCEL_MSG:
-        {
+        }
+        case proto::CANCEL_MSG: {
           std::string callId;
           proto::parseCancelFrom(in, callId);
           cancel(callId);
-        }
           break;
+        }
         default:
           RDDLOG(FATAL) << "unknown message type: " << type;
       }
-      return true;
     } catch (std::exception& e) {
       RDDLOG(WARN) << "catch exception: " << e.what();
     } catch (...) {
       RDDLOG(WARN) << "catch unknown exception";
     }
-    return false;
   }
 
 private:
@@ -109,14 +97,15 @@ private:
   void sendResponse(const std::string& callId,
                     PBRpcController* controller,
                     google::protobuf::Message* response) {
-    obuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
-    io::Appender out(obuf_.get(), Protocol::CHUNK_SIZE);
+    IOBufQueue out(IOBufQueue::cacheChainLength());
     proto::serializeResponse(callId, *controller, response, out);
+    auto buf = out.move();
+    auto transport = event_->transport<BinaryTransport>();
+    transport->sendHeader(buf->computeChainDataLength());
+    transport->sendBody(std::move(buf));
   }
 
   PBAsyncServer* server_;
-  std::unique_ptr<IOBuf> ibuf_;
-  std::unique_ptr<IOBuf> obuf_;
 };
 
 class PBProcessorFactory : public ProcessorFactory {
@@ -124,8 +113,8 @@ public:
   PBProcessorFactory(PBAsyncServer* server) : server_(server) {}
   virtual ~PBProcessorFactory() {}
 
-  virtual std::shared_ptr<Processor> create(Event* event) {
-    return std::shared_ptr<Processor>(new PBProcessor(event, server_));
+  virtual std::unique_ptr<Processor> create(Event* event) {
+    return make_unique<PBProcessor>(event, server_);
   }
 
 private:

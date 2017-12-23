@@ -5,7 +5,6 @@
 #include "raster/framework/Monitor.h"
 #include "raster/io/event/EventHandler.h"
 #include "raster/net/Actor.h"
-#include "raster/net/Protocol.h"
 
 namespace rdd {
 
@@ -47,7 +46,7 @@ void EventHandler::onListen(Event* event) {
     RDDLOG(WARN) << "exceed connection capacity, drop request";
     return;
   }
-  Event *evnew = createEvent(event->channel(), socket);
+  Event *evnew = new Event(event->channel(), socket);
   if (!evnew) {
     RDDLOG(ERROR) << "create event failed";
     return;

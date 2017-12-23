@@ -5,36 +5,26 @@
 #pragma once
 
 #include "raster/net/Processor.h"
-#include "raster/net/Protocol.h"
+#include "raster/net/Transport.h"
 
 namespace rdd {
 
 class Channel {
 public:
-  enum {
-    DEFAULT,
-    HTTP,
-  };
-
-  Channel(int type,
-          const Peer& peer,
+  Channel(const Peer& peer,
           const TimeoutOption& timeoutOpt,
-          const std::shared_ptr<Protocol>& protocol,
-          const std::shared_ptr<ProcessorFactory>& processorFactory
-            = std::shared_ptr<ProcessorFactory>())
-    : type_(type)
-    , id_(peer.port)
-    , peer_(peer)
-    , timeoutOpt_(timeoutOpt)
-    , protocol_(protocol)
-    , processorFactory_(processorFactory) {
+          std::unique_ptr<TransportFactory> transportFactory = nullptr,
+          std::unique_ptr<ProcessorFactory> processorFactory = nullptr)
+    : id_(peer.port),
+      peer_(peer),
+      timeoutOpt_(timeoutOpt),
+      transportFactory_(std::move(transportFactory)),
+      processorFactory_(std::move(processorFactory)) {
   }
 
   std::string str() const {
     return to<std::string>("channel[", id_, "]");
   }
-
-  int type() const { return type_; }
 
   int id() const { return id_; }
 
@@ -42,20 +32,20 @@ public:
 
   TimeoutOption timeoutOption() const { return timeoutOpt_; }
 
-  std::shared_ptr<Protocol> protocol() const {
-    return protocol_;
+  TransportFactory* transportFactory() const {
+    return transportFactory_.get();
   }
-  std::shared_ptr<ProcessorFactory> processorFactory() const {
-    return processorFactory_;
+
+  ProcessorFactory* processorFactory() const {
+    return processorFactory_.get();
   }
 
 private:
-  int type_;
   int id_;
   Peer peer_;
   TimeoutOption timeoutOpt_;
-  std::shared_ptr<Protocol> protocol_;
-  std::shared_ptr<ProcessorFactory> processorFactory_;
+  std::unique_ptr<TransportFactory> transportFactory_;
+  std::unique_ptr<ProcessorFactory> processorFactory_;
 };
 
 } // namespace rdd

@@ -6,13 +6,13 @@
 
 #include <memory>
 #include <string>
-#include <arpa/inet.h>
 #include <google/protobuf/service.h>
 
 #include "raster/io/event/Event.h"
 #include "raster/net/NetUtil.h"
 #include "raster/net/Socket.h"
-#include "raster/protocol/proto/Encoding.h"
+#include "raster/protocol/binary/Transport.h"
+#include "raster/protocol/proto/Message.h"
 #include "raster/util/LockedMap.h"
 
 namespace rdd {
@@ -33,7 +33,7 @@ public:
 
 protected:
   virtual void send(
-      std::unique_ptr<IOBuf>& buf,
+      std::unique_ptr<IOBuf> buf,
       std::function<void(bool, const std::string&)> resultCb) = 0;
 
 private:
@@ -85,30 +85,20 @@ public:
 
 private:
   virtual void send(
-      std::unique_ptr<IOBuf>& buf,
+      std::unique_ptr<IOBuf> buf,
       std::function<void(bool, const std::string&)> resultCb) {
-    uint32_t n = buf->computeChainDataLength();
-    n = htonl(n);
-    socket_.send(&n, sizeof(uint32_t));
-    io::Cursor cursor(buf.get());
-    while (!cursor.isAtEnd()) {
-      auto p = cursor.peek();
-      cursor += socket_.send((uint8_t*)p.first, p.second);
-    }
+    transport_.sendHeader(buf->computeChainDataLength());
+    transport_.sendBody(std::move(buf));
+    transport_.writeData(&socket_);
     resultCb(true, "");
 
-    socket_.recv(&n, sizeof(uint32_t));
-    n = ntohl(n);
-    std::unique_ptr<IOBuf> data(IOBuf::create(Protocol::CHUNK_SIZE));
-    io::Appender appender(data.get(), Protocol::CHUNK_SIZE);
-    appender.ensure(n);
-    socket_.recv(appender.writableData(), n);
-    appender.append(n);
-    process(data);
+    transport_.readData(&socket_);
+    process(transport_.body);
   }
 
   Peer peer_;
   Socket socket_;
+  BinaryTransport transport_;
 };
 
 class PBAsyncRpcChannel : public PBRpcChannel {
@@ -119,9 +109,11 @@ public:
 
 private:
   virtual void send(
-      std::unique_ptr<IOBuf>& buf,
+      std::unique_ptr<IOBuf> buf,
       std::function<void(bool, const std::string&)> resultCb) {
-    proto::encodeData(event_->wbuf, buf);
+    auto transport = event_->transport<BinaryTransport>();
+    transport->sendHeader(buf->computeChainDataLength());
+    transport->sendBody(std::move(buf));
     resultCb(true, "");
   }
 

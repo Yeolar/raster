@@ -6,7 +6,6 @@
 
 #include "raster/net/Service.h"
 #include "raster/protocol/thrift/Processor.h"
-#include "raster/protocol/thrift/Protocol.h"
 
 namespace rdd {
 
@@ -15,18 +14,16 @@ class TAsyncServer : public Service {
 public:
   If* handler() {
     auto pf = channel_->processorFactory();
-    return ((ThriftProcessorFactory<P, If, ThriftProcessor>*)(pf.get()))
-      ->handler();
+    return ((TProcessorFactory<P, If, TProcessor>*)(pf))->handler();
   }
 
   virtual void makeChannel(int port, const TimeoutOption& timeoutOpt) {
-    std::shared_ptr<Protocol> protocol(
-      new TFramedProtocol());
-    std::shared_ptr<ProcessorFactory> processorFactory(
-      new ThriftProcessorFactory<P, If, ThriftProcessor>());
     Peer peer = {"", port};
     channel_ = std::make_shared<Channel>(
-      Channel::DEFAULT, peer, timeoutOpt, protocol, processorFactory);
+        peer,
+        timeoutOpt,
+        make_unique<BinaryTransportFactory>(),
+        make_unique<TProcessorFactory<P, If, TProcessor>>());
   }
 };
 
@@ -35,18 +32,16 @@ class TZlibAsyncServer : public Service {
 public:
   If* handler() {
     auto pf = channel_->processorFactory();
-    return ((ThriftProcessorFactory<P, If, ThriftZlibProcessor>*)(pf.get()))
-      ->handler();
+    return ((TProcessorFactory<P, If, TZlibProcessor>*)(pf))->handler();
   }
 
   virtual void makeChannel(int port, const TimeoutOption& timeoutOpt) {
-    std::shared_ptr<Protocol> protocol(
-      new TZlibProtocol());
-    std::shared_ptr<ProcessorFactory> processorFactory(
-      new ThriftProcessorFactory<P, If, ThriftZlibProcessor>());
     Peer peer = {"", port};
     channel_ = std::make_shared<Channel>(
-      Channel::DEFAULT, peer, timeoutOpt, protocol, processorFactory);
+        peer,
+        timeoutOpt,
+        make_unique<ZlibTransportFactory>(),
+        make_unique<TProcessorFactory<P, If, TZlibProcessor>>());
   }
 };
 

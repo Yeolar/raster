@@ -5,22 +5,8 @@
 #include "raster/io/event/Event.h"
 #include "raster/io/event/EventExecutor.h"
 #include "raster/net/Channel.h"
-#include "raster/protocol/http/HTTPEvent.h"
 
 namespace rdd {
-
-Event* createEvent(const std::shared_ptr<Channel>& channel,
-                   const std::shared_ptr<Socket>& socket) {
-  switch (channel->type()) {
-    case Channel::DEFAULT:
-      return new Event(channel, socket);
-    case Channel::HTTP:
-      return new HTTPEvent(channel, socket);
-    default: break;
-  }
-  throw std::runtime_error(
-      to<std::string>("Undefined channel type: ", channel->type()));
-}
 
 Event* Event::getCurrentEvent() {
   ExecutorPtr executor = getCurrentExecutor();
@@ -55,16 +41,21 @@ Event::~Event() {
 
 void Event::reset() {
   restart();
+
   seqid_ = globalSeqid_.fetch_add(1);
   type_ = INIT;
   group_ = 0;
   action_ = NONE;
   waker_ = nullptr;
   executor_ = nullptr;
-  rbuf = IOBuf::create(Protocol::CHUNK_SIZE);
-  wbuf = IOBuf::create(Protocol::CHUNK_SIZE);
-  rlen = 0;
-  wlen = 0;
+
+  if (transport_) {
+    transport_->reset();
+  } else {
+    if (channel_->transportFactory()) {
+      transport_ = std::move(channel_->transportFactory()->create());
+    }
+  }
 }
 
 void Event::restart() {
@@ -102,19 +93,11 @@ std::shared_ptr<Channel> Event::channel() const {
   return channel_;
 }
 
-std::shared_ptr<Processor> Event::processor() {
+std::unique_ptr<Processor> Event::processor() {
   if (!channel_->processorFactory()) {
     throw std::runtime_error("client channel has no processor");
   }
   return channel_->processorFactory()->create(this);
-}
-
-int Event::readData() {
-  return channel_->protocol()->readData(this);
-}
-
-int Event::writeData() {
-  return channel_->protocol()->writeData(this);
 }
 
 } // namespace rdd

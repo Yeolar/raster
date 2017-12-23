@@ -21,13 +21,13 @@ DEFINE_string(conf, "server.json", "Server config file");
 namespace rdd {
 namespace fbs {
 
-class Proxy : public BinaryProcessor<> {
+class Proxy : public BinaryProcessor {
 public:
-  Proxy(Event* event) : BinaryProcessor<>(event) {
+  Proxy(Event* event) : BinaryProcessor(event) {
     RDDLOG(DEBUG) << "Proxy init";
   }
 
-  bool process(ByteRange& response, const ByteRange& request) {
+  void process(ByteRange& response, const ByteRange& request) {
     auto query = ::flatbuffers::GetRoot<Query>(request.data());
     DCHECK(verifyFlatbuffer(query, request));
 
@@ -36,7 +36,7 @@ public:
       ::flatbuffers::FlatBufferBuilder fbb;
       fbb.Finish(CreateResult(fbb, 0, ResultCode_E_SOURCE__UNTRUSTED));
       response.reset(fbb.GetBufferPointer(), fbb.GetSize());
-      return true;
+      return;
     }
 
     auto traceid = generateUuid(query->traceid()->str(), "rdde");
@@ -63,7 +63,6 @@ public:
     ::flatbuffers::FlatBufferBuilder fbb;
     fbb.Finish(CreateResult(fbb, fbb.CreateString(traceid), code));
     response.reset(fbb.GetBufferPointer(), fbb.GetSize());
-    return true;
   }
 };
 

@@ -9,7 +9,6 @@
 #include <google/protobuf/service.h>
 
 #include "raster/net/Service.h"
-#include "raster/protocol/proto/Protocol.h"
 #include "raster/protocol/proto/RpcController.h"
 #include "raster/util/LockedMap.h"
 

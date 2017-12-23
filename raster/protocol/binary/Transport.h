@@ -4,68 +4,74 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
-#include <arpa/inet.h>
-
-#include "raster/io/Cursor.h"
-#include "raster/io/IOBuf.h"
-#include "raster/net/NetUtil.h"
-#include "raster/net/Protocol.h"
-#include "raster/net/Socket.h"
-#include "raster/protocol/binary/Encoding.h"
+#include "raster/io/ZlibStreamCompressor.h"
+#include "raster/io/ZlibStreamDecompressor.h"
+#include "raster/net/Transport.h"
+#include "raster/util/Memory.h"
 
 namespace rdd {
 
-class BinaryTransport {
+class BinaryTransport : public Transport {
 public:
-  BinaryTransport(const Peer& peer) : peer_(peer), socket_(0) {
-    rbuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
-    wbuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
-  }
-
+  BinaryTransport() { reset(); }
   virtual ~BinaryTransport() {}
 
-  void open() {
-    socket_.setReuseAddr();
-    socket_.setTCPNoDelay();
-    socket_.connect(peer_);
-  }
+  virtual void reset();
 
-  bool isOpen() {
-    return socket_.isConnected();
-  }
+  virtual void processReadData();
 
-  void close() {
-    socket_.close();
-  }
+  size_t onIngress(const IOBuf& buf);
 
-  template <class Req>
-  void send(const Req& request) {
-    binary::encodeData(wbuf_, (Req*)&request);
-    io::Cursor cursor(wbuf_.get());
-    auto p = cursor.peek();
-    socket_.send((uint8_t*)p.first, p.second);
-  }
+  void sendHeader(uint32_t header);
+  size_t sendBody(std::unique_ptr<IOBuf> body);
 
-  template <class Res>
-  void recv(Res& response) {
-    io::Appender appender(rbuf_.get(), Protocol::CHUNK_SIZE);
-    uint32_t n = sizeof(uint32_t);
-    appender.ensure(n);
-    appender.append(socket_.recv(appender.writableData(), n));
-    n = ntohl(*TypedIOBuf<uint32_t>(rbuf_.get()).data());
-    appender.ensure(n);
-    appender.append(socket_.recv(appender.writableData(), n));
-    binary::decodeData(rbuf_, (Res*)&response);
-  }
+  uint32_t header;
+  std::unique_ptr<IOBuf> body;
 
 private:
-  Peer peer_;
-  Socket socket_;
+  uint8_t headerBuf_[4];
+  size_t headerSize_;
+  bool headersComplete_;
+};
 
-  std::unique_ptr<IOBuf> rbuf_;
-  std::unique_ptr<IOBuf> wbuf_;
+class BinaryTransportFactory : public TransportFactory {
+public:
+  BinaryTransportFactory() {}
+  virtual ~BinaryTransportFactory() {}
+
+  virtual std::unique_ptr<Transport> create() {
+    return make_unique<BinaryTransport>();
+  }
+};
+
+class ZlibTransport : public Transport {
+public:
+  ZlibTransport() { reset(); }
+  virtual ~ZlibTransport() {}
+
+  virtual void reset();
+
+  virtual void processReadData();
+
+  size_t onIngress(const IOBuf& buf);
+
+  size_t sendBody(std::unique_ptr<IOBuf> body);
+
+  std::unique_ptr<IOBuf> body;
+
+private:
+  std::unique_ptr<ZlibStreamCompressor> compressor_;
+  std::unique_ptr<ZlibStreamDecompressor> decompressor_;
+};
+
+class ZlibTransportFactory : public TransportFactory {
+public:
+  ZlibTransportFactory() {}
+  virtual ~ZlibTransportFactory() {}
+
+  virtual std::unique_ptr<Transport> create() {
+    return make_unique<ZlibTransport>();
+  }
 };
 
 } // namespace rdd

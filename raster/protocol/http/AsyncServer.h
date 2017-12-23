@@ -6,7 +6,6 @@
 
 #include "raster/net/Service.h"
 #include "raster/protocol/http/Processor.h"
-#include "raster/protocol/http/Protocol.h"
 
 namespace rdd {
 
@@ -17,13 +16,12 @@ public:
   }
 
   virtual void makeChannel(int port, const TimeoutOption& timeoutOpt) {
-    std::shared_ptr<Protocol> protocol(
-      new HTTPProtocol());
-    std::shared_ptr<ProcessorFactory> processorFactory(
-      new HTTPProcessorFactory(routers_));
     Peer peer = {"", port};
     channel_ = std::make_shared<Channel>(
-      Channel::HTTP, peer, timeoutOpt, protocol, processorFactory);
+        peer,
+        timeoutOpt,
+        make_unique<HTTPTransportFactory>(TransportDirection::DOWNSTREAM),
+        make_unique<HTTPProcessorFactory>(routers_));
   }
 
 private:

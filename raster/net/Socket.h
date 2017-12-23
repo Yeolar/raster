@@ -57,7 +57,7 @@ public:
    *  -3: peer is closed
    */
   ssize_t recv(void* buf, size_t n);
-  ssize_t send(void* buf, size_t n);
+  ssize_t send(const void* buf, size_t n);
 
   bool setRecvTimeout(uint64_t t);
   bool setSendTimeout(uint64_t t);

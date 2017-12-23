@@ -4,7 +4,6 @@
 
 #include <sstream>
 
-#include "raster/protocol/proto/Encoding.h"
 #include "raster/protocol/proto/Message.h"
 #include "raster/protocol/proto/RpcChannel.h"
 #include "raster/protocol/proto/RpcController.h"
@@ -29,10 +28,9 @@ void PBRpcChannel::CallMethod(
   }
   std::shared_ptr<Handle> handle(new Handle(controller, response, done));
   handles_[callId] = handle;
-  std::unique_ptr<IOBuf> buf(IOBuf::create(Protocol::CHUNK_SIZE));
-  io::Appender out(buf.get(), Protocol::CHUNK_SIZE);
+  IOBufQueue out(IOBufQueue::cacheChainLength());
   proto::serializeRequest(callId, *method, *request, out);
-  send(buf, std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
+  send(out.move(), std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
 }
 
 void PBRpcChannel::messageSent(
@@ -57,21 +55,20 @@ void PBRpcChannel::messageSent(
 }
 
 void PBRpcChannel::startCancel(std::string callId) {
-  if (handles_.contains(callId)) {
-    std::unique_ptr<IOBuf> buf(IOBuf::create(Protocol::CHUNK_SIZE));
-    io::Appender out(buf.get(), Protocol::CHUNK_SIZE);
-    proto::serializeCancel(callId, out);
-    send(buf, std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
+  if (!handles_.contains(callId)) {
+    return;
   }
+  IOBufQueue out(IOBufQueue::cacheChainLength());
+  proto::serializeCancel(callId, out);
+  send(out.move(), std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
 }
 
 void PBRpcChannel::process(const std::unique_ptr<IOBuf>& buf) {
   try {
-    io::RWPrivateCursor in(buf.get());
+    io::Cursor in(buf.get());
     int type = proto::readInt(in);
     switch (type) {
-      case proto::RESPONSE_MSG:
-      {
+      case proto::RESPONSE_MSG: {
         std::string callId;
         PBRpcController controller;
         std::shared_ptr<google::protobuf::Message> response;
@@ -94,8 +91,8 @@ void PBRpcChannel::process(const std::unique_ptr<IOBuf>& buf) {
             c->complete();
           }
         }
-      }
         break;
+      }
       default:
         RDDLOG(FATAL) << "unknown message type: " << type;
     }

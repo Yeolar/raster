@@ -56,7 +56,7 @@ bool AsyncClient::initConnection() {
       socket->setTCPNoDelay() &&
       socket->setNonBlocking() &&
       socket->connect(peer_)) {
-    auto event = std::shared_ptr<Event>(createEvent(channel_, socket));
+    auto event = std::make_shared<Event>(channel_, socket);
     event->setType(Event::CONNECT);
     event_ = event;
     RDDLOG(DEBUG) << "peer[" << peer_.str() << "] connect";

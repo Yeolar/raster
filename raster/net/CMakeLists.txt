@@ -5,8 +5,8 @@ set(RASTER_NET_SRCS
     AsyncClient.cpp
     ErrorEnum.cpp
     NetUtil.cpp
-    Protocol.cpp
     Socket.cpp
+    Transport.cpp
 )
 add_library(raster_net OBJECT ${RASTER_NET_SRCS})
 
@@ -19,7 +19,7 @@ install(FILES
     Exception.h
     NetUtil.h
     Processor.h
-    Protocol.h
     Service.h
     Socket.h
+    Transport.h
     DESTINATION include/raster/net)

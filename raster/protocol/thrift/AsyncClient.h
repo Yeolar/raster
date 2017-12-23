@@ -9,10 +9,9 @@
 #include "raster/3rd/thrift/protocol/TBinaryProtocol.h"
 #include "raster/3rd/thrift/transport/TBufferTransports.h"
 #include "raster/net/AsyncClient.h"
-#include "raster/protocol/thrift/Encoding.h"
-#include "raster/protocol/thrift/Protocol.h"
+#include "raster/protocol/binary/Transport.h"
+#include "raster/protocol/thrift/Util.h"
 #include "raster/util/Logging.h"
-#include "raster/util/ScopeGuard.h"
 
 /*
  * callback mode:
@@ -76,7 +75,18 @@ public:
     if (!event_ || event_->type() == Event::FAIL) {
       return false;
     }
-    decodeData();
+    auto transport = event_->transport<BinaryTransport>();
+    auto range = transport->body->coalesce();
+    pibuf_->resetBuffer((uint8_t*)range.data(), range.size());
+
+    if (keepalive_) {
+      int32_t seqid = thrift::getSeqId(pibuf_.get());
+      if (seqid != event_->seqid()) {
+        RDDLOG(ERROR) << "peer[" << peer_.str() << "]"
+          << " recv unmatched seqid: " << seqid << "!=" << event_->seqid();
+        event_->setType(Event::FAIL);
+      }
+    }
     (client_.get()->*recvFunc)(_return);
     return true;
   }
@@ -86,7 +96,18 @@ public:
     if (!event_ || event_->type() == Event::FAIL) {
       return false;
     }
-    decodeData();
+    auto transport = event_->transport<BinaryTransport>();
+    auto range = transport->body->coalesce();
+    pibuf_->resetBuffer((uint8_t*)range.data(), range.size());
+
+    if (keepalive_) {
+      int32_t seqid = thrift::getSeqId(pibuf_.get());
+      if (seqid != event_->seqid()) {
+        RDDLOG(ERROR) << "peer[" << peer_.str() << "]"
+          << " recv unmatched seqid: " << seqid << "!=" << event_->seqid();
+        event_->setType(Event::FAIL);
+      }
+    }
     _return = (client_.get()->*recvFunc)();
     return true;
   }
@@ -97,7 +118,16 @@ public:
       return false;
     }
     (client_.get()->*sendFunc)(requests...);
-    encodeData();
+
+    if (keepalive_) {
+      thrift::setSeqId(pobuf_.get(), event_->seqid());
+    }
+    uint8_t* p;
+    uint32_t n;
+    pobuf_->getBuffer(&p, &n);
+    auto transport = event_->transport<BinaryTransport>();
+    transport->sendHeader(n);
+    transport->sendBody(IOBuf::copyBuffer(p, n));;
     return true;
   }
 
@@ -128,30 +158,9 @@ public:
 
 protected:
   virtual std::shared_ptr<Channel> makeChannel() {
-    std::shared_ptr<Protocol> protocol(new TFramedProtocol());
     return std::make_shared<Channel>(
-        Channel::DEFAULT, peer_, timeoutOpt_, protocol);
-  }
-
-  bool decodeData() {
-    SCOPE_EXIT {
-      if (keepalive_) {
-        int32_t seqid = thrift::getSeqId(pibuf_.get());
-        if (seqid != event_->seqid()) {
-          RDDLOG(ERROR) << "peer[" << peer_.str() << "]"
-            << " recv unmatched seqid: " << seqid << "!=" << event_->seqid();
-          event_->setType(Event::FAIL);
-        }
-      }
-    };
-    return rdd::thrift::decodeData(event_->rbuf, pibuf_.get());
-  }
-
-  bool encodeData() {
-    if (keepalive_) {
-      thrift::setSeqId(pobuf_.get(), event_->seqid());
-    }
-    return rdd::thrift::encodeData(event_->wbuf, pobuf_.get());
+        peer_, timeoutOpt_,
+        make_unique<BinaryTransportFactory>());
   }
 
 private:

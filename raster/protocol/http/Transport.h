@@ -4,26 +4,21 @@
 
 #pragma once
 
+#include "raster/net/Transport.h"
 #include "raster/protocol/http/HTTP1xCodec.h"
 
 namespace rdd {
 
-class HTTPTransport : public HTTP1xCodec::Callback {
+class HTTPTransport : public Transport, public HTTP1xCodec::Callback {
 public:
-  enum TransportState {
-    kInit,
-    kOnReading,
-    kOnReadingFinish,
-    kOnWriting,
-    kOnWritingFinish,
-    kError,
-  };
-
   HTTPTransport(TransportDirection direction)
-    : codec_(direction),
-      state_(kInit) {
+    : codec_(direction) {
     codec_.setCallback(this);
   }
+
+  virtual void reset();
+
+  virtual void processReadData();
 
   // HTTP1xCodec::Callback
   virtual void onMessageBegin(HTTPMessage* msg);
@@ -43,22 +38,27 @@ public:
   size_t sendEOM();
   size_t sendAbort();
 
-  void parseReadData(IOBuf* buf);
-  void pushWriteData(IOBuf* buf);
-
-  size_t getContentLength();
-
-  TransportState state() const { return state_; }
-  void setState(TransportState state) { state_ = state; }
-
   std::unique_ptr<HTTPMessage> headers;
   std::unique_ptr<IOBuf> body;
   std::unique_ptr<HTTPHeaders> trailers;
 
 private:
-  TransportState state_;
   HTTP1xCodec codec_;
-  IOBufQueue writeBuf_{IOBufQueue::cacheChainLength()};
+};
+
+class HTTPTransportFactory : public TransportFactory {
+public:
+  HTTPTransportFactory(TransportDirection direction)
+    : direction_(direction) {}
+
+  virtual ~HTTPTransportFactory() {}
+
+  virtual std::unique_ptr<Transport> create() {
+    return make_unique<HTTPTransport>(direction_);
+  }
+
+private:
+  TransportDirection direction_;
 };
 
 } // namespace rdd

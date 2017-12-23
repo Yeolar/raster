@@ -2,7 +2,7 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/protocol/proto/Encoding.h"
+#include "raster/protocol/proto/Message.h"
 #include "raster/protocol/proto/RpcController.h"
 
 namespace rdd {
@@ -51,19 +51,19 @@ void PBRpcController::NotifyOnCancel(google::protobuf::Closure* closure) {
   }
 }
 
-void PBRpcController::serializeTo(io::Appender& out) const {
-  proto::writeChar(canceled_ ? 'Y' : 'N', out);
-  proto::writeChar(failed_ ? 'Y' : 'N', out);
-  if (failed_) {
-    proto::writeString(failedReason_, out);
-  }
-}
-
-void PBRpcController::parseFrom(io::RWPrivateCursor& in) {
+void PBRpcController::parseFrom(io::Cursor& in) {
   canceled_ = (proto::readChar(in) == 'Y');
   failed_ = (proto::readChar(in) == 'Y');
   if (failed_) {
     failedReason_ = proto::readString(in);
+  }
+}
+
+void PBRpcController::serializeTo(IOBufQueue& out) const {
+  proto::writeChar(canceled_ ? 'Y' : 'N', out);
+  proto::writeChar(failed_ ? 'Y' : 'N', out);
+  if (failed_) {
+    proto::writeString(failedReason_, out);
   }
 }
 

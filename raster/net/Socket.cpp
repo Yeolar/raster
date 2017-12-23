@@ -146,7 +146,7 @@ ssize_t Socket::recv(void* buf, size_t n) {
   }
 }
 
-ssize_t Socket::send(void* buf, size_t n) {
+ssize_t Socket::send(const void* buf, size_t n) {
   // Note the use of MSG_NOSIGNAL to suppress SIGPIPE errors, instead we
   // check for the EPIPE return condition and close the socket in that case
   while (true) {

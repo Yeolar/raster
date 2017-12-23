@@ -5,7 +5,7 @@
 #pragma once
 
 #include "raster/net/NetUtil.h"
-#include "raster/protocol/binary/Transport.h"
+#include "raster/protocol/binary/SyncTransport.h"
 #include "raster/util/Logging.h"
 
 namespace rdd {
@@ -43,10 +43,11 @@ public:
     return true;
   }
 
-  bool connected() const { return transport_->isOpen(); }
+  bool connected() const {
+    return transport_->isOpen();
+  }
 
-  template <class Req = ByteRange, class Res = ByteRange>
-  bool fetch(Res& _return, const Req& request) {
+  bool fetch(ByteRange& _return, const ByteRange& request) {
     try {
       transport_->send(request);
       transport_->recv(_return);
@@ -61,12 +62,12 @@ public:
 
 private:
   void init() {
-    transport_.reset(new BinaryTransport(peer_));
+    transport_.reset(new BinarySyncTransport(peer_));
     RDDLOG(DEBUG) << "SyncClient: " << peer_.str();
   }
 
   Peer peer_;
-  std::shared_ptr<BinaryTransport> transport_;
+  std::unique_ptr<BinarySyncTransport> transport_;
 };
 
 } // namespace rdd

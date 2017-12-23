@@ -43,9 +43,8 @@ public:
     return event_ != nullptr;
   }
 
-  template <class T = Event>
-  T* event() const {
-    return reinterpret_cast<T*>(event_.get());
+  Event* event() const {
+    return event_.get();
   }
 
 protected:

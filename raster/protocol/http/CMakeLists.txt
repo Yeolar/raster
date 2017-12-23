@@ -20,14 +20,12 @@ install(FILES
     AsyncServer.h
     HTTP1xCodec.h
     HTTPCommonHeaders.h
-    HTTPEvent.h
     HTTPException.h
     HTTPHeaders.h
     HTTPMessage.h
     HTTPMethod.h
     ParseURL.h
     Processor.h
-    Protocol.h
     RequestHandler.h
     ResponseBuilder.h
     SyncClient.h

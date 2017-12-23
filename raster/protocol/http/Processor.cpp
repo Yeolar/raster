@@ -2,7 +2,6 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/protocol/http/HTTPEvent.h"
 #include "raster/protocol/http/HTTPMethod.h"
 #include "raster/protocol/http/Processor.h"
 #include "raster/util/ReflectObject.h"
@@ -10,23 +9,18 @@
 
 namespace rdd {
 
-bool HTTPProcessor::run() {
-  HTTPTransport& transport = event<HTTPEvent>()->transport;
+void HTTPProcessor::run() {
+  auto transport = event_->transport<HTTPTransport>();
+  transport->headers->dumpMessage(logging::LOG_V1);
 
-  transport.headers->dumpMessage(logging::LOG_V1);
-
-  handler_->headers = transport.headers.get();
-  handler_->body = transport.body.get();
-  handler_->trailers = transport.trailers.get();
-  handler_->response.setupTransport(&transport);
-
-  SCOPE_EXIT {
-    transport.pushWriteData(event_->wbuf.get());
-  };
+  handler_->headers = transport->headers.get();
+  handler_->body = transport->body.get();
+  handler_->trailers = transport->trailers.get();
+  handler_->response.setupTransport(transport);
 
   try {
     handler_->prepare();
-    switch (transport.headers->getMethod()) {
+    switch (transport->headers->getMethod()) {
       case HTTPMethod::GET:
         handler_->onGet();
         break;
@@ -53,7 +47,6 @@ bool HTTPProcessor::run() {
         break;
     }
     handler_->finish();
-    return true;
   } catch (HTTPException& e) {
     handler_->handleException(e);
   } catch (std::exception& e) {
@@ -61,7 +54,6 @@ bool HTTPProcessor::run() {
   } catch (...) {
     handler_->handleException();
   }
-  return false;
 }
 
 HTTPProcessorFactory::HTTPProcessorFactory(
@@ -71,20 +63,18 @@ HTTPProcessorFactory::HTTPProcessorFactory(
   }
 }
 
-std::shared_ptr<Processor> HTTPProcessorFactory::create(Event* event) {
-  HTTPEvent* httpev = reinterpret_cast<HTTPEvent*>(event);
-  auto url = httpev->transport.headers->getURL();
+std::unique_ptr<Processor> HTTPProcessorFactory::create(Event* event) {
+  auto transport = event->transport<HTTPTransport>();
+  auto url = transport->headers->getURL();
   for (auto& kv : routers_) {
     boost::cmatch match;
     if (boost::regex_match(url.c_str(), match, kv.second)) {
-      return std::shared_ptr<Processor>(
-        new HTTPProcessor(
-            event,
-            makeSharedReflectObject<RequestHandler>(kv.first)));
+      return make_unique<HTTPProcessor>(
+          event,
+          makeSharedReflectObject<RequestHandler>(kv.first));
     }
   }
-  return std::shared_ptr<Processor>(
-    new HTTPProcessor(event, std::make_shared<RequestHandler>()));
+  return make_unique<HTTPProcessor>(event, std::make_shared<RequestHandler>());
 }
 
 } // namespace rdd
