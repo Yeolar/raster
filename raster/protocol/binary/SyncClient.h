@@ -35,11 +35,11 @@ public:
       transport_->open();
     }
     catch (std::exception& e) {
-      RDDLOG(ERROR) << "BinarySyncClient: connect " << peer_.str()
+      RDDLOG(ERROR) << "BinarySyncClient: connect " << peer_
         << " failed, " << e.what();
       return false;
     }
-    RDDLOG(DEBUG) << "connect peer[" << peer_.str() << "]";
+    RDDLOG(DEBUG) << "connect peer[" << peer_ << "]";
     return true;
   }
 
@@ -53,7 +53,7 @@ public:
       transport_->recv(_return);
     }
     catch (std::exception& e) {
-      RDDLOG(ERROR) << "BinarySyncClient: fetch " << peer_.str()
+      RDDLOG(ERROR) << "BinarySyncClient: fetch " << peer_
         << " failed, " << e.what();
       return false;
     }
@@ -63,7 +63,7 @@ public:
 private:
   void init() {
     transport_.reset(new BinarySyncTransport(peer_));
-    RDDLOG(DEBUG) << "SyncClient: " << peer_.str();
+    RDDLOG(DEBUG) << "SyncClient: " << peer_;
   }
 
   Peer peer_;

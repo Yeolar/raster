@@ -23,10 +23,6 @@ struct Peer : public boost::totally_ordered<Peer> {
     split(':', trimWhitespace(s), host, port);
   }
   explicit Peer(int fd);
-
-  std::string str() const {
-    return to<std::string>(host, ':', port);
-  }
 };
 
 inline bool operator==(const Peer& lhs, const Peer& rhs) {

@@ -10,20 +10,20 @@ namespace rdd {
 
 void EventHandler::handle(Event* event, uint32_t etype) {
   RDDLOG(V2) << *event << " on event, type=" << etype;
-  switch (event->type()) {
-    case Event::LISTEN:
+  switch (event->state()) {
+    case Event::kListen:
       onListen(event); break;
-    case Event::CONNECT:
+    case Event::kConnect:
       onConnect(event); break;
-    case Event::NEXT:
+    case Event::kNext:
       loop_->restartEvent(event);
-    case Event::TOREAD:
-    case Event::READING:
+    case Event::kToRead:
+    case Event::kReading:
       onRead(event); break;
-    case Event::TOWRITE:
-    case Event::WRITING:
+    case Event::kToWrite:
+    case Event::kWriting:
       onWrite(event); break;
-    case Event::TIMEOUT:
+    case Event::kTimeout:
       onTimeout(event); break;
     default:
       RDDLOG(ERROR) << *event << " error event, type=" << etype;
@@ -33,7 +33,7 @@ void EventHandler::handle(Event* event, uint32_t etype) {
 }
 
 void EventHandler::onListen(Event* event) {
-  assert(event->type() == Event::LISTEN);
+  assert(event->state() == Event::kListen);
   auto socket = event->socket()->accept();
   if (!(*socket) ||
       !(socket->setReuseAddr()) ||
@@ -53,20 +53,20 @@ void EventHandler::onListen(Event* event) {
   }
   RDDLOG(V1) << *evnew << " accepted";
   if (evnew->isConnectTimeout()) {
-    evnew->setType(Event::TIMEOUT);
+    evnew->setState(Event::kTimeout);
     RDDLOG(WARN) << *evnew << " remove connect timeout request: >"
       << evnew->timeoutOption().ctimeout;
     onTimeout(evnew);
     return;
   }
-  evnew->setType(Event::NEXT);
+  evnew->setState(Event::kNext);
   loop_->dispatchEvent(evnew);
 }
 
 void EventHandler::onConnect(Event* event) {
-  assert(event->type() == Event::CONNECT);
+  assert(event->state() == Event::kConnect);
   if (event->isConnectTimeout()) {
-    event->setType(Event::TIMEOUT);
+    event->setState(Event::kTimeout);
     RDDLOG(WARN) << *event << " remove connect timeout request: >"
       << event->timeoutOption().ctimeout;
     onTimeout(event);
@@ -76,34 +76,34 @@ void EventHandler::onConnect(Event* event) {
   event->socket()->getError(err);
   if (err != 0) {
     RDDLOG(ERROR) << *event << " connect: close for error: " << strerror(errno);
-    event->setType(Event::ERROR);
+    event->setState(Event::kError);
     onError(event);
     return;
   }
   RDDLOG(V1) << *event << " connect: complete";
-  event->setType(Event::TOWRITE);
+  event->setState(Event::kToWrite);
 }
 
 void EventHandler::onRead(Event* event) {
-  event->setType(Event::READING);
+  event->setState(Event::kReading);
   int r = event->readData();
   switch (r) {
     case 1: {
       RDDLOG(V1) << *event << " read: complete";
-      event->setType(Event::READED);
+      event->setState(Event::kReaded);
       onComplete(event);
       break;
     }
     case -1: {
       RDDLOG(ERROR) << *event << " read: close for error: "
         << strerror(errno);
-      event->setType(Event::ERROR);
+      event->setState(Event::kError);
       onError(event);
       break;
     }
     case -2: {
       if (event->isReadTimeout()) {
-        event->setType(Event::TIMEOUT);
+        event->setState(Event::kTimeout);
         RDDLOG(WARN) << *event << " remove read timeout request: >"
           << event->timeoutOption().rtimeout;
         onTimeout(event);
@@ -123,25 +123,25 @@ void EventHandler::onRead(Event* event) {
 }
 
 void EventHandler::onWrite(Event* event) {
-  event->setType(Event::WRITING);
+  event->setState(Event::kWriting);
   int r = event->writeData();
   switch (r) {
     case 1: {
       RDDLOG(V1) << *event << " write: complete";
-      event->setType(Event::WRITED);
+      event->setState(Event::kWrited);
       onComplete(event);
       break;
     }
     case -1: {
       RDDLOG(ERROR) << *event << " write: close for error: "
         << strerror(errno);
-      event->setType(Event::ERROR);
+      event->setState(Event::kError);
       onError(event);
       break;
     }
     case -2: {
       if (event->isWriteTimeout()) {
-        event->setType(Event::TIMEOUT);
+        event->setState(Event::kTimeout);
         RDDLOG(WARN) << *event << " remove write timeout request: >"
           << event->timeoutOption().wtimeout;
         onTimeout(event);
@@ -155,15 +155,15 @@ void EventHandler::onWrite(Event* event) {
 }
 
 void EventHandler::onComplete(Event* event) {
-  if (event->type() == Event::READED && event->isReadTimeout()) {
-    event->setType(Event::TIMEOUT);
+  if (event->state() == Event::kReaded && event->isReadTimeout()) {
+    event->setState(Event::kTimeout);
     RDDLOG(WARN) << *event << " remove read timeout request: >"
       << event->timeoutOption().rtimeout;
     onTimeout(event);
     return;
   }
-  if (event->type() == Event::WRITED && event->isWriteTimeout()) {
-    event->setType(Event::TIMEOUT);
+  if (event->state() == Event::kWrited && event->isWriteTimeout()) {
+    event->setState(Event::kTimeout);
     RDDLOG(WARN) << *event << " remove write timeout request: >"
       << event->timeoutOption().wtimeout;
     onTimeout(event);
@@ -171,14 +171,14 @@ void EventHandler::onComplete(Event* event) {
   }
   loop_->removeEvent(event);
 
-  // for server: READED -> WRITED
-  // for client: WRITED -> READED
+  // for server: kReaded -> kWrited
+  // for client: kWrited -> kReaded
 
-  switch (event->type()) {
+  switch (event->state()) {
     // on result
-    case Event::READED:
+    case Event::kReaded:
     {
-      if (event->role() == Socket::CLIENT) {
+      if (event->socket()->isClient()) {
         RDDMON_CNT("conn.success-" + event->label());
         RDDMON_AVG("conn.cost-" + event->label(), event->cost() / 1000);
         if (event->isForward()) {
@@ -189,15 +189,15 @@ void EventHandler::onComplete(Event* event) {
       break;
     }
     // server: wait next; client: wait response
-    case Event::WRITED:
+    case Event::kWrited:
     {
-      if (event->role() == Socket::SERVER) {
+      if (event->socket()->isServer()) {
         RDDMON_CNT("conn.success-" + event->label());
         RDDMON_AVG("conn.cost-" + event->label(), event->cost() / 1000);
         event->reset();
-        event->setType(Event::NEXT);
+        event->setState(Event::kNext);
       } else {
-        event->setType(Event::TOREAD);
+        event->setState(Event::kToRead);
       }
       loop_->dispatchEvent(event);
       break;
@@ -207,21 +207,21 @@ void EventHandler::onComplete(Event* event) {
 }
 
 void EventHandler::onTimeout(Event *event) {
-  assert(event->type() == Event::TIMEOUT);
+  assert(event->state() == Event::kTimeout);
   RDDMON_CNT("conn.timeout-" + event->label());
   closePeer(event);
 }
 
 void EventHandler::onError(Event* event) {
-  assert(event->type() == Event::ERROR);
+  assert(event->state() == Event::kError);
   RDDMON_CNT("conn.error-" + event->label());
   closePeer(event);
 }
 
 void EventHandler::closePeer(Event* event) {
   loop_->removeEvent(event);
-  if (event->role() == Socket::CLIENT) {
-    event->setType(Event::FAIL);
+  if (event->socket()->isClient()) {
+    event->setState(Event::kFail);
     Singleton<Actor>::get()->execute(event);
   } else {
     delete event;

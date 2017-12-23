@@ -16,13 +16,6 @@ namespace rdd {
 
 class Socket : public Descriptor {
 public:
-  enum {
-    NONE,
-    LISTENER,
-    SERVER,
-    CLIENT,
-  };
-
   static constexpr uint64_t LTIMEOUT = 600000000; // long-polling timeout: 10min
   static constexpr size_t   LCOUNT   = 80000;     // long-polling count
 
@@ -75,17 +68,15 @@ public:
   bool getError(int& err);
 
   virtual int fd() const { return fd_; }
-  virtual int role() const { return role_; }
-  virtual char roleLabel() const { return "NLSC"[role_]; }
+  virtual Peer peer();
 
-  Peer peer();
-  virtual std::string str();
+  bool isClient() const { return role_ == Role::kClient; }
+  bool isServer() const { return role_ == Role::kServer; }
 
 private:
   static std::atomic<size_t> count_;
 
   int fd_;
-  int role_{NONE};
   Peer peer_;
 };
 

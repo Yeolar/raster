@@ -50,11 +50,11 @@ public:
       transport_->open();
     }
     catch (apache::thrift::TException& e) {
-      RDDLOG(ERROR) << "TSyncClient: connect " << peer_.str()
+      RDDLOG(ERROR) << "TSyncClient: connect " << peer_
         << " failed, " << e.what();
       return false;
     }
-    RDDLOG(DEBUG) << "connect peer[" << peer_.str() << "]";
+    RDDLOG(DEBUG) << "connect peer[" << peer_ << "]";
     return true;
   }
 
@@ -68,7 +68,7 @@ public:
       (client_.get()->*func)(_return, requests...);
     }
     catch (apache::thrift::TException& e) {
-      RDDLOG(ERROR) << "TSyncClient: fetch " << peer_.str()
+      RDDLOG(ERROR) << "TSyncClient: fetch " << peer_
         << " failed, " << e.what();
       return false;
     }
@@ -83,7 +83,7 @@ public:
       _return = (client_.get()->*func)(requests...);
     }
     catch (apache::thrift::TException& e) {
-      RDDLOG(ERROR) << "TSyncClient: fetch " << peer_.str()
+      RDDLOG(ERROR) << "TSyncClient: fetch " << peer_
         << " failed, " << e.what();
       return false;
     }
@@ -100,7 +100,7 @@ private:
     transport_.reset(new TTransport(socket_));
     protocol_.reset(new TProtocol(transport_));
     client_ = std::make_shared<C>(protocol_);
-    RDDLOG(DEBUG) << "SyncClient: " << peer_.str()
+    RDDLOG(DEBUG) << "SyncClient: " << peer_
       << ", timeout=" << timeout_;
   }
 

@@ -17,7 +17,7 @@ namespace rdd {
 
 std::atomic<size_t> Socket::count_(0);
 
-Socket::Socket(int fd) : fd_(fd) {
+Socket::Socket(int fd) : Descriptor(Role::kNone), fd_(fd) {
   if (fd_ == 0) {
     fd_ = socket(AF_INET, SOCK_STREAM, 0);
   }
@@ -25,7 +25,7 @@ Socket::Socket(int fd) : fd_(fd) {
     RDDPLOG(ERROR) << "create socket failed";
   } else {
     ++count_;
-    role_ = SERVER;
+    role_ = Role::kServer;
   }
 }
 
@@ -37,7 +37,7 @@ Socket::~Socket() {
 
 bool Socket::bind(int port) {
   peer_.port = port;
-  role_ = LISTENER;
+  role_ = Role::kListener;
 
   struct sockaddr_in sin;
   bzero(&sin, sizeof(sockaddr_in));
@@ -73,7 +73,7 @@ std::shared_ptr<Socket> Socket::accept() {
 
 bool Socket::connect(const std::string& host, int port) {
   peer_ = {host, port};
-  role_ = CLIENT;
+  role_ = Role::kClient;
 
   struct addrinfo *ai, hints;
   memset(&hints, 0, sizeof(hints));
@@ -256,14 +256,10 @@ bool Socket::getError(int& err) {
 }
 
 Peer Socket::peer() {
-  if (peer_.port == 0 && role_ == SERVER) {
+  if (peer_.port == 0 && role_ == Role::kServer) {
     peer_ = Peer(fd_);
   }
   return peer_;
-}
-
-std::string Socket::str() {
-  return to<std::string>(roleLabel(), ":", fd_, "[", peer().str(), "]");
 }
 
 } // namespace rdd

@@ -20,7 +20,7 @@ public:
 
   void handle() {
     event_->processor()->run();
-    event_->setType(Event::TOWRITE);
+    event_->setState(Event::kToWrite);
   }
 
   Event* event() const { return event_; }

@@ -25,7 +25,7 @@ public:
   virtual ~BinaryAsyncClient() {}
 
   bool recv(ByteRange& _return) {
-    if (!event_ || event_->type() == Event::FAIL) {
+    if (!event_ || event_->state() == Event::kFail) {
       return false;
     }
     auto transport = event_->transport<BinaryTransport>();

@@ -9,8 +9,7 @@ namespace rdd {
 
 AsyncClient::AsyncClient(const ClientOption& option)
   : peer_(option.peer), timeoutOpt_(option.timeout) {
-  RDDLOG(DEBUG) << "AsyncClient: " << peer_.str()
-    << ", timeout=" << timeoutOpt_;
+  RDDLOG(DEBUG) << "AsyncClient: " << peer_ << ", timeout=" << timeoutOpt_;
 }
 
 void AsyncClient::close() {
@@ -32,7 +31,7 @@ bool AsyncClient::connect() {
 }
 
 void AsyncClient::callback() {
-  RDDLOG(DEBUG) << "peer[" << peer_.str() << "] finished";
+  RDDLOG(DEBUG) << "peer[" << peer_ << "] finished";
 }
 
 bool AsyncClient::initConnection() {
@@ -41,9 +40,9 @@ bool AsyncClient::initConnection() {
     auto event = pool->get(peer_);
     if (event && event->socket()->isConnected()) {
       event->reset();
-      event->setType(Event::TOWRITE);
+      event->setState(Event::kToWrite);
       event_ = event;
-      RDDLOG(DEBUG) << "peer[" << peer_.str() << "]"
+      RDDLOG(DEBUG) << "peer[" << peer_ << "]"
         << " connect (keep-alive,seqid=" << event_->seqid() << ")";
       return true;
     }
@@ -57,16 +56,16 @@ bool AsyncClient::initConnection() {
       socket->setNonBlocking() &&
       socket->connect(peer_)) {
     auto event = std::make_shared<Event>(channel_, socket);
-    event->setType(Event::CONNECT);
+    event->setState(Event::kConnect);
     event_ = event;
-    RDDLOG(DEBUG) << "peer[" << peer_.str() << "] connect";
+    RDDLOG(DEBUG) << "peer[" << peer_ << "] connect";
     return true;
   }
   return false;
 }
 
 void AsyncClient::freeConnection() {
-  if (keepalive_ && event_->type() != Event::FAIL) {
+  if (keepalive_ && event_->state() != Event::kFail) {
     auto pool = Singleton<EventPoolManager>::get()->getPool(peer_.port);
     pool->giveBack(event_);
   }

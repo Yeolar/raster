@@ -34,7 +34,7 @@ void EventLoop::listen(const std::shared_ptr<Channel>& channel, int backlog) {
     throw std::runtime_error("create listening event failed");
   }
   listenFds_.emplace_back(socket->fd());
-  event->setType(Event::LISTEN);
+  event->setState(Event::kListen);
   dispatchEvent(event);
   RDDLOG(INFO) << *event << " listen on port=" << port;
 }
@@ -72,7 +72,7 @@ void EventLoop::loopBody(bool once) {
           uint32_t etype = poll_.getData(i, edata);
           Event* event = (Event*) edata.ptr;
           if (event) {
-            if (event->type() == Event::WAKER) {
+            if (event->state() == Event::kWaker) {
               waker_.consume();
             } else {
               handler_.handle(event, etype);
@@ -125,14 +125,14 @@ void EventLoop::addCallback(const VoidFunc& callback) {
 void EventLoop::dispatchEvent(Event *event) {
   RDDLOG(V2) << *event
     << " add event with executor(" << (void*)event->executor() << ")";
-  switch (event->type()) {
-    case Event::LISTEN:
+  switch (event->state()) {
+    case Event::kListen:
       addListenEvent(event); break;
-    case Event::NEXT:
-    case Event::TOREAD:
+    case Event::kNext:
+    case Event::kToRead:
       addReadEvent(event); break;
-    case Event::CONNECT:
-    case Event::TOWRITE:
+    case Event::kConnect:
+    case Event::kToWrite:
       addWriteEvent(event); break;
     default:
       RDDLOG(ERROR) << *event << " cannot add event";
@@ -141,25 +141,25 @@ void EventLoop::dispatchEvent(Event *event) {
 }
 
 void EventLoop::addListenEvent(Event *event) {
-  assert(event->type() == Event::LISTEN);
+  assert(event->state() == Event::kListen);
   poll_.add(event->fd(), EPOLLIN, event);
 }
 
 void EventLoop::addReadEvent(Event *event) {
-  assert(event->type() == Event::NEXT ||
-         event->type() == Event::TOREAD);
+  assert(event->state() == Event::kNext ||
+         event->state() == Event::kToRead);
   RDDLOG(V2) << *event << " add e/rdeadline";
-  deadlineHeap_.push(event->type() == Event::NEXT ?
+  deadlineHeap_.push(event->state() == Event::kNext ?
                      event->edeadline() : event->rdeadline());
   poll_.add(event->fd(), EPOLLIN, event);
 }
 
 void EventLoop::addWriteEvent(Event *event) {
-  assert(event->type() == Event::CONNECT ||
-         event->type() == Event::TOWRITE);
+  assert(event->state() == Event::kConnect ||
+         event->state() == Event::kToWrite);
   RDDLOG(V2) << *event << " add wdeadline";
   // TODO epoll_wait interval
-  //deadlineHeap_.push(event->type() == Event::CONNECT ?
+  //deadlineHeap_.push(event->state() == Event::kConnect ?
   //                    event->cdeadline() : event->wdeadline());
   deadlineHeap_.push(event->wdeadline());
   poll_.add(event->fd(), EPOLLOUT, event);
@@ -195,7 +195,7 @@ void EventLoop::checkTimeoutEvent() {
     }
     else {
       RDDLOG(V2) << *event << " pop deadline";
-      event->setType(Event::TIMEOUT);
+      event->setState(Event::kTimeout);
       RDDLOG(WARN) << *event << " remove timeout event: >"
         << timeout.deadline - event->starttime();
       handler_.onTimeout(event);

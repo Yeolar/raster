@@ -6,9 +6,17 @@
 #include "raster/io/event/EventExecutor.h"
 #include "raster/net/Channel.h"
 
+#define RDD_IO_EVENT_STR(role) #role
+
+namespace {
+  static const char* stateStrings[] = {
+    RDD_IO_EVENT_GEN(RDD_IO_EVENT_STR)
+  };
+}
+
 namespace rdd {
 
-Event* Event::getCurrentEvent() {
+Event* Event::getCurrent() {
   ExecutorPtr executor = getCurrentExecutor();
   return executor ?
     std::dynamic_pointer_cast<EventExecutor>(executor)->event() : nullptr;
@@ -27,9 +35,9 @@ Event::Event(const std::shared_ptr<Channel>& channel,
 
 Event::Event(Waker* waker) {
   seqid_ = 0;
-  type_ = WAKER;
+  state_ = kWaker;
   group_ = 0;
-  action_ = NONE;
+  forward_ = false;
   waker_ = waker;
   executor_ = nullptr;
 }
@@ -43,9 +51,9 @@ void Event::reset() {
   restart();
 
   seqid_ = globalSeqid_.fetch_add(1);
-  type_ = INIT;
+  state_ = kInit;
   group_ = 0;
-  action_ = NONE;
+  forward_ = false;
   waker_ = nullptr;
   executor_ = nullptr;
 
@@ -63,7 +71,7 @@ void Event::restart() {
     RDDLOG(V2) << *this << " restart";
     timestamps_.clear();
   }
-  timestamps_.push_back(Timestamp(INIT));
+  timestamps_.push_back(Timestamp(kInit));
 }
 
 void Event::record(Timestamp timestamp) {
@@ -74,19 +82,15 @@ void Event::record(Timestamp timestamp) {
 }
 
 std::string Event::label() const {
-  return to<std::string>(roleLabel(), channel_->id());
+  return to<std::string>(descriptor()->role()[0], channel_->id());
 }
 
-const char* Event::typeName() const {
-  static const char* TYPE_NAMES[] = {
-    "INIT", "FAIL", "LISTEN", "TIMEOUT", "ERROR",
-    "TOREAD", "READING", "READED",
-    "TOWRITE", "WRITING", "WRITED",
-    "NEXT", "CONNECT", "WAKER", "UNKNOWN",
-  };
-  int n = (int)NELEMS(TYPE_NAMES) - 1;
-  int i = type_ >= 0 && type_ < n ? type_ : n;
-  return TYPE_NAMES[i];
+const char* Event::stateName() const {
+  if (state_ < kInit || state_ >= kUnknown) {
+    return stateStrings[kUnknown];
+  } else {
+    return stateStrings[state_];
+  }
 }
 
 std::shared_ptr<Channel> Event::channel() const {

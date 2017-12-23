@@ -100,7 +100,7 @@ void Actor::addFiber(Fiber* fiber, int poolId) {
 }
 
 void Actor::addEvent(Event* event) {
-  if (options_.forwarding && event->role() == Socket::CLIENT) {
+  if (options_.forwarding && event->socket()->isClient()) {
     for (auto& f : forwards_) {
       if (f.port == event->channel()->peer().port && f.flow > rand() % 100) {
         forwardEvent(event, f.fpeer);
@@ -125,7 +125,7 @@ void Actor::forwardEvent(Event* event, const Peer& peer) {
   event->wbuf->cloneInto(*evcopy->wbuf);
   event->wbuf->unshare();
   evcopy->setForward();
-  evcopy->setType(Event::WRITED);
+  evcopy->setState(Event::kWrited);
   ioPool_->getEventLoop()->addEvent(evcopy);
 }*/
 

@@ -7,7 +7,6 @@
 #include <arpa/inet.h>
 
 #include "raster/net/NetUtil.h"
-#include "raster/protocol/http/Protocol.h"
 #include "raster/protocol/http/SyncTransport.h"
 #include "raster/util/Logging.h"
 
@@ -44,11 +43,11 @@ public:
       transport_->open();
     }
     catch (std::exception& e) {
-      RDDLOG(ERROR) << "HTTPSyncClient: connect " << peer_.str()
+      RDDLOG(ERROR) << "HTTPSyncClient: connect " << peer_
         << " failed, " << e.what();
       return false;
     }
-    RDDLOG(DEBUG) << "connect peer[" << peer_.str() << "]";
+    RDDLOG(DEBUG) << "connect peer[" << peer_ << "]";
     return true;
   }
 
@@ -63,7 +62,7 @@ public:
       transport_->recv();
     }
     catch (std::exception& e) {
-      RDDLOG(ERROR) << "HTTPSyncClient: fetch " << peer_.str()
+      RDDLOG(ERROR) << "HTTPSyncClient: fetch " << peer_
         << " failed, " << e.what();
       return false;
     }
@@ -76,8 +75,8 @@ public:
 
 private:
   void init() {
-    transport_.reset(new BinaryTransport(peer_));
-    RDDLOG(DEBUG) << "SyncClient: " << peer_.str()
+    transport_.reset(new HTTPSyncTransport(peer_));
+    RDDLOG(DEBUG) << "SyncClient: " << peer_
       << ", timeout=" << timeout_;
   }
 

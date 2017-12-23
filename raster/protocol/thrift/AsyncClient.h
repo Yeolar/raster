@@ -72,7 +72,7 @@ public:
 
   template <class Res>
   bool recv(void (C::*recvFunc)(Res&), Res& _return) {
-    if (!event_ || event_->type() == Event::FAIL) {
+    if (!event_ || event_->state() == Event::kFail) {
       return false;
     }
     auto transport = event_->transport<BinaryTransport>();
@@ -82,9 +82,9 @@ public:
     if (keepalive_) {
       int32_t seqid = thrift::getSeqId(pibuf_.get());
       if (seqid != event_->seqid()) {
-        RDDLOG(ERROR) << "peer[" << peer_.str() << "]"
+        RDDLOG(ERROR) << "peer[" << peer_ << "]"
           << " recv unmatched seqid: " << seqid << "!=" << event_->seqid();
-        event_->setType(Event::FAIL);
+        event_->setState(Event::kFail);
       }
     }
     (client_.get()->*recvFunc)(_return);
@@ -93,7 +93,7 @@ public:
 
   template <class Res>
   bool recv(Res (C::*recvFunc)(void), Res& _return) {
-    if (!event_ || event_->type() == Event::FAIL) {
+    if (!event_ || event_->state() == Event::kFail) {
       return false;
     }
     auto transport = event_->transport<BinaryTransport>();
@@ -103,9 +103,9 @@ public:
     if (keepalive_) {
       int32_t seqid = thrift::getSeqId(pibuf_.get());
       if (seqid != event_->seqid()) {
-        RDDLOG(ERROR) << "peer[" << peer_.str() << "]"
+        RDDLOG(ERROR) << "peer[" << peer_ << "]"
           << " recv unmatched seqid: " << seqid << "!=" << event_->seqid();
-        event_->setType(Event::FAIL);
+        event_->setState(Event::kFail);
       }
     }
     _return = (client_.get()->*recvFunc)();

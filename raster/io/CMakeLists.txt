@@ -3,6 +3,7 @@
 set(RASTER_IO_SRCS
     Compression.cpp
     Cursor.cpp
+    Descriptor.cpp
     File.cpp
     FSUtil.cpp
     HugePages.cpp

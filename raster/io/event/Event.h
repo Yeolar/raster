@@ -21,31 +21,32 @@ namespace rdd {
 class Channel;
 class Processor;
 
+#define RDD_IO_EVENT_GEN(x) \
+    x(Init),                \
+    x(Connect),             \
+    x(Listen),              \
+    x(ToRead),              \
+    x(Reading),             \
+    x(Readed),              \
+    x(ToWrite),             \
+    x(Writing),             \
+    x(Writed),              \
+    x(Next),                \
+    x(Fail),                \
+    x(Timeout),             \
+    x(Error),               \
+    x(Waker),               \
+    x(Unknown)
+
+#define RDD_IO_EVENT_ENUM(state) k##state
+
 class Event {
 public:
-  enum {
-    INIT = 0, // 0
-    FAIL,     // 1
-    LISTEN,   // 2
-    TIMEOUT,  // 3
-    ERROR,    // 4
-    TOREAD,   // 5
-    READING,  // 6
-    READED,   // 7
-    TOWRITE,  // 8
-    WRITING,  // 9
-    WRITED,   // 10
-    NEXT,     // 11
-    CONNECT,  // 12
-    WAKER,    // 13
+  enum State {
+    RDD_IO_EVENT_GEN(RDD_IO_EVENT_ENUM)
   };
 
-  enum {
-    NONE = 0,
-    FORWARD = 1,
-  };
-
-  static Event* getCurrentEvent();
+  static Event* getCurrent();
 
   Event(const std::shared_ptr<Channel>& channel,
         const std::shared_ptr<Socket>& socket);
@@ -58,29 +59,26 @@ public:
 
   Descriptor* descriptor() const { return (socket() ?: (Descriptor*)waker_); }
   int fd() const { return descriptor()->fd(); }
-  int role() const { return descriptor()->role(); }
-  char roleLabel() const { return descriptor()->roleLabel(); }
-  std::string str() const { return descriptor()->str(); }
+  Peer peer() const { return descriptor()->peer(); }
 
   Socket* socket() const { return socket_.get(); }
-  Peer peer() const { return socket_->peer(); }
 
   std::string label() const;
-  const char* typeName() const;
+  const char* stateName() const;
 
   uint64_t seqid() const { return seqid_; }
 
-  int type() const { return type_; }
-  void setType(int type) {
-    type_ = type;
-    record(Timestamp(type));
+  State state() const { return state_; }
+  void setState(State state) {
+    state_ = state;
+    record(Timestamp(state));
   }
 
   int group() const { return group_; }
   void setGroup(int group) { group_ = group; }
 
-  bool isForward() const { return action_ == FORWARD; }
-  void setForward() { action_ = FORWARD; }
+  bool isForward() const { return forward_; }
+  void setForward() { forward_ = true; }
 
   std::shared_ptr<Channel> channel() const;
   std::unique_ptr<Processor> processor();
@@ -160,19 +158,17 @@ protected:
 
 private:
   uint64_t timeout() const {
-    switch (socket_->role()) {
-      case Socket::SERVER: return timeoutOpt_.wtimeout;
-      case Socket::CLIENT: return timeoutOpt_.rtimeout;
-    }
+    if (socket_->isClient()) return timeoutOpt_.rtimeout;
+    if (socket_->isServer()) return timeoutOpt_.wtimeout;
     return std::max(timeoutOpt_.rtimeout, timeoutOpt_.wtimeout);
   }
 
   static std::atomic<uint64_t> globalSeqid_;
 
   uint64_t seqid_;
-  int type_;
+  State state_;
   int group_;
-  int action_;
+  bool forward_;
 
   std::shared_ptr<Channel> channel_;
   std::shared_ptr<Socket> socket_;
@@ -189,10 +185,12 @@ private:
 inline std::ostream& operator<<(std::ostream& os, const Event& event) {
   os << "ev("
      << (void*)(&event) << ", "
-     << event.str() << ", "
-     << event.typeName() << ", "
+     << *event.descriptor() << ", "
+     << event.stateName() << ", "
      << event.timestampStr() << ")";
   return os;
 }
+
+#undef RDD_IO_EVENT_ENUM
 
 } // namespace rdd

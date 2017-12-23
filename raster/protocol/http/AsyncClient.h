@@ -30,7 +30,7 @@ public:
   virtual ~HTTPAsyncClient() {}
 
   bool recv() {
-    if (!event_ || event_->type() == Event::FAIL) {
+    if (!event_ || event_->state() == Event::kFail) {
       return false;
     }
     return true;

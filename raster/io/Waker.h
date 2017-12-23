@@ -14,7 +14,7 @@ namespace rdd {
 
 class Waker : public Descriptor {
 public:
-  Waker() {
+  Waker() : Descriptor(Role::kWaker) {
     if (pipe2(pipeFds_, O_CLOEXEC | O_NONBLOCK) == -1) {
       RDDPLOG(ERROR) << "pipe2 failed";
     }
@@ -25,9 +25,7 @@ public:
   }
 
   virtual int fd() const { return pipeFds_[0]; }
-  virtual int role() const { return -1; }
-  virtual char roleLabel() const { return 'W'; }
-  virtual std::string str() { return to<std::string>("W:", fd(), "[]"); }
+  virtual Peer peer() { return Peer(); }
 
   void wake() {
     checkUnixError(write(pipeFds_[1], (void*)"x", 1), "write error");

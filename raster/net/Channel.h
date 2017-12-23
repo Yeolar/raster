@@ -22,10 +22,6 @@ public:
       processorFactory_(std::move(processorFactory)) {
   }
 
-  std::string str() const {
-    return to<std::string>("channel[", id_, "]");
-  }
-
   int id() const { return id_; }
 
   Peer peer() const { return peer_; }
@@ -47,5 +43,10 @@ private:
   std::unique_ptr<TransportFactory> transportFactory_;
   std::unique_ptr<ProcessorFactory> processorFactory_;
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Channel& channel) {
+  os << "channel[" << channel.id() << "]";
+  return os;
+}
 
 } // namespace rdd
