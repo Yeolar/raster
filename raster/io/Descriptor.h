@@ -4,10 +4,6 @@
 
 #pragma once
 
-#include <string>
-
-#include "raster/net/NetUtil.h"
-
 namespace rdd {
 
 #define RDD_IO_DESCRIPTOR_GEN(x)  \
@@ -25,21 +21,14 @@ public:
     RDD_IO_DESCRIPTOR_GEN(RDD_IO_DESCRIPTOR_ENUM)
   };
 
-  Descriptor(Role role) : role_(role) {}
-
   virtual int fd() const = 0;
-  virtual Peer peer() = 0;
 
-  const char* role() const;
+  Role role() const { return role_; }
+  const char* roleName() const;
 
 protected:
-  Role role_;
+  Role role_{kNone};
 };
-
-inline std::ostream& operator<<(std::ostream& os, Descriptor& d) {
-  os << d.role()[0] << ":" << d.fd() << "[" << d.peer() << "]";
-  return os;
-}
 
 #undef RDD_IO_DESCRIPTOR_ENUM
 

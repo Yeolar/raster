@@ -6,8 +6,8 @@
 #pragma once
 
 #include <atomic>
+#include <cassert>
 #include <limits>
-#include <assert.h>
 #include <unistd.h>
 
 #include "raster/util/Time.h"

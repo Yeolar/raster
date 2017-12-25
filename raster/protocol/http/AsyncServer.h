@@ -16,7 +16,8 @@ public:
   }
 
   virtual void makeChannel(int port, const TimeoutOption& timeoutOpt) {
-    Peer peer = {"", port};
+    Peer peer;
+    peer.setFromLocalPort(port);
     channel_ = std::make_shared<Channel>(
         peer,
         timeoutOpt,

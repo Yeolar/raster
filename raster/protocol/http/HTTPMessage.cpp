@@ -10,6 +10,7 @@
 
 #include "raster/protocol/http/HTTPMessage.h"
 #include "raster/util/String.h"
+#include "raster/util/Time.h"
 
 namespace rdd {
 
@@ -189,7 +190,7 @@ std::string HTTPMessage::formatDateHeader() {
 
 void HTTPMessage::ensureHostHeader() {
   if (!headers_.exists(HTTP_HEADER_HOST)) {
-    headers_.add(HTTP_HEADER_HOST, getDstIP());
+    headers_.add(HTTP_HEADER_HOST, getDstAddress().getHostStr());
   }
 }
 
@@ -475,23 +476,21 @@ void HTTPMessage::dumpMessage(int vlogLevel) const {
     << ", chunked: " << chunked_
     << ", Fields for message:";
 
-  std::string dstPort = to<std::string>(dstAddr_.port);
-  std::string clientPort;
+  std::string dst = dstAddr_.describe();
+  std::string client;
 
   // Common fields to both requests and responses.
   std::vector<std::pair<const char*, const std::string*>> fields {{
     {"local_ip", &localIP_},
     {"version", &versionStr_},
-    {"dst_ip", &dstAddr_.host},
-    {"dst_port", &dstPort},
+    {"dst", &dst},
   }};
 
   if (fields_.type() == typeid(Request)) {
     // Request fields.
     const Request& req = request();
-    clientPort = to<std::string>(req.clientAddr_.port);
-    fields.push_back(make_pair("client_ip", &req.clientAddr_.host));
-    fields.push_back(make_pair("client_port", &clientPort));
+    client = req.clientAddr_.describe();
+    fields.push_back(make_pair("client", &client));
     fields.push_back(make_pair("method", &getMethodString()));
     fields.push_back(make_pair("path", &req.path_));
     fields.push_back(make_pair("query", &req.query_));

@@ -9,6 +9,7 @@
 #include "raster/util/Logging.h"
 #include "raster/util/MapUtil.h"
 #include "raster/util/String.h"
+#include "raster/util/ThreadUtil.h"
 #include "raster/util/UnionBasedStatic.h"
 
 namespace rdd {

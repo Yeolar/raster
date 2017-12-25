@@ -13,6 +13,7 @@
 #include <limits>
 #include <memory>
 #include <type_traits>
+#include <sys/uio.h>
 #include <boost/iterator/iterator_facade.hpp>
 
 #include "raster/util/Logging.h"

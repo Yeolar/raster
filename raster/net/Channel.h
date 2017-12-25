@@ -15,7 +15,7 @@ public:
           const TimeoutOption& timeoutOpt,
           std::unique_ptr<TransportFactory> transportFactory = nullptr,
           std::unique_ptr<ProcessorFactory> processorFactory = nullptr)
-    : id_(peer.port),
+    : id_(peer.port()),
       peer_(peer),
       timeoutOpt_(timeoutOpt),
       transportFactory_(std::move(transportFactory)),
@@ -24,7 +24,7 @@ public:
 
   int id() const { return id_; }
 
-  Peer peer() const { return peer_; }
+  const Peer& peer() const { return peer_; }
 
   TimeoutOption timeoutOption() const { return timeoutOpt_; }
 

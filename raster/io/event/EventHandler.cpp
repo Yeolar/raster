@@ -46,7 +46,7 @@ void EventHandler::onListen(Event* event) {
     RDDLOG(WARN) << "exceed connection capacity, drop request";
     return;
   }
-  Event *evnew = new Event(event->channel(), socket);
+  Event *evnew = new Event(event->channel(), std::move(socket));
   if (!evnew) {
     RDDLOG(ERROR) << "create event failed";
     return;

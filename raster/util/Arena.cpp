@@ -10,6 +10,7 @@ namespace rdd {
 void* Arena::allocateSlow(size_t size) {
   std::pair<Block*, size_t> p;
   char* start;
+
   if (size > minBlockSize_) {
     p = Block::allocate(size);
     start = p.first->start();
@@ -21,8 +22,16 @@ void* Arena::allocateSlow(size_t size) {
     ptr_ = start + size;
     end_ = start + p.second;
   }
+
+  assert(p.second >= size);
   totalAllocatedSize_ += p.second + sizeof(Block);
   return start;
+}
+
+Arena* ThreadArena::allocateThreadLocalArena() {
+  Arena* arena = new Arena(minBlockSize_, maxAlign_);
+  arena_.reset(arena);
+  return arena;
 }
 
 } // namespace rdd

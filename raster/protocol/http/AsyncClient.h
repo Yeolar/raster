@@ -20,12 +20,11 @@ public:
     : AsyncClient(option) {
     channel_ = makeChannel();
   }
-  HTTPAsyncClient(const std::string& host,
-               int port,
+  HTTPAsyncClient(const Peer& peer,
                uint64_t ctimeout = 100000,
                uint64_t rtimeout = 1000000,
                uint64_t wtimeout = 300000)
-    : HTTPAsyncClient({Peer(host, port), {ctimeout, rtimeout, wtimeout}}) {
+    : HTTPAsyncClient({peer, {ctimeout, rtimeout, wtimeout}}) {
   }
   virtual ~HTTPAsyncClient() {}
 

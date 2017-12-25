@@ -13,7 +13,7 @@ namespace rdd {
 
 template <class K, class V>
 class LockedMap {
-public:
+ public:
   typedef typename std::map<K, V>::iterator iterator;
   typedef typename std::map<K, V>::value_type value_type;
 
@@ -88,7 +88,7 @@ public:
     }
   }
 
-private:
+ private:
   std::map<K, V> map_;
   mutable RWLock lock_;
 };

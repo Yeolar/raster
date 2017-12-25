@@ -15,12 +15,11 @@ public:
     : AsyncClient(option) {
     channel_ = makeChannel();
   }
-  BinaryAsyncClient(const std::string& host,
-               int port,
-               uint64_t ctimeout = 100000,
-               uint64_t rtimeout = 1000000,
-               uint64_t wtimeout = 300000)
-    : BinaryAsyncClient({Peer(host, port), {ctimeout, rtimeout, wtimeout}}) {
+  BinaryAsyncClient(const Peer& peer,
+                    uint64_t ctimeout = 100000,
+                    uint64_t rtimeout = 1000000,
+                    uint64_t wtimeout = 300000)
+    : BinaryAsyncClient({peer, {ctimeout, rtimeout, wtimeout}}) {
   }
   virtual ~BinaryAsyncClient() {}
 

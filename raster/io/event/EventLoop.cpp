@@ -18,22 +18,18 @@ EventLoop::EventLoop(int pollSize, int pollTimeout)
 }
 
 void EventLoop::listen(const std::shared_ptr<Channel>& channel, int backlog) {
-  int port = channel->peer().port;
-  auto socket = std::make_shared<Socket>(0);
-  if (!(*socket) ||
-      !(socket->setReuseAddr()) ||
-      // !(socket->setLinger(0)) ||
-      !(socket->setTCPNoDelay()) ||
-      !(socket->setNonBlocking()) ||
+  int port = channel->id();
+  auto socket = Socket::createAsyncSocket();
+  if (!socket ||
       !(socket->bind(port)) ||
       !(socket->listen(backlog))) {
     throw std::runtime_error("socket listen failed");
   }
-  Event *event = new Event(channel, socket);
+  Event *event = new Event(channel, std::move(socket));
   if (!event) {
     throw std::runtime_error("create listening event failed");
   }
-  listenFds_.emplace_back(socket->fd());
+  listenFds_.emplace_back(event->fd());
   event->setState(Event::kListen);
   dispatchEvent(event);
   RDDLOG(INFO) << *event << " listen on port=" << port;
@@ -188,8 +184,8 @@ void EventLoop::checkTimeoutEvent() {
     if (!event) {
       break;
     }
-    if (timeout.repeat && Socket::count() < Socket::LCOUNT) {
-      timeout.deadline += Socket::LTIMEOUT;
+    if (timeout.repeat && Socket::count() < Socket::kLCount) {
+      timeout.deadline += Socket::kLTimeout;
       deadlineHeap_.push(timeout);
     }
     else {

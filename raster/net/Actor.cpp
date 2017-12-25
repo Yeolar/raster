@@ -102,7 +102,7 @@ void Actor::addFiber(Fiber* fiber, int poolId) {
 void Actor::addEvent(Event* event) {
   if (options_.forwarding && event->socket()->isClient()) {
     for (auto& f : forwards_) {
-      if (f.port == event->channel()->peer().port && f.flow > rand() % 100) {
+      if (f.port == event->channel()->id() && f.flow > rand() % 100) {
         forwardEvent(event, f.fpeer);
       }
     }
@@ -111,16 +111,12 @@ void Actor::addEvent(Event* event) {
 }
 
 void Actor::forwardEvent(Event* event, const Peer& peer) {
-  auto socket = std::make_shared<Socket>(0);
-  if (!(*socket) ||
-      !(socket->setReuseAddr()) ||
-      // !(socket->setLinger(0)) ||
-      !(socket->setTCPNoDelay()) ||
-      !(socket->setNonBlocking()) ||
-      !(socket->connect(peer))) {
+  auto socket = Socket::createAsyncSocket();
+  if (!socket ||
+      !socket->connect(peer)) {
     return;
   }
-  Event* evcopy = new Event(event->channel(), socket);
+  Event* evcopy = new Event(event->channel(), std::move(socket));
   evcopy->transport()->clone(event->transport());
   evcopy->setForward();
   evcopy->setState(Event::kWrited);

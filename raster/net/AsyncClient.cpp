@@ -12,6 +12,12 @@ AsyncClient::AsyncClient(const ClientOption& option)
   RDDLOG(DEBUG) << "AsyncClient: " << peer_ << ", timeout=" << timeoutOpt_;
 }
 
+AsyncClient::AsyncClient(const Peer& peer,
+                         uint64_t ctimeout,
+                         uint64_t rtimeout,
+                         uint64_t wtimeout)
+  : AsyncClient({peer, {ctimeout, rtimeout, wtimeout}}) {}
+
 void AsyncClient::close() {
   freeConnection();
 }
@@ -36,7 +42,7 @@ void AsyncClient::callback() {
 
 bool AsyncClient::initConnection() {
   if (keepalive_) {
-    auto pool = Singleton<EventPoolManager>::get()->getPool(peer_.port);
+    auto pool = Singleton<EventPoolManager>::get()->getPool(peer_.port());
     auto event = pool->get(peer_);
     if (event && event->socket()->isConnected()) {
       event->reset();
@@ -47,15 +53,11 @@ bool AsyncClient::initConnection() {
       return true;
     }
   }
-  auto socket = std::make_shared<Socket>(0);
-  if (*socket &&
-      socket->setReuseAddr() &&
+  auto socket = Socket::createAsyncSocket();
+  if (socket &&
       (!keepalive_ || socket->setKeepAlive()) &&
-      // socket->setLinger(0) &&
-      socket->setTCPNoDelay() &&
-      socket->setNonBlocking() &&
       socket->connect(peer_)) {
-    auto event = std::make_shared<Event>(channel_, socket);
+    auto event = std::make_shared<Event>(channel_, std::move(socket));
     event->setState(Event::kConnect);
     event_ = event;
     RDDLOG(DEBUG) << "peer[" << peer_ << "] connect";
@@ -66,7 +68,7 @@ bool AsyncClient::initConnection() {
 
 void AsyncClient::freeConnection() {
   if (keepalive_ && event_->state() != Event::kFail) {
-    auto pool = Singleton<EventPoolManager>::get()->getPool(peer_.port);
+    auto pool = Singleton<EventPoolManager>::get()->getPool(peer_.port());
     pool->giveBack(event_);
   }
   event_ = nullptr;

@@ -4,14 +4,14 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 #include "raster/util/RWSpinLock.h"
 
 namespace rdd {
 
 class Counter {
-public:
+ public:
   Counter() {}
   virtual ~Counter() {}
 
@@ -38,7 +38,7 @@ public:
     return value_;
   }
 
-private:
+ private:
   int64_t value_{0};
   mutable RWSpinLock lock_;
 };

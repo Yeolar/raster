@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <errno.h>
+#include <cerrno>
 #include <system_error>
 
 #include "raster/util/Conv.h"

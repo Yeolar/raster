@@ -10,6 +10,7 @@ set(RASTER_UTIL_SRCS
     EscapeTables.cpp
     Futex.cpp
     json.cpp
+    LogBase.cpp
     MemoryMapping.cpp
     ProcessUtil.cpp
     Random.cpp
@@ -31,6 +32,7 @@ install(FILES
     Algorithm.h
     Arena.h
     AtomicBitSet.h
+    AtomicLinkedList.h
     AtomicPtr.h
     AtomicUnorderedMap.h
     Backtrace.h
@@ -55,7 +57,6 @@ install(FILES
     Futex.h
     Hash.h
     json.h
-    LockedLinkedList.h
     LockedMap.h
     LockedQueue.h
     LogBase.h

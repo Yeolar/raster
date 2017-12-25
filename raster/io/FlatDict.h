@@ -9,6 +9,7 @@
 #include "raster/io/TypedIOBuf.h"
 #include "raster/util/AtomicUnorderedMap.h"
 #include "raster/util/RWSpinLock.h"
+#include "raster/util/Time.h"
 
 namespace rdd {
 

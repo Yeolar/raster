@@ -136,6 +136,8 @@ void HTTPTransport::onWriting() {
 #endif
 
 void HTTPTransport::onMessageBegin(HTTPMessage* msg) {
+  msg->setClientAddress(peerAddr_);
+  msg->setDstAddress(localAddr_);
 }
 
 void HTTPTransport::onHeadersComplete(std::unique_ptr<HTTPMessage> msg) {

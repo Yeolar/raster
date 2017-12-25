@@ -12,13 +12,14 @@ namespace rdd {
 
 template <class T>
 class LockedQueue {
-public:
+ public:
   LockedQueue() {}
 
   void push(const T& value) {
     WLockGuard guard(lock_);
     queue_.push(value);
   }
+
   void push(T&& value) {
     WLockGuard guard(lock_);
     queue_.push(std::move(value));
@@ -45,7 +46,7 @@ public:
     return queue_.size();
   }
 
-private:
+ private:
   std::queue<T> queue_;
   mutable RWLock lock_;
 };

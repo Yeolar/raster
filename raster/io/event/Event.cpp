@@ -25,9 +25,9 @@ Event* Event::getCurrent() {
 std::atomic<uint64_t> Event::globalSeqid_(1);
 
 Event::Event(const std::shared_ptr<Channel>& channel,
-             const std::shared_ptr<Socket>& socket)
+             std::unique_ptr<Socket> socket)
   : channel_(channel)
-  , socket_(socket)
+  , socket_(std::move(socket))
   , timeoutOpt_(channel->timeoutOption()) {
   reset();
   RDDLOG(V2) << *this << " +";
@@ -62,6 +62,8 @@ void Event::reset() {
   } else {
     if (channel_->transportFactory()) {
       transport_ = std::move(channel_->transportFactory()->create());
+      transport_->setPeerAddress(socket_->peer());
+      transport_->setLocalAddress(channel_->peer());
     }
   }
 }
@@ -82,7 +84,7 @@ void Event::record(Timestamp timestamp) {
 }
 
 std::string Event::label() const {
-  return to<std::string>(descriptor()->role()[0], channel_->id());
+  return to<std::string>(descriptor()->roleName()[0], channel_->id());
 }
 
 const char* Event::stateName() const {

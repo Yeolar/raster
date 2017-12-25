@@ -15,31 +15,6 @@
 
 namespace rdd {
 
-Peer::Peer(int fd) {
-  char ni_host[NI_MAXHOST];
-  char ni_serv[NI_MAXSERV];
-  struct sockaddr addr;
-  socklen_t addrlen;
-  memset(&addr, 0, sizeof(addr));
-  addrlen = sizeof(addr);
-  int r = getpeername(fd, &addr, &addrlen);
-  if (r == -1) {
-    RDDPLOG(ERROR) << "getpeername failed";
-    return;
-  }
-  r = getnameinfo(&addr, addrlen,
-                  ni_host, sizeof(ni_host),
-                  ni_serv, sizeof(ni_serv),
-                  NI_NUMERICHOST | NI_NUMERICSERV);
-  if (r != 0) {
-    RDDLOG(ERROR) << "getnameinfo failed, " << gai_strerror(r) << ", "
-      << (r == EAI_SYSTEM ? strerror(errno) : "");
-    return;
-  }
-  host = ni_host;
-  port = to<int>(ni_serv);
-}
-
 std::string getAddr(const std::string& ifname) {
   std::string addr;
   struct ifaddrs *ifaddr, *ifa;

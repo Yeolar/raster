@@ -146,7 +146,7 @@ struct dynamic::ObjectMaker {
     return std::move(*this);
   }
 
-private:
+ private:
   dynamic val_;
 };
 

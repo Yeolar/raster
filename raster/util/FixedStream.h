@@ -4,14 +4,14 @@
 
 #pragma once
 
-#include <string>
 #include <ostream>
 #include <streambuf>
+#include <string>
 
 namespace rdd {
 
 class FixedStreamBuf : public std::streambuf {
-public:
+ public:
   FixedStreamBuf(char* buf, size_t len) {
     setp(buf, buf + len);
   }
@@ -20,11 +20,13 @@ public:
     setg((char*)buf, (char*)next, (char*)end);
   }
 
-  std::string str() { return std::string(pbase(), pptr()); }
+  std::string str() {
+    return std::string(pbase(), pptr());
+  }
 };
 
 class FixedOstream : private virtual FixedStreamBuf, public std::ostream {
-public:
+ public:
   typedef FixedStreamBuf StreamBuf;
 
   FixedOstream(char* buf, size_t len)
@@ -35,9 +37,17 @@ public:
   char* output_ptr() { return StreamBuf::pptr(); }
   char* output_end() { return StreamBuf::epptr(); }
 
-  void reset() { StreamBuf::setp(output(), output_end()); }
+  void reset() {
+    StreamBuf::setp(output(), output_end());
+  }
 
-  std::string str() { return StreamBuf::str(); }
+  void advance(int n) {
+    StreamBuf::pbump(n);
+  }
+
+  std::string str() {
+    return StreamBuf::str();
+  }
 };
 
 } // namespace rdd

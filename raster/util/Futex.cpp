@@ -3,7 +3,7 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <errno.h>
+#include <cerrno>
 #include <linux/futex.h>
 #include <sys/syscall.h>
 

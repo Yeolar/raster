@@ -39,12 +39,12 @@ public:
   bool getIsChunked() const { return chunked_; }
 
   void setClientAddress(const Peer& addr) { request().clientAddr_ = addr; }
-  const std::string& getClientIP() const { return request().clientAddr_.host; }
-  int getClientPort() const { return request().clientAddr_.port; }
+  const Peer& getClientAddress() const { return request().clientAddr_; }
+  int getClientPort() const { return request().clientAddr_.port(); }
 
   void setDstAddress(const Peer& addr) { dstAddr_ = addr; }
-  const std::string& getDstIP() const { return dstAddr_.host; }
-  int getDstPort() const { return dstAddr_.port; }
+  const Peer& getDstAddress() const { return dstAddr_; }
+  int getDstPort() const { return dstAddr_.port(); }
 
   template <typename T> // T = string
   void setLocalIp(T&& ip) { localIP_ = std::forward<T>(ip); }

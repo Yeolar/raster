@@ -12,8 +12,8 @@ namespace rdd {
 
 class BinarySyncClient {
 public:
-  BinarySyncClient(const std::string& host, int port)
-    : peer_(host, port) {
+  BinarySyncClient(const Peer& peer)
+    : peer_(peer) {
     init();
   }
   BinarySyncClient(const ClientOption& option)

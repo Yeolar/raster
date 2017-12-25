@@ -14,12 +14,11 @@ namespace rdd {
 
 class HTTPSyncClient {
 public:
-  HTTPSyncClient(const std::string& host,
-                 int port,
+  HTTPSyncClient(const Peer& peer,
                  uint64_t ctimeout = 100000,
                  uint64_t rtimeout = 1000000,
                  uint64_t wtimeout = 300000)
-    : peer_(host, port),
+    : peer_(peer),
       timeout_({ctimeout, rtimeout, wtimeout}) {
     init();
   }

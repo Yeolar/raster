@@ -16,12 +16,17 @@ namespace rdd {
 
 class Socket : public Descriptor {
 public:
-  static constexpr uint64_t LTIMEOUT = 600000000; // long-polling timeout: 10min
-  static constexpr size_t   LCOUNT   = 80000;     // long-polling count
+  static constexpr uint64_t kLTimeout = 600000000;// long-polling timeout: 10min
+  static constexpr size_t   kLCount   = 80000;    // long-polling count
 
   static size_t count() { return count_; }
 
-  explicit Socket(int fd = -1);
+  static std::unique_ptr<Socket> createSyncSocket();
+  static std::unique_ptr<Socket> createAsyncSocket();
+
+  Socket();
+  Socket(int fd, const Peer& peer);
+
   ~Socket();
 
   operator bool() const {
@@ -30,12 +35,9 @@ public:
 
   bool bind(int port);
   bool listen(int backlog);
-  std::shared_ptr<Socket> accept();
+  std::unique_ptr<Socket> accept();
 
-  bool connect(const std::string& host, int port);
-  bool connect(const Peer& peer) {
-    return connect(peer.host, peer.port);
-  }
+  bool connect(const Peer& peer);
   bool isConnected();
 
   void close();
@@ -68,7 +70,7 @@ public:
   bool getError(int& err);
 
   virtual int fd() const { return fd_; }
-  virtual Peer peer();
+  const Peer& peer() const { return peer_; }
 
   bool isClient() const { return role_ == Role::kClient; }
   bool isServer() const { return role_ == Role::kServer; }
@@ -76,8 +78,14 @@ public:
 private:
   static std::atomic<size_t> count_;
 
-  int fd_;
+  int fd_{-1};
   Peer peer_;
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Socket& socket) {
+  os << socket.roleName()[0] << ":" << socket.fd()
+     << "[" << socket.peer() << "]";
+  return os;
+}
 
 } // namespace rdd

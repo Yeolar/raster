@@ -8,7 +8,8 @@
 namespace rdd {
 
 void PBAsyncServer::makeChannel(int port, const TimeoutOption& timeout_opt) {
-  Peer peer = {"", port};
+  Peer peer;
+  peer.setFromLocalPort(port);
   channel_ = std::make_shared<Channel>(
       peer,
       timeout_opt,

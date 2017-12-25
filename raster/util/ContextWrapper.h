@@ -4,19 +4,19 @@
 
 #pragma once
 
-#include <stdlib.h>
+#include <cstdlib>
 
 namespace rdd {
 
 class DeleterBase {
-public:
+ public:
   virtual ~DeleterBase() {}
   virtual void dispose(void* ptr) const = 0;
 };
 
 template <class Ptr>
 class SimpleDeleter {
-public:
+ public:
   virtual void dispose(void* ptr) const {
     delete static_cast<Ptr>(ptr);
   }

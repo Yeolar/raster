@@ -18,6 +18,7 @@
 #include "raster/gen/String.h"
 #include "raster/io/HugePages.h"
 #include "raster/util/Conv.h"
+#include "raster/util/Exception.h"
 #include "raster/util/Range.h"
 
 namespace rdd {

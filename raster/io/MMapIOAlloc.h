@@ -9,6 +9,7 @@
 #include <vector>
 #include <boost/iterator/iterator_facade.hpp>
 
+#include "raster/io/Path.h"
 #include "raster/util/MemoryMapping.h"
 #include "raster/util/RWSpinLock.h"
 

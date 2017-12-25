@@ -5,6 +5,7 @@ set(RASTER_NET_SRCS
     AsyncClient.cpp
     ErrorEnum.cpp
     NetUtil.cpp
+    Peer.cpp
     Socket.cpp
     Transport.cpp
 )
@@ -18,6 +19,7 @@ install(FILES
     ErrorEnum.h
     Exception.h
     NetUtil.h
+    Peer.h
     Processor.h
     Service.h
     Socket.h

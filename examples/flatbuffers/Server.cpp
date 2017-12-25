@@ -43,8 +43,9 @@ public:
     ResultCode code = ResultCode_OK;
 
     if (query->forward()->Length() != 0) {
-      Peer peer(query->forward()->str());
-      BinaryAsyncClient client(peer.host, peer.port);
+      Peer peer;
+      peer.setFromIpPort(query->forward()->str());
+      BinaryAsyncClient client(peer);
       ::flatbuffers::FlatBufferBuilder fbb;
       fbb.Finish(
           CreateQuery(fbb,

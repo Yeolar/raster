@@ -61,12 +61,11 @@ public:
     client_ = std::make_shared<C>(piprot_, poprot_);
     channel_ = makeChannel();
   }
-  TAsyncClient(const std::string& host,
-               int port,
+  TAsyncClient(const Peer& peer,
                uint64_t ctimeout = 100000,
                uint64_t rtimeout = 1000000,
                uint64_t wtimeout = 300000)
-    : TAsyncClient({Peer(host, port), {ctimeout, rtimeout, wtimeout}}) {
+    : TAsyncClient({peer, {ctimeout, rtimeout, wtimeout}}) {
   }
   virtual ~TAsyncClient() {}
 

@@ -37,11 +37,12 @@ public:
     _return.__set_code(ResultCode::OK);
 
     if (!query.forward.empty()) {
-      Peer peer(query.forward);
+      Peer peer;
+      peer.setFromIpPort(query.forward);
       Query q;
       q.__set_traceid(query.traceid);
       q.__set_query(query.query);
-      TAsyncClient<ProxyClient> client(peer.host, peer.port);
+      TAsyncClient<ProxyClient> client(peer);
       client.setKeepAlive();
       if (!client.connect() ||
           !client.fetch(&ProxyClient::recv_run, _return,

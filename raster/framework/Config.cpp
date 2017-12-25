@@ -164,7 +164,7 @@ void configNetCopy(const dynamic& j, bool reload) {
   for (auto& i : j) {
     Actor::ForwardTarget t;
     t.port  = json::get(i, "port", 0);
-    t.fpeer = {json::get(i, "fhost", ""), json::get(i, "fport", 0)};
+    t.fpeer = Peer(json::get(i, "fhost", ""), json::get(i, "fport", 0));
     t.flow  = json::get(i, "flow", 100);
     Singleton<Actor>::get()->addForwardTarget(t);
   }

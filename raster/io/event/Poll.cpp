@@ -55,26 +55,31 @@ void Poll::control(int op, int fd, Event events, void* ptr) {
 }
 
 std::ostream& operator<<(std::ostream& os, const Poll::Event& event) {
+#define OUTPUTEVENTNAME_IMPL(e) \
+  if (event.data & e) os << sepchar() << #e
+
   int more = 0;
   auto sepchar = [&]() -> char {
     return (more || more++) ? '|' : '(';
   };
-  if (event.data & EPOLLIN) os << sepchar() << "EPOLLIN";
-  if (event.data & EPOLLPRI) os << sepchar() << "EPOLLPRI";
-  if (event.data & EPOLLOUT) os << sepchar() << "EPOLLOUT";
-  if (event.data & EPOLLRDNORM) os << sepchar() << "EPOLLRDNORM";
-  if (event.data & EPOLLRDBAND) os << sepchar() << "EPOLLRDBAND";
-  if (event.data & EPOLLWRNORM) os << sepchar() << "EPOLLWRNORM";
-  if (event.data & EPOLLWRBAND) os << sepchar() << "EPOLLWRBAND";
-  if (event.data & EPOLLMSG) os << sepchar() << "EPOLLMSG";
-  if (event.data & EPOLLERR) os << sepchar() << "EPOLLERR";
-  if (event.data & EPOLLHUP) os << sepchar() << "EPOLLHUP";
-  if (event.data & EPOLLRDHUP) os << sepchar() << "EPOLLRDHUP";
-  if (event.data & EPOLLWAKEUP) os << sepchar() << "EPOLLWAKEUP";
-  if (event.data & EPOLLONESHOT) os << sepchar() << "EPOLLONESHOT";
-  if (event.data & EPOLLET) os << sepchar() << "EPOLLET";
+  OUTPUTEVENTNAME_IMPL(EPOLLIN);
+  OUTPUTEVENTNAME_IMPL(EPOLLPRI);
+  OUTPUTEVENTNAME_IMPL(EPOLLOUT);
+  OUTPUTEVENTNAME_IMPL(EPOLLRDNORM);
+  OUTPUTEVENTNAME_IMPL(EPOLLRDBAND);
+  OUTPUTEVENTNAME_IMPL(EPOLLWRNORM);
+  OUTPUTEVENTNAME_IMPL(EPOLLWRBAND);
+  OUTPUTEVENTNAME_IMPL(EPOLLMSG);
+  OUTPUTEVENTNAME_IMPL(EPOLLERR);
+  OUTPUTEVENTNAME_IMPL(EPOLLHUP);
+  OUTPUTEVENTNAME_IMPL(EPOLLRDHUP);
+  OUTPUTEVENTNAME_IMPL(EPOLLWAKEUP);
+  OUTPUTEVENTNAME_IMPL(EPOLLONESHOT);
+  OUTPUTEVENTNAME_IMPL(EPOLLET);
   os << ")";
   return os;
+
+#undef OUTPUTEVENTNAME_IMPL
 }
 
 } // namespace rdd

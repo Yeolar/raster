@@ -3,7 +3,7 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <string.h>
+#include <cstring>
 #include <cxxabi.h>
 
 #include "raster/util/Demangle.h"

@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
       }));
 
   ClientOption opt;
-  opt.peer = Peer(FLAGS_addr);
+  opt.peer.setFromIpPort(FLAGS_addr);
   opt.timeout.ctimeout = 10000000;
   opt.timeout.rtimeout = 10000000;
   opt.timeout.wtimeout = 10000000;

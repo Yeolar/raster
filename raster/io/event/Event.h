@@ -6,6 +6,7 @@
 
 #include <stdexcept>
 #include <string.h>
+#include <iostream>
 #include <memory>
 #include <arpa/inet.h>
 
@@ -49,7 +50,7 @@ public:
   static Event* getCurrent();
 
   Event(const std::shared_ptr<Channel>& channel,
-        const std::shared_ptr<Socket>& socket);
+        std::unique_ptr<Socket> socket);
 
   Event(Waker* waker);
 
@@ -59,9 +60,8 @@ public:
 
   Descriptor* descriptor() const { return (socket() ?: (Descriptor*)waker_); }
   int fd() const { return descriptor()->fd(); }
-  Peer peer() const { return descriptor()->peer(); }
-
   Socket* socket() const { return socket_.get(); }
+  Peer peer() const { return socket_->peer(); }
 
   std::string label() const;
   const char* stateName() const;
@@ -104,7 +104,7 @@ public:
     return timeoutOpt_;
   }
   Timeout<Event> edeadline() {
-    return Timeout<Event>(this, starttime() + Socket::LTIMEOUT, true);
+    return Timeout<Event>(this, starttime() + Socket::kLTimeout, true);
   }
   Timeout<Event> cdeadline() {
     return Timeout<Event>(this, starttime() + timeoutOpt_.ctimeout);
@@ -171,7 +171,7 @@ private:
   bool forward_;
 
   std::shared_ptr<Channel> channel_;
-  std::shared_ptr<Socket> socket_;
+  std::unique_ptr<Socket> socket_;
 
   Waker* waker_;
   Executor* executor_;
@@ -183,11 +183,9 @@ private:
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Event& event) {
-  os << "ev("
-     << (void*)(&event) << ", "
-     << *event.descriptor() << ", "
-     << event.stateName() << ", "
-     << event.timestampStr() << ")";
+  os << "ev(" << (void*)(&event) << ", ";
+  if (event.socket()) os << *event.socket();
+  os << event.stateName() << ", " << event.timestampStr() << ")";
   return os;
 }
 

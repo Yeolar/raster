@@ -49,12 +49,13 @@ public:
     response->set_code(ResultCode::OK);
 
     if (!request->forward().empty()) {
-      Peer peer(request->forward());
+      Peer peer;
+      peer.setFromIpPort(request->forward());
       Query q;
       q.set_traceid(request->traceid());
       q.set_query(request->query());
       Result r;
-      PBAsyncClient<ProxyService::Stub> client(peer.host, peer.port);
+      PBAsyncClient<ProxyService::Stub> client(peer);
       if (!client.connect() ||
           !client.fetch(&ProxyService::Stub::run, r, q)) {
         response->set_code(ResultCode::E_BACKEND_FAILURE);

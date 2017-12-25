@@ -15,39 +15,37 @@ class BinarySyncTransport : public BinaryTransport {
 public:
   BinarySyncTransport(const Peer& peer)
     : BinaryTransport(),
-      peer_(peer),
-      socket_(0) {}
+      peer_(peer) {}
 
   virtual ~BinarySyncTransport() {}
 
   void open() {
-    socket_.setReuseAddr();
-    socket_.setTCPNoDelay();
-    socket_.connect(peer_);
+    socket_ = Socket::createSyncSocket();
+    socket_->connect(peer_);
   }
 
   bool isOpen() {
-    return socket_.isConnected();
+    return socket_->isConnected();
   }
 
   void close() {
-    socket_.close();
+    socket_->close();
   }
 
   void send(const ByteRange& request) {
     sendHeader(request.size());
     sendBody(IOBuf::copyBuffer(request));
-    writeData(&socket_);
+    writeData(socket_.get());
   }
 
   void recv(ByteRange& response) {
-    readData(&socket_);
+    readData(socket_.get());
     response = body->coalesce();
   }
 
 private:
   Peer peer_;
-  Socket socket_;
+  std::unique_ptr<Socket> socket_;
 };
 
 } // namespace rdd

@@ -34,7 +34,7 @@ inline std::string getThreadName(pthread_t id) {
 
 template <class T>
 class ThreadLocalPtr {
-public:
+ public:
   ThreadLocalPtr() {
     pthread_key_create(&key_, OnThreadExit);
   }
@@ -43,17 +43,21 @@ public:
     return static_cast<T*>(pthread_getspecific(key_));
   }
 
-  void reset(T* t) {
+  T* operator->() const { return get(); }
+  T& operator*() const { return *get(); }
+
+  void reset(T* t = nullptr) {
     delete get();
     pthread_setspecific(key_, t);
   }
 
-  T* operator->() const { return get(); }
-  T& operator*() const { return *get(); }
+  explicit operator bool() const {
+    return get() != nullptr;
+  }
 
-  explicit operator bool() const { return get() != nullptr; }
+  NOCOPY(ThreadLocalPtr);
 
-private:
+ private:
   static void OnThreadExit(void* obj) {
     delete static_cast<T*>(obj);
   }
@@ -63,7 +67,7 @@ private:
 
 template <class T>
 class ThreadLocal {
-public:
+ public:
   ThreadLocal() {}
 
   T* get() const {
@@ -74,16 +78,16 @@ public:
     return makeTlp();
   }
 
+  T* operator->() const { return get(); }
+  T& operator*() const { return *get(); }
+
   void reset(T* newPtr = nullptr) {
     tlp_.reset(newPtr);
   }
 
-  T* operator->() const { return get(); }
-  T& operator*() const { return *get(); }
-
   NOCOPY(ThreadLocal);
 
-private:
+ private:
   T* makeTlp() const {
     T* ptr = new T();
     tlp_.reset(ptr);

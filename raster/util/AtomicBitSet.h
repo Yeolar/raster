@@ -5,10 +5,10 @@
 
 #pragma once
 
-#include <assert.h>
-#include <stddef.h>
 #include <array>
 #include <atomic>
+#include <cassert>
+#include <cstddef>
 #include <limits>
 
 #include "raster/util/Macro.h"
@@ -17,54 +17,57 @@ namespace rdd {
 
 template <size_t N>
 class AtomicBitSet {
-public:
-  typedef unsigned long long BlockType;   // lock free type
-
-  static const size_t BLOCK_BITS = std::numeric_limits<BlockType>::digits;
-
+ public:
   AtomicBitSet() : data_() {}
 
-  bool set(size_t idx) {
-    assert(idx < N * BLOCK_BITS);
-    BlockType mask = ONE << bitOffset(idx);
-    return data_[blockIndex(idx)].fetch_or(mask) & mask;
+  bool set(size_t idx, std::memory_order order = std::memory_order_seq_cst) {
+    assert(idx < N * kBlockBits);
+    BlockType mask = kOne << bitOffset(idx);
+    return data_[blockIndex(idx)].fetch_or(mask, order) & mask;
   }
 
-  bool reset(size_t idx) {
-    assert(idx < N * BLOCK_BITS);
-    BlockType mask = ONE << bitOffset(idx);
-    return data_[blockIndex(idx)].fetch_and(~mask) & mask;
+  bool reset(size_t idx, std::memory_order order = std::memory_order_seq_cst) {
+    assert(idx < N * kBlockBits);
+    BlockType mask = kOne << bitOffset(idx);
+    return data_[blockIndex(idx)].fetch_and(~mask, order) & mask;
   }
 
-  bool set(size_t idx, bool value) {
-    return value ? set(idx) : reset(idx);
+  bool set(size_t idx, bool value,
+           std::memory_order order = std::memory_order_seq_cst) {
+    return value ? set(idx, order) : reset(idx, order);
   }
 
-  bool test(size_t idx) const {
-    assert(idx < N * BLOCK_BITS);
-    BlockType mask = ONE << bitOffset(idx);
-    return data_[blockIndex(idx)].load() & mask;
+  bool test(size_t idx,
+            std::memory_order order = std::memory_order_seq_cst) const {
+    assert(idx < N * kBlockBits);
+    BlockType mask = kOne << bitOffset(idx);
+    return data_[blockIndex(idx)].load(order) & mask;
   }
 
-  bool operator[](size_t idx) const { return test(idx); }
+  bool operator[](size_t idx) const {
+    return test(idx);
+  }
 
-  constexpr size_t size() const { return N; }
-  constexpr size_t maskSize() const { return N * BLOCK_BITS; }
+  constexpr size_t size() const {
+    return N;
+  }
 
   NOCOPY(AtomicBitSet);
 
-private:
+ private:
+  typedef unsigned long long BlockType;   // lock free type
   typedef std::atomic<BlockType> AtomicBlockType;
 
+  static constexpr size_t kBlockBits = std::numeric_limits<BlockType>::digits;
+  static constexpr BlockType kOne = 1; // avoid casts
+
   static constexpr size_t blockIndex(size_t bit) {
-    return bit / BLOCK_BITS;
+    return bit / kBlockBits;
   }
 
   static constexpr size_t bitOffset(size_t bit) {
-    return bit % BLOCK_BITS;
+    return bit % kBlockBits;
   }
-
-  static const BlockType ONE = 1; // avoid casts
 
   std::array<AtomicBlockType, N> data_;
 };

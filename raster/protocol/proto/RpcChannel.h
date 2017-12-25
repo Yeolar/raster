@@ -59,28 +59,27 @@ private:
 
 class PBSyncRpcChannel : public PBRpcChannel {
 public:
-  PBSyncRpcChannel(const Peer& peer) : peer_(peer), socket_(0) {}
+  PBSyncRpcChannel(const Peer& peer) : peer_(peer) {}
 
   virtual ~PBSyncRpcChannel() {}
 
   void setTimeout(const TimeoutOption& opt) {
-    socket_.setConnTimeout(opt.ctimeout);
-    socket_.setRecvTimeout(opt.rtimeout);
-    socket_.setSendTimeout(opt.wtimeout);
+    socket_->setConnTimeout(opt.ctimeout);
+    socket_->setRecvTimeout(opt.rtimeout);
+    socket_->setSendTimeout(opt.wtimeout);
   }
 
   void open() {
-    socket_.setReuseAddr();
-    socket_.setTCPNoDelay();
-    socket_.connect(peer_);
+    socket_ = Socket::createSyncSocket();
+    socket_->connect(peer_);
   }
 
   bool isOpen() {
-    return socket_.isConnected();
+    return socket_->isConnected();
   }
 
   void close() {
-    socket_.close();
+    socket_->close();
   }
 
 private:
@@ -89,15 +88,15 @@ private:
       std::function<void(bool, const std::string&)> resultCb) {
     transport_.sendHeader(buf->computeChainDataLength());
     transport_.sendBody(std::move(buf));
-    transport_.writeData(&socket_);
+    transport_.writeData(socket_.get());
     resultCb(true, "");
 
-    transport_.readData(&socket_);
+    transport_.readData(socket_.get());
     process(transport_.body);
   }
 
   Peer peer_;
-  Socket socket_;
+  std::unique_ptr<Socket> socket_;
   BinaryTransport transport_;
 };
 

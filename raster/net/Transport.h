@@ -27,17 +27,22 @@ public:
 
   virtual void processReadData() = 0;
 
-  void getReadBuffer(void** buf, size_t* bufSize);
+  void setPeerAddress(const Peer& peer) { peerAddr_ = peer; }
+  const Peer& peerAddress() const { return peerAddr_; }
+  void setLocalAddress(const Peer& local) { localAddr_ = local; }
+  const Peer& localAddress() const { return localAddr_; }
 
+  void getReadBuffer(void** buf, size_t* bufSize);
   void readDataAvailable(size_t readSize);
 
   int readData(Socket* socket);
-
   int writeData(Socket* socket);
 
   void clone(Transport* other);
 
 protected:
+  Peer peerAddr_;
+  Peer localAddr_;
   IngressState state_;
   IOBufQueue readBuf_{IOBufQueue::cacheChainLength()};
   IOBufQueue writeBuf_{IOBufQueue::cacheChainLength()};

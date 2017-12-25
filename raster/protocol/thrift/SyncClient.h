@@ -21,12 +21,11 @@ template <
   class TProtocol = apache::thrift::protocol::TBinaryProtocol>
 class TSyncClient {
 public:
-  TSyncClient(const std::string& host,
-              int port,
+  TSyncClient(const Peer& peer,
               uint64_t ctimeout = 100000,
               uint64_t rtimeout = 1000000,
               uint64_t wtimeout = 300000)
-    : peer_(host, port) {
+    : peer_(peer) {
     timeout_ = {ctimeout, rtimeout, wtimeout};
     init();
   }
@@ -93,7 +92,7 @@ public:
 private:
   void init() {
     using apache::thrift::transport::TSocket;
-    socket_.reset(new TSocket(peer_.host, peer_.port));
+    socket_.reset(new TSocket(peer_.getHostStr(), peer_.port()));
     socket_->setConnTimeout(timeout_.ctimeout);
     socket_->setRecvTimeout(timeout_.rtimeout);
     socket_->setSendTimeout(timeout_.wtimeout);

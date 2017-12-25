@@ -14,7 +14,7 @@ namespace {
 
 namespace rdd {
 
-const char* Descriptor::role() const {
+const char* Descriptor::roleName() const {
   return roleStrings[role_];
 }
 

@@ -23,6 +23,10 @@ namespace rdd {
 class AsyncClient {
 public:
   AsyncClient(const ClientOption& option);
+  AsyncClient(const Peer& peer,
+              uint64_t ctimeout = 100000,
+              uint64_t rtimeout = 1000000,
+              uint64_t wtimeout = 300000);
 
   virtual ~AsyncClient() {
     close();
@@ -65,25 +69,22 @@ template <class C>
 class MultiAsyncClient {
 public:
   MultiAsyncClient(size_t count,
-                   const std::string& host,
-                   int port,
+                   const Peer& peer,
                    uint64_t ctimeout = 100000,
                    uint64_t rtimeout = 1000000,
                    uint64_t wtimeout = 300000) {
     for (size_t i = 0; i < count; ++i) {
-      clients_.push_back(
-          std::make_shared<C>(
-              host, port, ctimeout, rtimeout, wtimeout));
+      clients_.push_back(make_unique<C>(peer, ctimeout, rtimeout, wtimeout));
     }
   }
   MultiAsyncClient(size_t count, const ClientOption& option) {
     for (size_t i = 0; i < count; ++i) {
-      clients_.push_back(std::make_shared<C>(option));
+      clients_.push_back(make_unique<C>(option));
     }
   }
   MultiAsyncClient(const std::vector<ClientOption>& options) {
     for (auto& i : options) {
-      clients_.push_back(std::make_shared<C>(i));
+      clients_.push_back(make_unique<C>(i));
     }
   }
 
@@ -158,10 +159,10 @@ public:
     return false;
   }
 
-  std::shared_ptr<C> operator[](size_t i) { return clients_[i]; }
+  C* operator[](size_t i) { return clients_[i].get(); }
 
 private:
-  std::vector<std::shared_ptr<C>> clients_;
+  std::vector<std::unique_ptr<C>> clients_;
 };
 
 // yield task for multiple clients with different types

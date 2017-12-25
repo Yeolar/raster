@@ -21,12 +21,11 @@ public:
     service_.reset(new C(rpcChannel_.get()));
     channel_ = makeChannel();
   }
-  PBAsyncClient(const std::string& host,
-               int port,
+  PBAsyncClient(const Peer& peer,
                uint64_t ctimeout = 100000,
                uint64_t rtimeout = 1000000,
                uint64_t wtimeout = 300000)
-    : PBAsyncClient({Peer(host, port), {ctimeout, rtimeout, wtimeout}}) {
+    : PBAsyncClient({peer, {ctimeout, rtimeout, wtimeout}}) {
   }
   virtual ~PBAsyncClient() {}
 

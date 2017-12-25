@@ -11,22 +11,45 @@
 #include "raster/io/FileUtil.h"
 #include "raster/net/Socket.h"
 #include "raster/util/Conv.h"
+#include "raster/util/Memory.h"
 #include "raster/util/Logging.h"
+#include "raster/util/Time.h"
 
 namespace rdd {
 
 std::atomic<size_t> Socket::count_(0);
 
-Socket::Socket(int fd) : Descriptor(Role::kNone), fd_(fd) {
-  if (fd_ == 0) {
-    fd_ = socket(AF_INET, SOCK_STREAM, 0);
+std::unique_ptr<Socket> Socket::createSyncSocket() {
+  auto socket = make_unique<Socket>();
+  if (*socket) {
+    socket->setReuseAddr();
+    socket->setTCPNoDelay();
+    return socket;
   }
-  if (fd_ == -1) {
-    RDDPLOG(ERROR) << "create socket failed";
-  } else {
-    ++count_;
-    role_ = Role::kServer;
+  return nullptr;
+}
+
+std::unique_ptr<Socket> Socket::createAsyncSocket() {
+  auto socket = make_unique<Socket>();
+  if (*socket) {
+    socket->setReuseAddr();
+    //socket->setLinger(0);
+    socket->setTCPNoDelay();
+    socket->setNonBlocking();
+    return socket;
   }
+  return nullptr;
+}
+
+Socket::Socket() {
+  fd_ = socket(AF_INET, SOCK_STREAM, 0);
+  ++count_;
+}
+
+Socket::Socket(int fd, const Peer& peer)
+  : fd_(fd), peer_(peer) {
+  role_ = kServer;
+  ++count_;
 }
 
 Socket::~Socket() {
@@ -36,19 +59,14 @@ Socket::~Socket() {
 }
 
 bool Socket::bind(int port) {
-  peer_.port = port;
   role_ = Role::kListener;
+  peer_.setFromLocalPort(port);
 
-  struct sockaddr_in sin;
-  bzero(&sin, sizeof(sockaddr_in));
-  sin.sin_family = AF_INET;
-  sin.sin_addr.s_addr = INADDR_ANY;
-  sin.sin_port = htons(port);
-  socklen_t len = sizeof(sin);
-
-  int r = ::bind(fd_, (struct sockaddr *)&sin, len);
+  sockaddr_storage tmp_sock;
+  socklen_t len = peer_.getAddress(&tmp_sock);
+  int r = ::bind(fd_, (struct sockaddr*)&tmp_sock, len);
   if (r == -1) {
-    RDDPLOG(ERROR) << "fd(" << fd_ << "): bind failed on port=" << peer_.port;
+    RDDPLOG(ERROR) << "fd(" << fd_ << "): bind failed on port=" << peer_.port();
   }
   return r != -1;
 }
@@ -61,46 +79,31 @@ bool Socket::listen(int backlog) {
   return r != -1;
 }
 
-std::shared_ptr<Socket> Socket::accept() {
+std::unique_ptr<Socket> Socket::accept() {
   struct sockaddr_in sin;
   socklen_t len = sizeof(sin);
-  int fd = ::accept(fd_, (struct sockaddr *)&sin, &len);
+  int fd = ::accept(fd_, (struct sockaddr*)&sin, &len);
   if (fd == -1) {
     RDDPLOG(ERROR) << "fd(" << fd_ << "): accept error";
+    return nullptr;
   }
-  return std::make_shared<Socket>(fd);
+  Peer peer;
+  peer.setFromSockaddr((struct sockaddr*)&sin);
+  return make_unique<Socket>(fd, peer);
 }
 
-bool Socket::connect(const std::string& host, int port) {
-  peer_ = {host, port};
+bool Socket::connect(const Peer& peer) {
   role_ = Role::kClient;
+  peer_ = peer;
 
-  struct addrinfo *ai, hints;
-  memset(&hints, 0, sizeof(hints));
-  hints.ai_flags = AI_NUMERICSERV;
-  hints.ai_family = AF_INET;
-  hints.ai_socktype = SOCK_STREAM;
-
-  auto service = to<std::string>(port);
-  int r = getaddrinfo(host.c_str(), service.c_str(), &hints, &ai);
-  if (r != 0) {
-    RDDLOG(ERROR) << gai_strerror(r) << " fd(" << fd_ << "): "
-      << "getaddrinfo failed on host=" << host << ", port=" << port;
-    return false;
-  }
-  if (ai == nullptr) {
-    RDDLOG(ERROR) << "fd(" << fd_ << "): "
-      << "no addinfo found on host=" << host << ", port=" << port;
-    return false;
-  }
-  r = ::connect(fd_, (struct sockaddr*)ai->ai_addr, ai->ai_addrlen);
+  sockaddr_storage tmp_sock;
+  socklen_t len = peer_.getAddress(&tmp_sock);
+  int r = ::connect(fd_, (struct sockaddr*)&tmp_sock, len);
   if (r == -1 && errno != EINPROGRESS && errno != EWOULDBLOCK) {
     RDDPLOG(ERROR) << "fd(" << fd_ << "): "
-      << "connect failed on host=" << host << ", port=" << port;
-    freeaddrinfo(ai);
+      << "connect failed on peer=" << peer_;
     return false;
   }
-  freeaddrinfo(ai);
   return true;
 }
 
@@ -253,13 +256,6 @@ bool Socket::getError(int& err) {
     RDDPLOG(ERROR) << "fd(" << fd_ << "): get SO_ERROR failed";
   }
   return r != -1;
-}
-
-Peer Socket::peer() {
-  if (peer_.port == 0 && role_ == Role::kServer) {
-    peer_ = Peer(fd_);
-  }
-  return peer_;
 }
 
 } // namespace rdd
