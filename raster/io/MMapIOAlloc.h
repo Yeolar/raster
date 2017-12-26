@@ -6,17 +6,20 @@
 
 #include <deque>
 #include <memory>
+#include <mutex>
 #include <vector>
 #include <boost/iterator/iterator_facade.hpp>
 
 #include "raster/io/Path.h"
+#include "raster/thread/RWSpinLock.h"
 #include "raster/util/MemoryMapping.h"
-#include "raster/util/RWSpinLock.h"
 
 namespace rdd {
 
 class MMapIOAlloc {
-public:
+ public:
+  virtual ~MMapIOAlloc() {}
+
   virtual void* allocate(size_t size) = 0;
   virtual void deallocate(void* p, size_t size) = 0;
 };
@@ -36,7 +39,7 @@ ByteRange findChunk(ByteRange range);
 } // namespace detail
 
 class MMapIO : public MMapIOAlloc {
-public:
+ public:
   enum { INIT, FREE, FULL };
 
   struct Head {
@@ -52,7 +55,7 @@ public:
       boost::forward_traversal_tag> {
     friend class boost::iterator_core_access;
     friend class MMapIO;
-  private:
+   private:
     Iterator(ByteRange range, off_t pos);
 
     reference dereference() const { return chunkAndPos_; }
@@ -81,11 +84,13 @@ public:
   MMapIO(const Path& path, size_t size)
     : map_(path.c_str(), 0, size, MemoryMapping::writable()) {}
 
+  virtual ~MMapIO() {}
+
   void init(uint16_t i);
 
-  void* allocate(size_t size);
+  void* allocate(size_t size) override;
 
-  void deallocate(void* p, size_t size);
+  void deallocate(void* p, size_t size) override;
 
   uint16_t index() const;
   bool isFree() const;
@@ -97,7 +102,7 @@ public:
   Iterator cend() const { return Iterator(ByteRange(), 0); }
   Iterator end() const { return cend(); }
 
-private:
+ private:
   Head* head() const {
     return (Head*) map_.writableRange().data();
   }
@@ -114,16 +119,18 @@ private:
 };
 
 class MMapIOPool : public MMapIOAlloc {
-public:
+ public:
   typedef typename std::unique_ptr<MMapIO> MMapIOPtr;
   typedef typename std::vector<MMapIOPtr>::iterator iterator;
   typedef typename std::vector<MMapIOPtr>::const_iterator const_iterator;
 
   MMapIOPool(const Path& dir, size_t blockSize, uint16_t initCount = 0);
 
-  void* allocate(size_t size);
+  virtual ~MMapIOPool() {}
 
-  void deallocate(void* p, size_t size);
+  void* allocate(size_t size) override;
+
+  void deallocate(void* p, size_t size) override;
 
   iterator begin() { return pool_.begin(); }
   const_iterator cbegin() const { return pool_.cbegin(); }
@@ -131,7 +138,7 @@ public:
   iterator end() { return pool_.end(); }
   const_iterator cend() const { return pool_.cend(); }
 
-private:
+ private:
   void loadOrCreate(uint16_t i);
 
   void* allocateOnFixed(size_t size);

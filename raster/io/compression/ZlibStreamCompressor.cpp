@@ -9,6 +9,11 @@
 
 // IOBuf uses 24 bytes of data for bookeeping purposes, so requesting for 4073
 // bytes of data will be rounded up to an allocation of 1 page.
+DEFINE_int64(zlib_compressor_buffer_growth, 2024,
+             "The buffer growth size to use during IOBuf zlib deflation");
+DEFINE_int64(zlib_compressor_buffer_minsize, 1024,
+             "The minimum buffer size to use before growing during IOBuf "
+             "zlib deflation");
 
 namespace rdd {
 

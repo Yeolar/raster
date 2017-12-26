@@ -7,13 +7,14 @@
 
 #include <memory>
 #include <zlib.h>
+#include <gflags/gflags.h>
 
 #include "raster/io/ZlibStreamDecompressor.h"
 
-namespace rdd {
+DECLARE_int64(zlib_buffer_growth);
+DECLARE_int64(zlib_buffer_minsize);
 
-extern int64_t FLAGS_zlib_buffer_growth;
-extern int64_t FLAGS_zlib_buffer_minsize;
+namespace rdd {
 
 class ZlibStreamCompressor {
  public:

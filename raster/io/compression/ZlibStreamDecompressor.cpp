@@ -10,11 +10,13 @@
 // bytes of data will be rounded up to an allocation of 512 bytes.  (If we
 // requested for 512 bytes exactly IOBuf would round this up to 768, since it
 // needs 24 extra bytes of its own.)
+DEFINE_int64(zlib_buffer_growth, 480,
+             "The buffer growth size to use during IOBuf zlib inflation");
+DEFINE_int64(zlib_buffer_minsize, 64,
+             "The minimum buffer size to use before growing during IOBuf "
+             "zlib inflation");
 
 namespace rdd {
-
-int64_t FLAGS_zlib_buffer_growth = 480;
-int64_t FLAGS_zlib_buffer_minsize = 64;
 
 void ZlibStreamDecompressor::init(ZlibCompressionType type) {
   DCHECK(type_ == ZlibCompressionType::NONE) << "Must be uninitialized";

@@ -2,9 +2,9 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <assert.h>
+#include <cassert>
+#include <cerrno>
 #include <dirent.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <sys/file.h>
 #include <sys/mman.h>
@@ -12,21 +12,27 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "raster/io/FileUtil.h"
 #include "raster/io/FSUtil.h"
 #include "raster/util/Exception.h"
 
 namespace rdd {
 
 Path currentPath() {
-  char* p = nullptr;
   size_t n = PATH_MAX;
+
   while (true) {
     char buf[n];
-    p = getcwd(buf, NELEMS(buf));
-    if (p) return Path(p);
-    else if (errno == ERANGE) n *= 2;
-    else throwSystemError("getcwd() failed");
+    char* p = ::getcwd(buf, NELEMS(buf));
+    if (p) {
+      return Path(p);
+    } else if (errno == ERANGE) {
+      n *= 2;
+    } else {
+      throwSystemError("getcwd() failed");
+    }
   }
+  // not reached
 }
 
 Path absolute(const Path& path, const Path& base) {
@@ -35,21 +41,23 @@ Path absolute(const Path& path, const Path& base) {
 
 Path canonical(const Path& path, const Path& base) {
   Path p = absolute(path, base);
-  if (!p.isLink()) return p;
+  if (!p.isLink()) {
+    return p;
+  }
 
   Path parent = p.parent();
   ssize_t n = PATH_MAX;
+
   while (true) {
     char buf[n];
-    ssize_t r = readlink(p.c_str(), buf, NELEMS(buf));
+    ssize_t r = ::readlink(p.c_str(), buf, NELEMS(buf));
     checkUnixError(r, "readlink(", p, ") failed");
     if (r < n) {
-      p = StringPiece(buf, r);
-      break;
+      return parent / StringPiece(buf, r);
     }
     n *= 2;
   }
-  return parent / p;
+  // not reached
 }
 
 std::vector<Path> lsHelper(DIR* dir, const Path& path = "") {
@@ -60,38 +68,41 @@ std::vector<Path> lsHelper(DIR* dir, const Path& path = "") {
 
   // If dir was opened with fdopendir and was read from previously, this is
   // needed to rewind the directory, at least on eglibc v2.13.
-  rewinddir(dir);
+  ::rewinddir(dir);
 
   std::vector<Path> contents;
+
   while (true) {
     struct dirent entry;
     struct dirent* entryp;
-    checkPosixError(readdir_r(dir, &entry, &entryp),
+    checkPosixError(::readdir_r(dir, &entry, &entryp),
                     "readdir(", path, ") failed");
-    if (entryp == nullptr)  // no more entries
+    if (entryp == nullptr) {  // no more entries
       break;
-    const Path name = entry.d_name;
-    if (name == "." || name == "..")
+    }
+    Path name = entry.d_name;
+    if (name == "." || name == "..") {
       continue;
-    contents.push_back(name);
+    }
+    contents.push_back(std::move(name));
   }
 
-  closedir(dir);
+  ::closedir(dir);
 
   return contents;
 }
 
 std::vector<Path> ls(const Path& path) {
-  return lsHelper(opendir(path.c_str()), path);
+  return lsHelper(::opendir(path.c_str()), path);
 }
 
 std::vector<Path> ls(const File& dir) {
-  return lsHelper(fdopendir(dir.dup().release()));
+  return lsHelper(::fdopendir(dir.dup().release()));
 }
 
 void createDirectory(const Path& path) {
   assert(!path.empty());
-  int r = mkdir(path.c_str(), 0755);
+  int r = ::mkdir(path.c_str(), 0755);
   if (r == 0) {
     syncDirectory(path.parent());
   } else {
@@ -103,9 +114,9 @@ void createDirectory(const Path& path) {
 
 void createDirectory(const File& dir, const Path& child) {
   assert(!child.isAbsolute());
-  int r = mkdirat(dir.fd(), child.c_str(), 0755);
+  int r = ::mkdirat(dir.fd(), child.c_str(), 0755);
   if (r == 0) {
-    dir.fsync();
+    fsync(dir);
   } else {
     if (errno != EEXIST) {
       throwSystemError("mkdir(", child, ") failed");
@@ -115,7 +126,7 @@ void createDirectory(const File& dir, const Path& child) {
 
 File openDirectory(const Path& path) {
   assert(!path.empty());
-  int r = mkdir(path.c_str(), 0755);
+  int r = ::mkdir(path.c_str(), 0755);
   if (r == 0) {
     syncDirectory(path.parent());
   } else {
@@ -126,16 +137,16 @@ File openDirectory(const Path& path) {
   // It'd be awesome if one could do O_RDONLY|O_CREAT|O_DIRECTORY here,
   // but at least on eglibc v2.13, this combination of flags creates a
   // regular file!
-  int fd = open(path.c_str(), O_RDONLY | O_DIRECTORY);
+  int fd = openNoInt(path.c_str(), O_RDONLY | O_DIRECTORY);
   checkUnixError(fd, "open(", path, ") failed");
   return File(fd, true);
 }
 
 File openDirectory(const File& dir, const Path& child) {
   assert(!child.isAbsolute());
-  int r = mkdirat(dir.fd(), child.c_str(), 0755);
+  int r = ::mkdirat(dir.fd(), child.c_str(), 0755);
   if (r == 0) {
-    dir.fsync();
+    fsync(dir);
   } else {
     if (errno != EEXIST) {
       throwSystemError("mkdir(", child, ") failed");
@@ -144,24 +155,25 @@ File openDirectory(const File& dir, const Path& child) {
   // It'd be awesome if one could do O_RDONLY|O_CREAT|O_DIRECTORY here,
   // but at least on eglibc v2.13, this combination of flags creates a
   // regular file!
-  int fd = openat(dir.fd(), child.c_str(), O_RDONLY | O_DIRECTORY);
+  int fd = openatNoInt(dir.fd(), child.c_str(), O_RDONLY | O_DIRECTORY);
   checkUnixError(fd, "open(", child, ") failed");
   return File(fd, true);
 }
 
 File openFile(const File& dir, const Path& child, int flags) {
   assert(!child.isAbsolute());
-  int fd = openat(dir.fd(), child.c_str(), flags, 0644);
+  int fd = openatNoInt(dir.fd(), child.c_str(), flags, 0644);
   checkUnixError(fd, "open(", child, ") failed");
   return File(fd, true);
 }
 
 File tryOpenFile(const File& dir, const Path& child, int flags) {
   assert(!child.isAbsolute());
-  int fd = openat(dir.fd(), child.c_str(), flags, 0644);
+  int fd = openatNoInt(dir.fd(), child.c_str(), flags, 0644);
   if (fd == -1) {
-    if (errno == EEXIST || errno == ENOENT)
+    if (errno == EEXIST || errno == ENOENT) {
       return File();
+    }
     throwSystemError("open(", child, ") failed");
   }
   return File(fd, true);
@@ -169,8 +181,9 @@ File tryOpenFile(const File& dir, const Path& child, int flags) {
 
 void remove(const Path& path) {
   while (true) {
-    if (::remove(path.c_str()) == 0)
+    if (::remove(path.c_str()) == 0) {
       return;
+    }
     if (errno == ENOENT) {
       return;
     } else if (errno == EEXIST || errno == ENOTEMPTY) {
@@ -186,10 +199,12 @@ void remove(const Path& path) {
 
 void removeFile(const File& dir, const Path& path) {
   assert(!path.isAbsolute());
-  if (::unlinkat(dir.fd(), path.c_str(), 0) == 0)
+  if (::unlinkat(dir.fd(), path.c_str(), 0) == 0) {
     return;
-  if (errno == ENOENT)
+  }
+  if (errno == ENOENT) {
     return;
+  }
   throwSystemError("remove(", path, ") failed");
 }
 
@@ -198,8 +213,10 @@ void rename(const Path& oldPath, const Path& newPath) {
                  "rename ", oldPath, " to ", newPath, " failed");
 }
 
-void rename(const File& oldDir, const Path& oldChild,
-            const File& newDir, const Path& newChild) {
+void rename(const File& oldDir,
+            const Path& oldChild,
+            const File& newDir,
+            const Path& newChild) {
   assert(!oldChild.isAbsolute());
   assert(!newChild.isAbsolute());
   checkUnixError(::renameat(oldDir.fd(), oldChild.c_str(),
@@ -208,9 +225,9 @@ void rename(const File& oldDir, const Path& oldChild,
 }
 
 void syncDirectory(const Path& path) {
-  int fd = open(path.c_str(), O_RDONLY);
+  int fd = openNoInt(path.c_str(), O_RDONLY);
   checkUnixError(fd, "open(", path, ") failed");
-  checkUnixError(::fsync(fd), "fsync ", path, " failed");
+  checkUnixError(fsyncNoInt(fd), "fsync ", path, " failed");
   close(fd);
 }
 
@@ -222,7 +239,7 @@ Path tempDirectoryPath() {
   (val = std::getenv("TEMP"   )) ||
   (val = std::getenv("TEMPDIR"));
 
-  Path p(val ?: "/tmp");
+  Path p(val ? val : "/tmp");
 
   if (p.empty() || !p.isDirectory()) {
     throwSystemErrorExplicit(ENOTDIR, "temp directory not found");

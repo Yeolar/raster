@@ -1,7 +1,6 @@
 # Copyright (C) 2017, Yeolar
 
 set(RASTER_IO_TEST_SRCS
-    CompressionTest.cpp
     FileTest.cpp
     FlatDictTest.cpp
     FSUtilTest.cpp

@@ -16,17 +16,19 @@ namespace rdd {
 #define RDD_IO_DESCRIPTOR_ENUM(role) k##role
 
 class Descriptor {
-public:
+ public:
   enum Role {
     RDD_IO_DESCRIPTOR_GEN(RDD_IO_DESCRIPTOR_ENUM)
   };
+
+  virtual ~Descriptor() {}
 
   virtual int fd() const = 0;
 
   Role role() const { return role_; }
   const char* roleName() const;
 
-protected:
+ protected:
   Role role_{kNone};
 };
 

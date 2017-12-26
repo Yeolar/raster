@@ -7,13 +7,14 @@
 
 #include <memory>
 #include <zlib.h>
+#include <gflags/gflags.h>
 
 #include "raster/io/IOBuf.h"
 
-namespace rdd {
+DECLARE_int64(zlib_decompresser_buffer_growth);
+DECLARE_int64(zlib_decompresser_buffer_minsize);
 
-extern int64_t FLAGS_zlib_decompresser_buffer_growth;
-extern int64_t FLAGS_zlib_decompresser_buffer_minsize;
+namespace rdd {
 
 enum class ZlibCompressionType: int {
   NONE = 0,
