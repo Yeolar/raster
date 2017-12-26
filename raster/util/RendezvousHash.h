@@ -11,7 +11,7 @@
 namespace rdd {
 
 class RendezvousHash {
-public:
+ public:
   /**
    * build() builds the hashing pool based on a vector of nodes with
    * their keys and weights.
@@ -29,7 +29,7 @@ public:
    */
   double getMaxErrorRate() const;
 
-private:
+ private:
   uint64_t computeHash(const char* data, size_t len) const;
 
   uint64_t computeHash(uint64_t i) const;

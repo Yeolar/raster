@@ -10,7 +10,7 @@
 namespace rdd {
 
 class Waiter {
-public:
+ public:
   void wait() const {
     std::unique_lock<std::mutex> lock(mtx_);
     while (!signal_) {
@@ -31,10 +31,10 @@ public:
     cond_.notify_all();
   }
 
-private:
-  mutable std::mutex mtx_;
-  mutable std::condition_variable cond_;
+ private:
   mutable bool signal_{false};
+  mutable std::condition_variable cond_;
+  mutable std::mutex mtx_;
 };
 
 } // namespace rdd

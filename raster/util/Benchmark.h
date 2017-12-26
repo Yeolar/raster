@@ -13,7 +13,6 @@
 #include <boost/function_types/function_arity.hpp>
 #include <gflags/gflags.h>
 
-#include "raster/util/Macro.h"
 #include "raster/util/ScopeGuard.h"
 #include "raster/util/Time.h"
 #include "raster/util/Traits.h"
@@ -46,11 +45,13 @@ struct BenchmarkSuspender {
     start = nanoTimestampNow();
   }
 
+  BenchmarkSuspender(const BenchmarkSuspender &) = delete;
   BenchmarkSuspender(BenchmarkSuspender && rhs) noexcept {
     start = rhs.start;
     rhs.start = 0;
   }
 
+  BenchmarkSuspender& operator=(const BenchmarkSuspender &) = delete;
   BenchmarkSuspender& operator=(BenchmarkSuspender && rhs) {
     if (start != 0) {
       tally();
@@ -87,8 +88,6 @@ struct BenchmarkSuspender {
   explicit operator bool() const {
     return false;
   }
-
-  NOCOPY(BenchmarkSuspender);
 
   static uint64_t timeSpent;
 

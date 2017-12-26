@@ -24,7 +24,7 @@ inline const char32_t& value_before(Utf8CharIterator i) {
  * wouldn't.)
  */
 class Utf8StringPiece : private boost::totally_ordered<Utf8StringPiece> {
-public:
+ public:
   typedef size_t size_type;
   typedef Utf8CharIterator iterator;
   typedef Utf8CharIterator const_iterator;
@@ -37,7 +37,7 @@ public:
   Utf8StringPiece() : b_(), e_() {
   }
 
-public:
+ public:
   Utf8StringPiece(Utf8CharIterator start, Utf8CharIterator end)
   : b_(start), e_(end) { }
 
@@ -186,7 +186,7 @@ public:
     std::swap(e_, rhs.e_);
   }
 
-private:
+ private:
   iterator b_, e_;
 };
 

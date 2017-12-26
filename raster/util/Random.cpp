@@ -22,7 +22,7 @@ void readRandomDevice(void* data, size_t size) {
 }
 
 class BufferedRandomDevice {
-public:
+ public:
   static constexpr size_t kDefaultBufferSize = 128;
 
   explicit BufferedRandomDevice(size_t bufferSize = kDefaultBufferSize)
@@ -40,7 +40,7 @@ public:
     }
   }
 
-private:
+ private:
   void getSlow(unsigned char* data, size_t size) {
     if (size >= bufferSize_) {
       // Just read directly.

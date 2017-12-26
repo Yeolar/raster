@@ -9,7 +9,7 @@
 #include <string>
 #include <thread>
 
-#include "raster/util/AtomicLinkedList.h"
+#include "raster/thread/AtomicLinkedList.h"
 #include "raster/util/FixedStream.h"
 #include "raster/util/Time.h"
 
@@ -39,31 +39,6 @@ enum LogSeverity {
 static constexpr size_t kBufSize = 4096;
 
 class BaseLogger {
- public:
-  template <class T>
-  class SwapQueue {
-   public:
-    SwapQueue() {}
-
-    void add(T&& value) {
-      producer_.insertHead(value);
-    }
-
-    template <typename F>
-    void consume(F&& func) {
-      std::swap(producer_, consumer_);
-      consumer_.sweep(func);
-    }
-
-    bool empty() const {
-      return producer_.empty();
-    }
-
-   private:
-    AtomicLinkedList<T> producer_;
-    AtomicLinkedList<T> consumer_;
-  };
-
  public:
   struct Options {
     std::string logFile;
@@ -105,8 +80,8 @@ class BaseLogger {
   bool async_;
 
   std::thread handle_;
-  SwapQueue<std::string> queue_;
   std::mutex lock_;
+  AtomicLinkedList<std::string> queue_;
 };
 
 // This class is used to explicitly ignore values in the conditional
@@ -128,7 +103,7 @@ class LogMessage {
              int line,
              const std::string& traceid = "");
 
-  virtual ~LogMessage();
+  ~LogMessage();
 
   FixedOstream& stream() { return out_; }
 
@@ -144,7 +119,7 @@ class RawLogMessage {
  public:
   RawLogMessage(BaseLogger* logger);
 
-  virtual ~RawLogMessage();
+  ~RawLogMessage();
 
   FixedOstream& stream() { return out_; }
 
@@ -174,14 +149,14 @@ class CostLogMessage {
     : param_(std::move(param)), function_(std::move(fn)) {
   }
 
-  ~CostLogMessage() noexcept {
+  ~CostLogMessage() {
     execute();
   }
 
   operator bool() const { return true; }
 
  private:
-  void execute() noexcept {
+  void execute() {
     uint64_t start = timestampNow();
     function_();
     uint64_t cost = timePassed(start);

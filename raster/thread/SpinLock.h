@@ -4,8 +4,8 @@
  */
 
 /*
- * N.B. You most likely do _not_ want to use MicroSpinLock or any
- * other kind of spinlock.  Consider MicroLock instead.
+ * N.B. You most likely do _not_ want to use SpinLock or any other
+ * kind of spinlock.  Use std::mutex instead.
  *
  * In short, spinlocks in preemptive multi-tasking operating systems
  * have serious problems and fast mutexes like std::mutex are almost
@@ -21,16 +21,14 @@
 
 #pragma once
 
-/*
- * @author Keith Adams <kma@fb.com>
- * @author Jordan DeLong <delong.j@fb.com>
- */
-
 #include <atomic>
+#include <cassert>
+#include <cstdint>
+#include <ctime>
 #include <type_traits>
 
-#include "raster/util/Logging.h"
-#include "raster/util/SysUtil.h"
+#include "raster/util/Asm.h"
+#include "raster/util/Macro.h"
 
 namespace rdd {
 
@@ -45,7 +43,7 @@ class Sleeper {
 
   uint32_t spinCount;
 
-public:
+ public:
   Sleeper() : spinCount(0) {}
 
   void wait() {
@@ -58,7 +56,7 @@ public:
        * us down for whatever its minimum timer resolution is (in
        * linux this varies by kernel version from 1ms to 10ms).
        */
-      struct timespec ts = { 0, 500000 };
+      struct timespec ts = {0, 500000};
       nanosleep(&ts, nullptr);
     }
   }
@@ -100,10 +98,11 @@ struct MicroSpinLock {
         sleeper.wait();
       }
     } while (!try_lock());
+    assert(payload()->load() == LOCKED);
   }
 
   void unlock() {
-    RDDCHECK(payload()->load() == LOCKED);
+    assert(payload()->load() == LOCKED);
     payload()->store(FREE, std::memory_order_release);
   }
 
@@ -124,41 +123,39 @@ static_assert(
     "MicroSpinLock must be kept a POD type.");
 
 class SpinLock {
-public:
-  SpinLock() {
+ public:
+  RDD_ALWAYS_INLINE SpinLock() {
     lock_.init();
   }
-
-  void lock() const {
+  RDD_ALWAYS_INLINE void lock() const {
     lock_.lock();
   }
-
-  void unlock() const {
+  RDD_ALWAYS_INLINE void unlock() const {
     lock_.unlock();
   }
-
-  bool try_lock() const {
+  RDD_ALWAYS_INLINE bool try_lock() const {
     return lock_.try_lock();
   }
 
-private:
-  mutable MicroSpinLock lock_;
+ private:
+  mutable rdd::MicroSpinLock lock_;
 };
 
-template <class LOCK>
+template <typename LOCK>
 class SpinLockGuardImpl {
-public:
-  explicit SpinLockGuardImpl(LOCK& lock) : lock_(lock) {
+ public:
+  RDD_ALWAYS_INLINE explicit SpinLockGuardImpl(LOCK& lock) :
+    lock_(lock) {
     lock_.lock();
   }
-
-  ~SpinLockGuardImpl() {
+  RDD_ALWAYS_INLINE ~SpinLockGuardImpl() {
     lock_.unlock();
   }
 
-  NOCOPY(SpinLockGuardImpl);
+  SpinLockGuardImpl(const SpinLockGuardImpl&) = delete;
+  SpinLockGuardImpl& operator=(const SpinLockGuardImpl&) = delete;
 
-private:
+ private:
   LOCK& lock_;
 };
 

@@ -5,32 +5,50 @@
 #pragma once
 
 #include <string>
+#include <thread>
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/syscall.h>
 
 #include "raster/util/Macro.h"
+#include "raster/util/Range.h"
 
 namespace rdd {
 
-inline pid_t localThreadId() {
+/**
+ * Get a process-specific identifier for the current thread.
+ */
+inline uint64_t currentThreadId() {
+  return uint64_t(pthread_self());
+}
+
+/**
+ * Get the operating-system level thread ID for the current thread.
+ */
+inline uint64_t osThreadId() {
   // __thread doesn't allow non-const initialization.
-  static __thread pid_t threadId = 0;
+  static __thread uint64_t threadId = 0;
   if (UNLIKELY(threadId == 0)) {
-    threadId = syscall(SYS_gettid);
+    threadId = uint64_t(syscall(SYS_gettid));
   }
   return threadId;
 }
 
-inline bool setThreadName(pthread_t id, const std::string& name) {
-  return pthread_setname_np(id, name.substr(0, 15).c_str()) == 0;
-}
+/**
+ * Get the name of the given thread.
+ */
+std::string getThreadName(pthread_t id);
+std::string getThreadName(std::thread::id id);
 
-inline std::string getThreadName(pthread_t id) {
-  char name[16];
-  pthread_getname_np(id, name, NELEMS(name));
-  return name;
-}
+std::string getCurrentThreadName();
+
+/**
+ * Set the name of the given thread.
+ */
+bool setThreadName(pthread_t id, StringPiece name);
+bool setThreadName(std::thread::id id, StringPiece name);
+
+bool setCurrentThreadName(StringPiece name);
 
 template <class T>
 class ThreadLocalPtr {
@@ -55,7 +73,8 @@ class ThreadLocalPtr {
     return get() != nullptr;
   }
 
-  NOCOPY(ThreadLocalPtr);
+  ThreadLocalPtr(const ThreadLocalPtr&) = delete;
+  ThreadLocalPtr& operator=(const ThreadLocalPtr&) = delete;
 
  private:
   static void OnThreadExit(void* obj) {
@@ -85,7 +104,8 @@ class ThreadLocal {
     tlp_.reset(newPtr);
   }
 
-  NOCOPY(ThreadLocal);
+  ThreadLocal(const ThreadLocal&) = delete;
+  ThreadLocal& operator=(const ThreadLocal&) = delete;
 
  private:
   T* makeTlp() const {

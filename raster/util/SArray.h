@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 #include <memory>
 #include <vector>
 
@@ -33,7 +33,7 @@ namespace rdd {
  */
 template <class V>
 class SArray {
-public:
+ public:
   SArray() {}
   ~SArray() {}
 
@@ -221,7 +221,7 @@ public:
     return ret;
   }
 
-private:
+ private:
   size_t size_{0};
   size_t capacity_{0};
   std::shared_ptr<V> ptr_;

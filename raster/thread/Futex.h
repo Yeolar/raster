@@ -7,10 +7,9 @@
 
 #include <atomic>
 #include <cassert>
+#include <ctime>
 #include <limits>
 #include <unistd.h>
-
-#include "raster/util/Time.h"
 
 namespace rdd {
 
@@ -64,7 +63,8 @@ struct Futex : std::atomic<uint32_t> {
   int futexWake(int count = std::numeric_limits<int>::max(),
                 uint32_t wakeMask = -1);
 
-  NOCOPY(Futex);
+  Futex(const Futex&) = delete;
+  Futex& operator=(const Futex&) = delete;
 
  private:
 

@@ -10,8 +10,8 @@
 #include <errno.h>
 #include <assert.h>
 
-#include "raster/util/Futex.h"
-#include "raster/util/SysUtil.h"
+#include "raster/thread/Futex.h"
+#include "raster/util/Asm.h"
 
 namespace rdd {
 
@@ -32,6 +32,9 @@ namespace rdd {
 /// that can help to catch race conditions ahead of time.
 struct Baton {
   Baton() : state_(INIT) {}
+
+  Baton(Baton const&) = delete;
+  Baton& operator=(Baton const&) = delete;
 
   /// It is an error to destroy a Baton on which a thread is currently
   /// wait()ing.  In practice this means that the waiter usually takes
@@ -211,13 +214,11 @@ struct Baton {
   ///   call wait, try_wait or timed_wait on the same baton without resetting
   ///
   /// @return       true if baton has been posted, false othewise
-  bool try_wait() {
+  bool try_wait() const {
     auto s = state_.load(std::memory_order_acquire);
     assert(s == INIT || s == EARLY_DELIVERY);
     return s == EARLY_DELIVERY;
   }
-
-  NOCOPY(Baton);
 
  private:
   enum State : uint32_t {

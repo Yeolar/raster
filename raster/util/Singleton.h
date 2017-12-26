@@ -58,8 +58,6 @@
 #include <memory>
 #include <mutex>
 
-#include "raster/util/Macro.h"
-
 namespace rdd {
 
 namespace detail {
@@ -69,7 +67,7 @@ struct DefaultTag {};
 // An actual instance of a singleton, tracking the instance itself
 template <typename T>
 struct SingletonHolder {
-public:
+ public:
   typedef std::function<void(T*)> TeardownFunc;
   typedef std::function<T*(void)> CreateFunc;
 
@@ -94,9 +92,10 @@ public:
     state_ = DEAD;
   }
 
-  NOCOPY(SingletonHolder);
+  SingletonHolder(const SingletonHolder&) = delete;
+  SingletonHolder& operator=(const SingletonHolder&) = delete;
 
-private:
+ private:
   enum {
     UNREGISTERED,
     DEAD,
@@ -131,7 +130,7 @@ private:
 
 template <typename T, typename Tag = detail::DefaultTag>
 class Singleton {
-public:
+ public:
   typedef std::function<T*(void)> CreateFunc;
   typedef std::function<void(T*)> TeardownFunc;
 
@@ -142,7 +141,7 @@ public:
     getEntry().registerSingleton(c, t);
   }
 
-private:
+ private:
   inline static detail::SingletonHolder<T>& getEntry() {
     return detail::SingletonHolder<T>::template singleton<Tag>();
   }

@@ -5,6 +5,18 @@
 #pragma once
 
 /**
+ * Stringize.
+ */
+#define RDD_STRINGIZE(x) #x
+#define RDD_STRINGIZE2(x) RDD_STRINGIZE(x)
+
+/**
+ * Concatenate.
+ */
+#define RDD_CONCATENATE_IMPL(s1, s2) s1##s2
+#define RDD_CONCATENATE(s1, s2) RDD_CONCATENATE_IMPL(s1, s2)
+
+/**
  * Array size.
  */
 #ifndef NELEMS
@@ -26,18 +38,20 @@
 #endif
 
 /**
- * Shortcut.
+ * Attribute.
  */
-#undef NOCOPY
-#undef NOMOVE
+#define RDD_NOINLINE __attribute__((__noinline__))
+#define RDD_ALWAYS_INLINE inline __attribute__((__always_inline__))
+#define RDD_VISIBILITY_HIDDEN __attribute__((__visibility__("hidden")))
+#define RDD_ALIGNED(size) __attribute__((__aligned__(size)))
 
-#define NOCOPY(type) \
-  type(const type&) = delete; \
-  type& operator=(const type&) = delete
-
-#define NOMOVE(type) \
-  type(type&& rhs) = delete; \
-  type& operator=(type&& rhs) = delete
+/**
+ * Warning.
+ */
+#define RDD_PUSH_WARNING _Pragma("GCC diagnostic push")
+#define RDD_POP_WARNING _Pragma("GCC diagnostic pop")
+#define RDD_DISABLE_WARNING(warningName)  \
+  _Pragma(RDD_STRINGIZE(GCC diagnostic ignored warningName))
 
 /**
  * Conditional arg.
@@ -54,12 +68,6 @@
 #define RDD_ARG_2_OR_1_IMPL(a, b, ...) b
 
 /**
- * Concatenate.
- */
-#define RDD_CONCATENATE_IMPL(s1, s2) s1##s2
-#define RDD_CONCATENATE(s1, s2) RDD_CONCATENATE_IMPL(s1, s2)
-
-/**
  * Anonymous variable. Introduces an identifier starting with str
  * and ending with a number that varies with the line.
  */
@@ -68,17 +76,6 @@
 #else
 #define RDD_ANONYMOUS_VARIABLE(str) RDD_CONCATENATE(str, __LINE__)
 #endif
-
-/**
- * Stringize.
- */
-#define RDD_STRINGIZE(x) #x
-#define RDD_STRINGIZE2(x) RDD_STRINGIZE(x)
-
-/**
- * Aligned.
- */
-#define RDD_ALIGNED(size) __attribute__((__aligned__(size)))
 
 /**
  * The RDD_NARG macro evaluates to the number of arguments that have been

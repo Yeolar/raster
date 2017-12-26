@@ -60,7 +60,8 @@ class Arena {
     return bytesUsed_;
   }
 
-  NOCOPY(Arena);
+  Arena(const Arena&) = delete;
+  Arena& operator=(const Arena&) = delete;
 
  private:
   typedef boost::intrusive::slist_member_hook<
@@ -143,8 +144,11 @@ class ThreadArena {
 
   void deallocate(void* /* p */) {}
 
-  NOCOPY(ThreadArena);
-  NOMOVE(ThreadArena);
+  ThreadArena(const ThreadArena&) = delete;
+  ThreadArena& operator=(const ThreadArena&) = delete;
+
+  ThreadArena(ThreadArena&&) = delete;
+  ThreadArena& operator=(ThreadArena&&) = delete;
 
  private:
   Arena* allocateThreadLocalArena();

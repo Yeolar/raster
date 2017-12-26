@@ -88,6 +88,7 @@ add_subdirectory(raster/protocol/proto)
 add_subdirectory(raster/protocol/thrift)
 add_subdirectory(raster/serializer)
 add_subdirectory(raster/ssl)
+add_subdirectory(raster/thread)
 add_subdirectory(raster/util)
 
 add_library(raster_static STATIC
@@ -106,6 +107,7 @@ add_library(raster_static STATIC
     $<TARGET_OBJECTS:raster_protocol_http>
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_ssl>
+    $<TARGET_OBJECTS:raster_thread>
     $<TARGET_OBJECTS:raster_util>
 )
 set_target_properties(raster_static PROPERTIES OUTPUT_NAME raster)
@@ -125,6 +127,7 @@ add_library(raster_shared SHARED
     $<TARGET_OBJECTS:raster_protocol_http>
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_ssl>
+    $<TARGET_OBJECTS:raster_thread>
     $<TARGET_OBJECTS:raster_util>
 )
 set_target_properties(raster_shared PROPERTIES OUTPUT_NAME raster)
@@ -163,6 +166,7 @@ if(GTEST_FOUND)
     add_subdirectory(raster/protocol/http/test)
     add_subdirectory(raster/serializer/test)
     add_subdirectory(raster/ssl/test)
+    add_subdirectory(raster/thread/test)
     add_subdirectory(raster/util/test)
 endif()
 

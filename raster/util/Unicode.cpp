@@ -627,8 +627,7 @@ std::string normalize(const rdd::StringPiece& sp, NormalizationMode mode) {
   icu::UnicodeString us = icu::UnicodeString::fromUTF8(usp);
   icu::UnicodeString out;
   UErrorCode err = U_ZERO_ERROR;
-  icu::Normalizer::normalize(
-      us, (UNormalizationMode)mode, 0, out, err);
+  icu::Normalizer::normalize(us, (UNormalizationMode)mode, 0, out, err);
   if (err != U_ZERO_ERROR) {
     RDDLOG(WARN) << "normalize error: " << err;
   }
@@ -677,7 +676,9 @@ std::string cutText(const std::string& text,
     if (i >= len && !isContiGraph('_', *q)) break;
     if (unicode::isWide(*q)) i++; i++; q++;
   }
-  return ((p != b ? "..." : "") + utf8Piece(p, q).str() + (q != e ? "..." : ""));
+  return to<std::string>((p != b ? "..." : ""),
+                         utf8Piece(p, q).str(),
+                         (q != e ? "..." : ""));
 }
 
 } // namespace rdd

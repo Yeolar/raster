@@ -3,9 +3,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <cstdarg>
-#include <cstring>
 #include <array>
+#include <cstring>
 #include <memory>
 #include <stdexcept>
 

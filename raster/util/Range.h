@@ -136,7 +136,7 @@ struct IsCharPointer<const char*> {
  */
 template <class Iter>
 class Range : private boost::totally_ordered<Range<Iter> > {
-public:
+ public:
   typedef std::size_t size_type;
   typedef Iter iterator;
   typedef Iter const_iterator;
@@ -169,7 +169,7 @@ public:
   constexpr Range(const Range&) = default;
   constexpr Range(Range&&) = default;
 
-public:
+ public:
   // Works for all iterators
   constexpr Range(Iter start, Iter end) : b_(start), e_(end) {
   }
@@ -711,7 +711,7 @@ public:
    *      s.split_step(' ', kludge, foo);
    *    }
    *
-   *  private:
+   *   private:
    *    int bar;
    *    int baz;
    *    int gaz;
@@ -738,7 +738,7 @@ public:
     -> decltype(process(std::declval<Range>(), std::forward<Args>(args)...))
   { return process(split_step(delimiter), std::forward<Args>(args)...); }
 
-private:
+ private:
   Iter b_, e_;
 };
 

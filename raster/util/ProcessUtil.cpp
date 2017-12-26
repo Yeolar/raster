@@ -8,13 +8,13 @@
 
 namespace rdd {
 
-pid_t ProcessUtil::readPid(const Path& file) {
+pid_t readPid(const Path& file) {
   std::string s;
   readFile(file.c_str(), s);
   return to<pid_t>(s);
 }
 
-bool ProcessUtil::writePid(const Path& file, pid_t pid) {
+bool writePid(const Path& file, pid_t pid) {
   RDDCHECK(!file.exists()) << file << " already exist";
   return writeFile(to<std::string>(pid), file.c_str(), 0600);
 }

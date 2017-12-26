@@ -16,7 +16,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "raster/util/Macro.h"
+#include "raster/thread/CacheLocality.h"
 
 namespace rdd {
 
@@ -24,11 +24,12 @@ namespace rdd {
  * ProducerConsumerQueue is a one producer and one consumer queue
  * without locks.
  */
-template<class T>
+template <class T>
 struct ProducerConsumerQueue {
   typedef T value_type;
 
-  NOCOPY(ProducerConsumerQueue);
+  ProducerConsumerQueue(const ProducerConsumerQueue&) = delete;
+  ProducerConsumerQueue& operator=(const ProducerConsumerQueue&) = delete;
 
   // size must be >= 2.
   //
@@ -65,7 +66,7 @@ struct ProducerConsumerQueue {
     std::free(records_);
   }
 
-  template<class ...Args>
+  template <class... Args>
   bool write(Args&&... recordArgs) {
     auto const currentWrite = writeIndex_.load(std::memory_order_relaxed);
     auto nextRecord = currentWrite + 1;
@@ -148,19 +149,27 @@ struct ProducerConsumerQueue {
   // * It is undefined to call this from any other thread.
   size_t sizeGuess() const {
     int ret = writeIndex_.load(std::memory_order_acquire) -
-      readIndex_.load(std::memory_order_acquire);
+        readIndex_.load(std::memory_order_acquire);
     if (ret < 0) {
       ret += size_;
     }
     return ret;
   }
 
-private:
+  // maximum number of items in the queue.
+  size_t capacity() const {
+    return size_ - 1;
+  }
+
+ private:
+  char pad0_[CacheLocality::kFalseSharingRange];
   const uint32_t size_;
   T* const records_;
 
-  std::atomic<unsigned int> readIndex_;
-  std::atomic<unsigned int> writeIndex_;
+  RDD_ALIGN_TO_AVOID_FALSE_SHARING std::atomic<unsigned int> readIndex_;
+  RDD_ALIGN_TO_AVOID_FALSE_SHARING std::atomic<unsigned int> writeIndex_;
+
+  char pad1_[CacheLocality::kFalseSharingRange - sizeof(writeIndex_)];
 };
 
 } // namespace rdd

@@ -16,7 +16,7 @@ namespace rdd {
 
 template <class T>
 class TimedHeap {
-public:
+ public:
   TimedHeap() {}
 
   void push(Timeout<T> v) {
@@ -52,7 +52,7 @@ public:
     map_.erase(k);
   }
 
-private:
+ private:
   std::unordered_map<T*, Timeout<T>> map_;
   std::priority_queue<
     Timeout<T>, std::vector<Timeout<T>>, std::greater<Timeout<T>>> heap_;

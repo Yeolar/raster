@@ -8,11 +8,8 @@
 
 namespace rdd {
 
-class ProcessUtil {
-public:
-  static pid_t readPid(const Path& file);
+pid_t readPid(const Path& file);
 
-  static bool writePid(const Path& file, pid_t pid);
-};
+bool writePid(const Path& file, pid_t pid);
 
 } // namespace rdd

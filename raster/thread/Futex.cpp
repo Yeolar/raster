@@ -7,7 +7,7 @@
 #include <linux/futex.h>
 #include <sys/syscall.h>
 
-#include "raster/util/Futex.h"
+#include "raster/thread/Futex.h"
 
 namespace rdd {
 

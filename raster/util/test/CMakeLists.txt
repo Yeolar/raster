@@ -2,7 +2,6 @@
 
 set(RASTER_UTIL_TEST_SRCS
     ArenaTest.cpp
-    AtomicPtrBenchmark.cpp
     Base64Test.cpp
     ChecksumTest.cpp
     FixedStreamTest.cpp
@@ -12,7 +11,6 @@ set(RASTER_UTIL_TEST_SRCS
     ReflectObjectTest.cpp
     SingletonTest.cpp
     StringTest.cpp
-    ThreadUtilTest.cpp
     TimedHeapTest.cpp
     TraitsTest.cpp
     UnicodeTest.cpp

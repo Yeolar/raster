@@ -5,13 +5,9 @@
 
 #pragma once
 
-namespace rdd {
+#include "raster/util/Asm.h"
 
-inline void MemoryBarrier() {
-  // See http://gcc.gnu.org/ml/gcc/2003-04/msg01180.html for a discussion on
-  // this idiom. Also see http://en.wikipedia.org/wiki/Memory_ordering.
-  __asm__ __volatile__("" : : : "memory");
-}
+namespace rdd {
 
 class AtomicPtr {
  public:
@@ -29,12 +25,12 @@ class AtomicPtr {
 
   inline void* Acquire_Load() const {
     void* result = rep_;
-    MemoryBarrier();
+    asm_volatile_memory();
     return result;
   }
 
   inline void Release_Store(void* v) {
-    MemoryBarrier();
+    asm_volatile_memory();
     rep_ = v;
   }
 

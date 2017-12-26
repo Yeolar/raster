@@ -13,7 +13,7 @@
 namespace rdd {
 
 class Random {
-public:
+ public:
   static void secureRandom(void* data, size_t len);
 
   template <class T>

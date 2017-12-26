@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <stdexcept>
 #include <iterator>
+#include <stdexcept>
 
 namespace rdd {
 

@@ -52,8 +52,9 @@ size_t writeLogHeader(char* buffer,
 
   uint64_t now = timestampNow();
   time_t t = now / 1000000;
-  const struct tm *tm = std::localtime(&t);
-  r = strftime(p, n, " %y%m%d %T", tm);
+  struct tm tm;
+  ::localtime_r(&t, &tm);
+  r = strftime(p, n, " %y%m%d %T", &tm);
   p += r;
   n -= r;
 
@@ -92,16 +93,14 @@ void BaseLogger::run() {
   using namespace std::placeholders;
 
   while (true) {
-    if (!queue_.empty()) {
-      queue_.consume(std::bind(&BaseLogger::write, this, _1));
-    }
+    queue_.sweep(std::bind(&BaseLogger::write, this, _1));
     usleep(1000);
   }
 }
 
 void BaseLogger::log(std::string&& message, bool async) {
   if (async_ && async) {
-    queue_.add(std::move(message));
+    queue_.insertHead(std::move(message));
   } else {
     write(std::move(message));
   }
