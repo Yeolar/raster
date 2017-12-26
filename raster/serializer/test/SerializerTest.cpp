@@ -2,6 +2,7 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/io/Cursor.h"
 #include "raster/serializer/Serializer.h"
 #include <map>
 #include <string>
@@ -10,6 +11,31 @@
 
 namespace rdd {
 
+/*
+ * Outer base on IOBuf, support string-like interface.
+ */
+class IOBufOuter {
+public:
+  IOBufOuter(IOBuf* buf, uint64_t growth)
+    : appender_(buf, growth) {}
+
+  void append(const char* p, size_t n) {
+    appender_.pushAtMost((uint8_t*)p, n);
+  }
+
+  void append(const std::string& s) {
+    append(s.data(), s.size());
+  }
+
+private:
+  io::Appender appender_;
+};
+
+template <class T, class Out>
+inline typename std::enable_if<std::is_arithmetic<T>::value>::type
+serialize(const T& value, Out& out) {
+  out.append((char*)&value, sizeof(T));
+}
 struct BasicTypeObject {
   bool b{false};
   int i{0};

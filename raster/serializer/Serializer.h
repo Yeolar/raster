@@ -13,7 +13,6 @@
 #include "raster/3rd/thrift/protocol/TBinaryProtocol.h"
 #include "raster/3rd/thrift/protocol/TJSONProtocol.h"
 #include "raster/3rd/thrift/transport/TBufferTransports.h"
-#include "raster/io/Cursor.h"
 #include "raster/util/String.h"
 #include "raster/util/Traits.h"
 
@@ -24,32 +23,6 @@ namespace rdd {
  * Support basic types, most STL containers, and self-defined structs,
  * can be extended by adding serialize/unserialize functions.
  */
-
-/*
- * Outer base on IOBuf, support string-like interface.
- */
-class IOBufOuter {
-public:
-  IOBufOuter(IOBuf* buf, uint64_t growth)
-    : appender_(buf, growth) {}
-
-  void append(const char* p, size_t n) {
-    appender_.pushAtMost((uint8_t*)p, n);
-  }
-
-  void append(const std::string& s) {
-    append(s.data(), s.size());
-  }
-
-private:
-  io::Appender appender_;
-};
-
-template <class T, class Out>
-inline typename std::enable_if<std::is_arithmetic<T>::value>::type
-serialize(const T& value, Out& out) {
-  out.append((char*)&value, sizeof(T));
-}
 
 template <class T>
 inline typename std::enable_if<std::is_arithmetic<T>::value, uint32_t>::type
@@ -214,15 +187,6 @@ serializeToBin(const T& r) {
 
 template <class T>
 typename std::enable_if<
-  !has_write_traits<
-    T, uint32_t(::apache::thrift::protocol::TProtocol*) const>::value,
-  std::string>::type
-serializeToBin(const T& r) {
-  return "non-thrift struct";
-}
-
-template <class T>
-typename std::enable_if<
   has_read_traits<
     T, uint32_t(::apache::thrift::protocol::TProtocol*)>::value>::type
 unserializeFromBin(const std::string& bin, T& r) {
@@ -233,13 +197,6 @@ unserializeFromBin(const std::string& bin, T& r) {
   buffer->resetBuffer((uint8_t*)bin.data(), bin.size());
 
   r.read(protocol.get());
-}
-
-template <class T>
-typename std::enable_if<
-  !has_read_traits<
-    T, uint32_t(::apache::thrift::protocol::TProtocol*)>::value>::type
-unserializeFromBin(const std::string& bin, T& r) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -263,15 +220,6 @@ serializeToHex(const T& r) {
 
 template <class T>
 typename std::enable_if<
-  !has_write_traits<
-    T, uint32_t(::apache::thrift::protocol::TProtocol*) const>::value,
-  std::string>::type
-serializeToHex(const T& r) {
-  return "non-thrift struct";
-}
-
-template <class T>
-typename std::enable_if<
   has_read_traits<
     T, uint32_t(::apache::thrift::protocol::TProtocol*)>::value>::type
 unserializeFromHex(const std::string& hex, T& r) {
@@ -285,13 +233,6 @@ unserializeFromHex(const std::string& hex, T& r) {
   buffer->resetBuffer((uint8_t*)bin.data(), bin.size());
 
   r.read(protocol.get());
-}
-
-template <class T>
-typename std::enable_if<
-  !has_read_traits<
-    T, uint32_t(::apache::thrift::protocol::TProtocol*)>::value>::type
-unserializeFromHex(const std::string& hex, T& r) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -313,15 +254,6 @@ serializeToJSON(const T& r) {
 
 template <class T>
 typename std::enable_if<
-  !has_write_traits<
-    T, uint32_t(::apache::thrift::protocol::TProtocol*) const>::value,
-  std::string>::type
-serializeToJSON(const T& r) {
-  return "non-thrift struct";
-}
-
-template <class T>
-typename std::enable_if<
   has_read_traits<
     T, uint32_t(::apache::thrift::protocol::TProtocol*)>::value>::type
 unserializeFromJSON(const std::string& json, T& r) {
@@ -332,13 +264,6 @@ unserializeFromJSON(const std::string& json, T& r) {
   buffer->resetBuffer((uint8_t*)json.data(), json.size());
 
   r.read(protocol.get());
-}
-
-template <class T>
-typename std::enable_if<
-  !has_read_traits<
-    T, uint32_t(::apache::thrift::protocol::TProtocol*)>::value>::type
-unserializeFromJSON(const std::string& json, T& r) {
 }
 
 } // namespace thrift
