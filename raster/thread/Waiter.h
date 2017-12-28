@@ -13,21 +13,30 @@ class Waiter {
  public:
   void wait() const {
     std::unique_lock<std::mutex> lock(mtx_);
-    while (!signal_) {
-      cond_.wait(lock);
-    }
+    cond_.wait(lock, [&] { return signal_; });
     signal_ = false;
   }
 
-  void signal() const {
+  template <class Rep, class Period>
+  void wait(const std::chrono::duration<Rep, Period>& duration) const {
     std::unique_lock<std::mutex> lock(mtx_);
-    signal_ = true;
+    cond_.wait_for(lock, duration, [&] { return signal_; });
+    signal_ = false;
+  }
+
+  void notify_one() const {
+    {
+      std::unique_lock<std::mutex> lock(mtx_);
+      signal_ = true;
+    }
     cond_.notify_one();
   }
 
-  void broadcast() const {
-    std::unique_lock<std::mutex> lock(mtx_);
-    signal_ = true;
+  void notify_all() const {
+    {
+      std::unique_lock<std::mutex> lock(mtx_);
+      signal_ = true;
+    }
     cond_.notify_all();
   }
 

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2017 Facebook, Inc.
  * Copyright (C) 2017, Yeolar
  */
 
@@ -8,27 +9,35 @@
 #include <string>
 #include <thread>
 
+#include "raster/thread/ThreadUtil.h"
 #include "raster/util/Conv.h"
 #include "raster/util/Function.h"
-#include "raster/util/ThreadUtil.h"
 
 namespace rdd {
 
 class ThreadFactory {
-public:
-  ThreadFactory(const std::string& prefix)
-    : prefix_(prefix) {}
+ public:
+  ThreadFactory(StringPiece prefix)
+    : prefix_(prefix.str()) {}
 
-  std::thread createThread(VoidFunc&& func) {
-    auto thread = std::thread(std::move(func));
-    setThreadName(thread.native_handle(), to<std::string>(prefix_, suffix_++));
-    return thread;
+  std::thread newThread(VoidFunc&& func) {
+    auto name = to<std::string>(prefix_, suffix_++);
+    return std::thread(
+        [&] () {
+          setCurrentThreadName(name);
+          func();
+        });
   }
 
-  void setNamePrefix(const std::string& prefix) { prefix_ = prefix; }
-  std::string namePrefix() const { return prefix_; }
+  void setNamePrefix(StringPiece prefix) {
+    prefix_ = prefix.str();
+  }
 
-private:
+  std::string namePrefix() const {
+    return prefix_;
+  }
+
+ private:
   std::string prefix_;
   std::atomic<uint64_t> suffix_{0};
 };

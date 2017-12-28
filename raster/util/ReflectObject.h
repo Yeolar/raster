@@ -32,7 +32,7 @@ class ReflectInfoT : public ReflectInfo<R> {
   ReflectInfoT(const char* name) : name_(name) {
     registerReflectObject();
   }
-  virtual ~ReflectInfoT() {}
+  ~ReflectInfoT() override {}
 
   R* create() const override { return new T(); }
 

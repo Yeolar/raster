@@ -34,9 +34,9 @@ class DynamicPtr {
   template <class T, class Deleter = SimpleDeleter<T>>
   void set(T* pointer) {
     if (pointer) {
-      static auto deleter = new Deleter();
+      dispose();
       pointer_ = pointer;
-      deleter_ = deleter;
+      deleter_ = new Deleter();
     }
   }
 
@@ -51,16 +51,14 @@ class DynamicPtr {
 
   void* release() {
     auto pointer = pointer_;
-    pointer_ = nullptr;
-    deleter_ = nullptr;
+    clean();
     return pointer;
   }
 
   bool dispose() {
     if (pointer_ != nullptr) {
       deleter_->dispose(pointer_);
-      pointer_ = nullptr;
-      deleter_ = nullptr;
+      clean();
       return true;
     }
     return false;
@@ -75,6 +73,15 @@ class DynamicPtr {
   DynamicPtr& operator=(const DynamicPtr&) = delete;
 
  private:
+
+  void clean() {
+    pointer_ = nullptr;
+    if (deleter_) {
+      delete deleter_;
+      deleter_ = nullptr;
+    }
+  }
+
   void* pointer_;
   DeleterBase* deleter_;
 };

@@ -84,7 +84,7 @@ class MMapIO : public MMapIOAlloc {
   MMapIO(const Path& path, size_t size)
     : map_(path.c_str(), 0, size, MemoryMapping::writable()) {}
 
-  virtual ~MMapIO() {}
+  ~MMapIO() override {}
 
   void init(uint16_t i);
 
@@ -126,7 +126,7 @@ class MMapIOPool : public MMapIOAlloc {
 
   MMapIOPool(const Path& dir, size_t blockSize, uint16_t initCount = 0);
 
-  virtual ~MMapIOPool() {}
+  ~MMapIOPool() override {}
 
   void* allocate(size_t size) override;
 

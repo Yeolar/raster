@@ -20,6 +20,7 @@ install(FILES
     LockedMap.h
     LockedQueue.h
     LockTraits.h
+    MPMCQueue.h
     ProducerConsumerQueue.h
     RWSpinLock.h
     Semaphore.h

@@ -6,6 +6,7 @@
 
 #include <queue>
 
+#include "raster/thread/MPMCQueue.h"
 #include "raster/thread/Semaphore.h"
 #include "raster/thread/Synchronized.h"
 
@@ -24,7 +25,7 @@ class BlockingQueue {
 template <class T>
 class GenericBlockingQueue : public BlockingQueue<T> {
  public:
-  virtual ~GenericBlockingQueue() {}
+  GenericBlockingQueue() {}
 
   void add(T item) override {
     queue_.wlock()->push(std::move(item));
@@ -53,6 +54,40 @@ class GenericBlockingQueue : public BlockingQueue<T> {
  private:
   Semaphore sem_;
   Synchronized<std::queue<T>> queue_;
+};
+
+template <class T>
+class MPMCBlockingQueue : public BlockingQueue<T> {
+ public:
+  // Note: The queue pre-allocates all memory for max_capacity
+  explicit MPMCBlockingQueue(size_t max_capacity) : queue_(max_capacity) {}
+
+  void add(T item) override {
+    if (!queue_.write(std::move(item))) {
+      throw std::runtime_error("LifoSemMPMCQueue full, can't add item");
+    }
+    sem_.post();
+  }
+
+  T take() override {
+    T item;
+    while (!queue_.readIfNotEmpty(item)) {
+      sem_.wait();
+    }
+    return item;
+  }
+
+  size_t capacity() {
+    return queue_.capacity();
+  }
+
+  size_t size() override {
+    return queue_.size();
+  }
+
+ private:
+  Semaphore sem_;
+  MPMCQueue<T> queue_;
 };
 
 } // namespace rdd

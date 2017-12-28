@@ -14,7 +14,7 @@ class Waker : public Descriptor {
  public:
   Waker();
 
-  virtual ~Waker() {
+  ~Waker() override {
     close();
   }
 
