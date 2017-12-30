@@ -14,51 +14,29 @@
 namespace rdd {
 
 class EventLoopManager {
-public:
+ public:
   EventLoopManager() {}
   ~EventLoopManager() {}
 
   static EventLoopManager* get();
 
-  EventLoop* getEventLoop() {
-    auto info = localStore_.get();
-    if (!info) {
-      info = new EventLoopInfo();
-      localStore_.reset(info);
-      trackEventLoop(info->loop_);
-    }
-    return info->loop_;
-  }
+  EventLoop* getEventLoop();
 
-  void setEventLoop(EventLoop* loop, bool takeOwnership) {
-    EventLoopInfo* info = localStore_.get();
-    if (info) {
-      throw std::runtime_error("EventLoopManager: cannot set a new EventLoop "
-                               "for this thread when one already exists");
-    }
-    info = new EventLoopInfo(loop, takeOwnership);
-    localStore_.reset(info);
-    trackEventLoop(loop);
-  }
+  void setEventLoop(EventLoop* loop, bool takeOwnership);
 
-  void clearEventLoop() {
-    EventLoopInfo* info = localStore_.get();
-    if (info) {
-      untrackEventLoop(info->loop_);
-      localStore_.reset(nullptr);
-    }
-  }
+  void clearEventLoop();
 
   template<typename F>
-  void withEventLoopSet(const F& runnable) {
+  void withEventLoopSet(F&& runnable) {
     std::lock_guard<std::mutex> guard(loopsLock_);
     const std::set<EventLoop*>& constSet = loops_;
     runnable(constSet);
   }
 
-  NOCOPY(EventLoopManager);
+  EventLoopManager(const EventLoopManager&) = delete;
+  EventLoopManager& operator=(const EventLoopManager&) = delete;
 
-private:
+ private:
   struct EventLoopInfo {
     EventLoopInfo(EventLoop* loop, bool owned)
       : loop_(loop), owned_(owned) {}

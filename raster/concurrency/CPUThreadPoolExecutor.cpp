@@ -24,7 +24,7 @@ CPUThreadPoolExecutor::CPUThreadPoolExecutor(
     std::shared_ptr<ThreadFactory> threadFactory)
     : CPUThreadPoolExecutor(
           numThreads,
-          std::make_unique<MPMCBlockingQueue<CPUTask>>(
+          make_unique<MPMCBlockingQueue<CPUTask>>(
               CPUThreadPoolExecutor::kDefaultMaxQueueSize),
           std::move(threadFactory)) {}
 
@@ -34,7 +34,7 @@ CPUThreadPoolExecutor::CPUThreadPoolExecutor(
     std::shared_ptr<ThreadFactory> threadFactory)
     : CPUThreadPoolExecutor(
           numThreads,
-          std::make_unique<MPMCBlockingQueue<CPUTask>>(
+          make_unique<MPMCBlockingQueue<CPUTask>>(
               maxQueueSize),
           std::move(threadFactory)) {}
 
@@ -57,13 +57,11 @@ void CPUThreadPoolExecutor::add(
 }
 
 void CPUThreadPoolExecutor::threadRun(std::shared_ptr<Thread> thread) {
-  this->threadPoolHook_.registerThread();
-
   thread->startupBaton.post();
   while (true) {
     auto task = taskQueue_->take();
     if (UNLIKELY(task.poison)) {
-      CHECK(threadsToStop_-- > 0);
+      RDDCHECK(threadsToStop_-- > 0);
       for (auto& o : observers_) {
         o->threadStopped(thread.get());
       }
@@ -91,7 +89,7 @@ void CPUThreadPoolExecutor::threadRun(std::shared_ptr<Thread> thread) {
 void CPUThreadPoolExecutor::stopThreads(size_t n) {
   threadsToStop_ += n;
   for (size_t i = 0; i < n; i++) {
-    taskQueue_->addWithPriority(CPUTask(), Executor::LO_PRI);
+    taskQueue_->add(CPUTask());
   }
 }
 

@@ -35,7 +35,7 @@ void Waker::close() {
 }
 
 std::ostream& operator<<(std::ostream& os, const Waker& waker) {
-  os << waker.roleName() << "(" << waker.fd() << ":" << waker.fd2() << ")";
+  os << "Waker(" << waker.fd() << ":" << waker.fd2() << ")";
   return os;
 }
 

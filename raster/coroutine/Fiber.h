@@ -30,24 +30,19 @@ class Fiber {
     virtual ~Task() {}
 
     virtual void handle() = 0;
+    virtual void onBlock() {}
+    virtual void onExit() {}
 
     void run();
 
     void setFiber(Fiber* fiber) { fiber_ = fiber; }
     Fiber* fiber() const { return fiber_; }
 
-    void addBlockCallbacks(VoidFunc&& fn);
-    void runBlockCallbacks();
-
-    void addFinishCallbacks(VoidFunc&& fn);
-    void runFinishCallbacks();
-
    private:
     Fiber* fiber_;
-    std::list<VoidFunc> blockCallbacks_;
-    std::list<VoidFunc> finishCallbacks_;
   };
 
+ public:
   enum Status {
     RDD_FIBER_GEN(RDD_FIBER_ENUM)
   };

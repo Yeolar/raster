@@ -6,19 +6,17 @@
 
 #include <iostream>
 
-#include "raster/io/Descriptor.h"
-
 namespace rdd {
 
-class Waker : public Descriptor {
+class Waker {
  public:
   Waker();
 
-  ~Waker() override {
+  ~Waker() {
     close();
   }
 
-  int fd() const override {
+  int fd() const {
     return pipeFds_[0];
   }
 

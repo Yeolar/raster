@@ -3,10 +3,10 @@
  */
 
 #include "raster/io/event/Event.h"
-#include "raster/io/event/EventExecutor.h"
+#include "raster/io/event/EventTask.h"
 #include "raster/net/Channel.h"
 
-#define RDD_IO_EVENT_STR(role) #role
+#define RDD_IO_EVENT_STR(state) #state
 
 namespace {
   static const char* stateStrings[] = {
@@ -17,9 +17,8 @@ namespace {
 namespace rdd {
 
 Event* Event::getCurrent() {
-  ExecutorPtr executor = getCurrentExecutor();
-  return executor ?
-    std::dynamic_pointer_cast<EventExecutor>(executor)->event() : nullptr;
+  Fiber::Task* task = getCurrentFiberTask();
+  return task ?  reinterpret_cast<EventTask*>(task)->event() : nullptr;
 }
 
 std::atomic<uint64_t> Event::globalSeqid_(1);
@@ -33,29 +32,26 @@ Event::Event(const std::shared_ptr<Channel>& channel,
   RDDLOG(V2) << *this << " +";
 }
 
-Event::Event(Waker* waker) {
-  seqid_ = 0;
-  state_ = kWaker;
-  group_ = 0;
-  forward_ = false;
-  waker_ = waker;
-  executor_ = nullptr;
+Event::~Event() {
+  RDDLOG(V2) << *this << " -";
 }
 
-Event::~Event() {
-  userCtx_.dispose();
-  RDDLOG(V2) << *this << " -";
+void Event::restart() {
+  if (!timestamps_.empty()) {
+    RDDLOG(V2) << *this << " restart";
+    timestamps_.clear();
+  }
+  state_ = kInit;
+  timestamps_.push_back(Timestamp(kInit));
 }
 
 void Event::reset() {
   restart();
 
   seqid_ = globalSeqid_.fetch_add(1);
-  state_ = kInit;
   group_ = 0;
   forward_ = false;
-  waker_ = nullptr;
-  executor_ = nullptr;
+  task_ = nullptr;
 
   if (transport_) {
     transport_->reset();
@@ -68,23 +64,9 @@ void Event::reset() {
   }
 }
 
-void Event::restart() {
-  if (!timestamps_.empty()) {
-    RDDLOG(V2) << *this << " restart";
-    timestamps_.clear();
-  }
-  timestamps_.push_back(Timestamp(kInit));
-}
-
-void Event::record(Timestamp timestamp) {
-  if (!timestamps_.empty()) {
-    timestamp.stamp -= starttime();
-  }
-  timestamps_.push_back(timestamp);
-}
-
-std::string Event::label() const {
-  return to<std::string>(descriptor()->roleName()[0], channel_->id());
+void Event::setState(State state) {
+  state_ = state;
+  timestamps_.push_back(Timestamp(state, timePassed(starttime())));
 }
 
 const char* Event::stateName() const {
@@ -93,6 +75,10 @@ const char* Event::stateName() const {
   } else {
     return stateStrings[state_];
   }
+}
+
+std::string Event::label() const {
+  return to<std::string>(socket_->roleName()[0], channel_->id());
 }
 
 std::shared_ptr<Channel> Event::channel() const {

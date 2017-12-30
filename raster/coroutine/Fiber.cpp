@@ -21,26 +21,6 @@ void Fiber::Task::run() {
   FiberManager::exit();
 }
 
-void Fiber::Task::addBlockCallbacks(VoidFunc&& fn) {
-  blockCallbacks_.push_back(std::move(fn));
-}
-
-void Fiber::Task::runBlockCallbacks() {
-  for (auto& fn : blockCallbacks_) {
-    fn();
-  }
-}
-
-void Fiber::Task::addFinishCallbacks(VoidFunc&& fn) {
-  finishCallbacks_.push_back(std::move(fn));
-}
-
-void Fiber::Task::runFinishCallbacks() {
-  for (auto& fn : finishCallbacks_) {
-    fn();
-  }
-}
-
 std::atomic<size_t> Fiber::count_(0);
 
 Fiber::Fiber(int stackSize, std::unique_ptr<Task> task)

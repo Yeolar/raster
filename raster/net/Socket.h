@@ -9,13 +9,24 @@
 #include <string>
 #include <unistd.h>
 
-#include "raster/io/Descriptor.h"
 #include "raster/net/NetUtil.h"
 
 namespace rdd {
 
-class Socket : public Descriptor {
+#define RDD_SOCKET_GEN(x)  \
+    x(None),                      \
+    x(Listener),                  \
+    x(Server),                    \
+    x(Client)
+
+#define RDD_SOCKET_ENUM(role) k##role
+
+class Socket {
 public:
+  enum Role {
+    RDD_SOCKET_GEN(RDD_SOCKET_ENUM)
+  };
+
   static constexpr uint64_t kLTimeout = 600000000;// long-polling timeout: 10min
   static constexpr size_t   kLCount   = 80000;    // long-polling count
 
@@ -69,8 +80,11 @@ public:
 
   bool getError(int& err);
 
-  virtual int fd() const { return fd_; }
+  int fd() const { return fd_; }
   const Peer& peer() const { return peer_; }
+
+  Role role() const { return role_; }
+  const char* roleName() const;
 
   bool isClient() const { return role_ == Role::kClient; }
   bool isServer() const { return role_ == Role::kServer; }
@@ -80,6 +94,7 @@ private:
 
   int fd_{-1};
   Peer peer_;
+  Role role_{kNone};
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Socket& socket) {
@@ -87,5 +102,7 @@ inline std::ostream& operator<<(std::ostream& os, const Socket& socket) {
      << "[" << socket.peer() << "]";
   return os;
 }
+
+#undef RDD_SOCKET_ENUM
 
 } // namespace rdd

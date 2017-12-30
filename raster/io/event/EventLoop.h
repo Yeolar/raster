@@ -5,12 +5,13 @@
 #pragma once
 
 #include <list>
+#include <map>
 #include <vector>
 
 #include "raster/io/Waker.h"
+#include "raster/io/event/EPoll.h"
 #include "raster/io/event/Event.h"
 #include "raster/io/event/EventHandler.h"
-#include "raster/io/event/Poll.h"
 #include "raster/util/TimedHeap.h"
 
 namespace rdd {
@@ -18,8 +19,8 @@ namespace rdd {
 class Channel;
 
 class EventLoop {
-public:
-  EventLoop(int pollSize = Poll::kMaxEvents,
+ public:
+  EventLoop(int pollSize = EPoll::kMaxEvents,
             int pollTimeout = 1000/* 1s */);
 
   ~EventLoop() {}
@@ -48,24 +49,24 @@ public:
   void loopOnce() { loopBody(true); }
   void stop();
 
-  void addEvent(Event* event);
-  void addCallback(const VoidFunc& callback);
+  void addEvent(std::unique_ptr<Event> event);
+  void addCallback(VoidFunc&& callback);
 
-  friend class EventHandler;
-
-private:
+ private:
   void loopBody(bool once);
 
+  void dispatchEvent(std::unique_ptr<Event> event);
   void dispatchEvent(Event* event);
-  void addListenEvent(Event* event);
-  void addReadEvent(Event* event);
-  void addWriteEvent(Event* event);
-  void removeEvent(Event* event);
+
+  void updateEvent(Event* event, uint32_t events);
+
   void restartEvent(Event* event);
 
-  void checkTimeoutEvent();
+  std::unique_ptr<Event> popEvent(Event* event);
 
-  Poll poll_;
+  void checkTimeoutEvents();
+
+  EPoll poll_;
   int timeout_;
 
   std::atomic<bool> stop_;
@@ -73,9 +74,10 @@ private:
 
   std::vector<int> listenFds_;
   Waker waker_;
+  std::map<int, std::unique_ptr<Event>> fdEvents_;
   EventHandler handler_;
 
-  std::vector<Event*> events_;
+  std::vector<std::unique_ptr<Event>> events_;
   std::mutex eventsLock_;
   std::vector<VoidFunc> callbacks_;
   std::mutex callbacksLock_;

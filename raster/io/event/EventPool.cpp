@@ -2,7 +2,6 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/framework/Monitor.h"
 #include "raster/io/event/EventPool.h"
 
 namespace rdd {
@@ -36,6 +35,14 @@ size_t EventPool::count() const {
     n += kv.second.size();
   }
   return n;
+}
+
+EventPool* EventPoolManager::getPool(int id) {
+  std::lock_guard<std::mutex> guard(lock_);
+  if (pool_.find(id) == pool_.end()) {
+    pool_.emplace(id, std::make_shared<EventPool>());
+  }
+  return pool_[id].get();
 }
 
 } // namespace rdd

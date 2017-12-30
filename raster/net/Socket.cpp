@@ -15,6 +15,14 @@
 #include "raster/util/Logging.h"
 #include "raster/util/Time.h"
 
+#define RDD_SOCKET_STR(role) #role
+
+namespace {
+  static const char* roleStrings[] = {
+    RDD_SOCKET_GEN(RDD_SOCKET_STR)
+  };
+}
+
 namespace rdd {
 
 std::atomic<size_t> Socket::count_(0);
@@ -256,6 +264,10 @@ bool Socket::getError(int& err) {
     RDDPLOG(ERROR) << "fd(" << fd_ << "): get SO_ERROR failed";
   }
   return r != -1;
+}
+
+const char* Socket::roleName() const {
+  return roleStrings[role_];
 }
 
 } // namespace rdd

@@ -33,8 +33,8 @@ class DynamicPtr {
 
   template <class T, class Deleter = SimpleDeleter<T>>
   void set(T* pointer) {
+    dispose();
     if (pointer) {
-      dispose();
       pointer_ = pointer;
       deleter_ = new Deleter();
     }

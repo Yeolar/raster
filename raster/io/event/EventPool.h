@@ -15,7 +15,7 @@
 namespace rdd {
 
 class EventPool {
-public:
+ public:
   EventPool() {}
 
   std::shared_ptr<Event> get(const Peer& peer);
@@ -24,24 +24,18 @@ public:
 
   size_t count() const;
 
-private:
+ private:
   std::unordered_map<Peer, std::deque<std::shared_ptr<Event>>> pool_;
   mutable std::mutex lock_;
 };
 
 class EventPoolManager {
-public:
+ public:
   EventPoolManager() {}
 
-  EventPool* getPool(int id) {
-    std::lock_guard<std::mutex> guard(lock_);
-    if (pool_.find(id) == pool_.end()) {
-      pool_.emplace(id, std::make_shared<EventPool>());
-    }
-    return pool_[id].get();
-  }
+  EventPool* getPool(int id);
 
-private:
+ private:
   std::unordered_map<int, std::shared_ptr<EventPool>> pool_;
   mutable std::mutex lock_;
 };
