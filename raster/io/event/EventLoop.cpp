@@ -5,6 +5,7 @@
 #include "raster/framework/Monitor.h"
 #include "raster/io/event/EventLoop.h"
 #include "raster/net/Channel.h"
+#include "raster/util/ScopeGuard.h"
 
 namespace rdd {
 
@@ -17,34 +18,31 @@ EventLoop::EventLoop(int pollSize, int pollTimeout)
   poll_.add(waker_.fd(), EPoll::kRead);
 }
 
-void EventLoop::listen(const std::shared_ptr<Channel>& channel, int backlog) {
-  int port = channel->id();
-  auto socket = Socket::createAsyncSocket();
-  if (!socket ||
-      !(socket->bind(port)) ||
-      !(socket->listen(backlog))) {
-    throw std::runtime_error("socket listen failed");
-  }
+void EventLoop::loop() {
+  return loopBody();
+}
 
-  auto event = make_unique<Event>(channel, std::move(socket));
-  event->setState(Event::kListen);
-  dispatchEvent(std::move(event));
-  RDDLOG(INFO) << *event << " listen on port=" << port;
+void EventLoop::loopOnce() {
+  return loopBody(true);
 }
 
 void EventLoop::loopBody(bool once) {
-  loopThread_ = pthread_self();
+  RDDLOG(V5) << "EventLoop(): Starting loop.";
 
-  while (!stop_) {
+  loopThread_.store(std::this_thread::get_id(), std::memory_order_release);
+
+  while (!stop_.load(std::memory_order_acquire)) {
     uint64_t t0 = timestampNow();
 
-    std::vector<std::unique_ptr<Event>> events;
+    std::vector<Event*> events;
     {
       std::lock_guard<std::mutex> guard(eventsLock_);
       events.swap(events_);
     }
     for (auto& ev : events) {
-      dispatchEvent(std::unique_ptr<Event>(ev.release()));
+      RDDLOG(V2) << *ev << " add event";
+      pushEvent(ev);
+      dispatchEvent(ev);
     }
 
     std::vector<VoidFunc> callbacks;
@@ -58,44 +56,42 @@ void EventLoop::loopBody(bool once) {
 
     checkTimeoutEvents();
 
-    if (!once) {
-      int n = poll_.wait(timeout_);
-      if (n > 0) {
-        for (int i = 0; i < n; ++i) {
-          struct epoll_event p = poll_.get(i);
-          int fd = p.data.fd;
-          if (fd == waker_.fd()) {
-            waker_.consume();
-          } else {
-            Event* event = fdEvents_[fd].get();
-            if (event) {
-              RDDLOG(V2) << *event << " on event, type=" << p.events;
-              switch (event->state()) {
-                case Event::kListen:
-                  handler_.onListen(event); break;
-                case Event::kConnect:
-                  handler_.onConnect(event); break;
-                case Event::kNext:
-                  restartEvent(event);
-                case Event::kToRead:
-                case Event::kReading:
-                  handler_.onRead(event); break;
-                case Event::kToWrite:
-                case Event::kWriting:
-                  handler_.onWrite(event); break;
-                case Event::kTimeout:
-                  handler_.onTimeout(event); break;
-                default:
-                  RDDLOG(ERROR) << *event << " error event, type=" << p.events;
-                  handler_.closePeer(event);
-                  break;
-              }
+    int n = poll_.wait(timeout_);
+    if (n > 0) {
+      for (int i = 0; i < n; ++i) {
+        struct epoll_event p = poll_.get(i);
+        int fd = p.data.fd;
+        if (fd == waker_.fd()) {
+          waker_.consume();
+        } else {
+          Event* event = fdEvents_[fd];
+          if (event) {
+            RDDLOG(V2) << *event << " on event, type=" << p.events;
+            switch (event->state()) {
+              case Event::kListen:
+                handler_.onListen(event); break;
+              case Event::kConnect:
+                handler_.onConnect(event); break;
+              case Event::kNext:
+                restartEvent(event);
+              case Event::kToRead:
+              case Event::kReading:
+                handler_.onRead(event); break;
+              case Event::kToWrite:
+              case Event::kWriting:
+                handler_.onWrite(event); break;
+              case Event::kTimeout:
+                handler_.onTimeout(event); break;
+              default:
+                RDDLOG(ERROR) << *event << " error event, type=" << p.events;
+                handler_.closePeer(event);
+                break;
             }
           }
         }
-        RDDMON_AVG("loopevent", n);
-        RDDMON_MAX("loopevent.max", n);
       }
+      RDDMON_AVG("loopevent", n);
+      RDDMON_MAX("loopevent.max", n);
     }
 
     uint64_t cost = timePassed(t0) / 1000;
@@ -108,7 +104,8 @@ void EventLoop::loopBody(bool once) {
   }
 
   stop_ = false;
-  loopThread_ = 0;
+
+  loopThread_.store({}, std::memory_order_release);
 }
 
 void EventLoop::stop() {
@@ -119,10 +116,10 @@ void EventLoop::stop() {
   stop_ = true;
 }
 
-void EventLoop::addEvent(std::unique_ptr<Event> event) {
+void EventLoop::addEvent(Event* event) {
   {
     std::lock_guard<std::mutex> guard(eventsLock_);
-    events_.push_back(std::move(event));
+    events_.push_back(event);
   }
   waker_.wake();
 }
@@ -164,12 +161,6 @@ void EventLoop::dispatchEvent(Event* event) {
   }
 }
 
-void EventLoop::dispatchEvent(std::unique_ptr<Event> event) {
-  RDDLOG(V2) << *event << " add event";
-  dispatchEvent(event.get());
-  fdEvents_[event->fd()] = std::move(event);
-}
-
 void EventLoop::updateEvent(Event *event, uint32_t events) {
   RDDLOG(V2) << *event << " remove deadline";
   deadlineHeap_.erase(event);
@@ -188,13 +179,17 @@ void EventLoop::restartEvent(Event* event) {
   deadlineHeap_.push(event->rdeadline());
 }
 
-std::unique_ptr<Event> EventLoop::popEvent(Event* event) {
+void EventLoop::pushEvent(Event* event) {
+  fdEvents_[event->fd()] = event;
+}
+
+void EventLoop::popEvent(Event* event) {
   RDDLOG(V2) << *event << " remove deadline";
   deadlineHeap_.erase(event);
 
   RDDLOG(V2) << *event << " remove event";
   poll_.remove(event->fd());
-  return std::move(fdEvents_[event->fd()]);
+  fdEvents_[event->fd()] = nullptr;
 }
 
 void EventLoop::checkTimeoutEvents() {
@@ -206,8 +201,8 @@ void EventLoop::checkTimeoutEvents() {
     if (!event) {
       break;
     }
-    if (timeout.repeat && Socket::count() < Socket::kLCount) {
-      timeout.deadline += Socket::kLTimeout;
+    if (timeout.repeat && Socket::count() < FLAGS_net_conn_limit) {
+      timeout.deadline += FLAGS_net_conn_timeout;
       deadlineHeap_.push(timeout);
     }
     else {

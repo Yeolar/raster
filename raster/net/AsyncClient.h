@@ -8,25 +8,31 @@
 
 #include "raster/coroutine/FiberManager.h"
 #include "raster/io/event/Event.h"
-#include "raster/net/Actor.h"
+#include "raster/net/NetHub.h"
 #include "raster/net/NetUtil.h"
 #include "raster/net/Socket.h"
 
 /*
- * AsyncClient and its inherit classes have 3 ways of usage:
+ * AsyncClient and its inherit classes have 2 ways of usage:
  *  1. single async client
  *  2. multiple async client
- *  3. single async client by callback mode
  */
 namespace rdd {
 
 class AsyncClient {
-public:
-  AsyncClient(const ClientOption& option);
-  AsyncClient(const Peer& peer,
+ public:
+  AsyncClient(std::shared_ptr<NetHub> hub,
+              const Peer& peer,
+              const TimeoutOption& timeout);
+
+  AsyncClient(std::shared_ptr<NetHub> hub,
+              const Peer& peer,
               uint64_t ctimeout = 100000,
               uint64_t rtimeout = 1000000,
               uint64_t wtimeout = 300000);
+
+  AsyncClient(std::shared_ptr<NetHub> hub,
+              const ClientOption& option);
 
   virtual ~AsyncClient() {
     close();
@@ -34,10 +40,6 @@ public:
 
   void setKeepAlive() { keepalive_ = true; }
   bool keepAlive() const { return keepalive_; }
-
-  // if use callback mode, you should new the client
-  void setCallbackMode() { callbackMode_ = true; }
-  bool callbackMode() const { return callbackMode_; }
 
   virtual bool connect();
   virtual void callback();
@@ -47,44 +49,44 @@ public:
     return event_ != nullptr;
   }
 
+  NetHub* hub() const {
+    return hub_.get();
+  }
+
   Event* event() const {
     return event_.get();
   }
 
-protected:
+ protected:
   virtual std::shared_ptr<Channel> makeChannel() = 0;
 
   bool initConnection();
   void freeConnection();
 
+  std::shared_ptr<NetHub> hub_;
   Peer peer_;
   TimeoutOption timeoutOpt_;
   bool keepalive_{false};
-  bool callbackMode_{false};
-  std::shared_ptr<Event> event_;
+  std::unique_ptr<Event> event_;
   std::shared_ptr<Channel> channel_;
 };
 
 template <class C>
 class MultiAsyncClient {
-public:
-  MultiAsyncClient(size_t count,
-                   const Peer& peer,
-                   uint64_t ctimeout = 100000,
-                   uint64_t rtimeout = 1000000,
-                   uint64_t wtimeout = 300000) {
+ public:
+  MultiAsyncClient(std::shared_ptr<NetHub> hub,
+                   size_t count,
+                   const ClientOption& option)
+    : hub_(hub) {
     for (size_t i = 0; i < count; ++i) {
-      clients_.push_back(make_unique<C>(peer, ctimeout, rtimeout, wtimeout));
+      clients_.push_back(make_unique<C>(hub_, option));
     }
   }
-  MultiAsyncClient(size_t count, const ClientOption& option) {
-    for (size_t i = 0; i < count; ++i) {
-      clients_.push_back(make_unique<C>(option));
-    }
-  }
-  MultiAsyncClient(const std::vector<ClientOption>& options) {
+  MultiAsyncClient(std::shared_ptr<NetHub> hub,
+                   const std::vector<ClientOption>& options)
+    : hub_(hub) {
     for (auto& i : options) {
-      clients_.push_back(make_unique<C>(i));
+      clients_.push_back(make_unique<C>(hub_, i));
     }
   }
 
@@ -151,7 +153,7 @@ public:
           events.push_back(i->event());
         }
       }
-      if (!Singleton<Actor>::get()->waitGroup(events)) {
+      if (!hub_->waitGroup(events)) {
         return false;
       }
       return FiberManager::yield();
@@ -161,26 +163,12 @@ public:
 
   C* operator[](size_t i) { return clients_[i].get(); }
 
-private:
+ private:
+  std::shared_ptr<NetHub> hub_;
   std::vector<std::unique_ptr<C>> clients_;
 };
 
 // yield task for multiple clients with different types
-//
-inline bool yieldMultiTask(std::initializer_list<AsyncClient*> clients) {
-  if (clients.size() != 0) {
-    std::vector<Event*> events;
-    for (auto& i : clients) {
-      if (i->connected()) {
-        events.push_back(i->event());
-      }
-    }
-    if (!Singleton<Actor>::get()->waitGroup(events)) {
-      return false;
-    }
-    return FiberManager::yield();
-  }
-  return false;
-}
+bool yieldMultiTask(std::initializer_list<AsyncClient*> clients);
 
 } // namespace rdd

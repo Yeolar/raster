@@ -10,8 +10,12 @@
 namespace rdd {
 
 class Service {
-public:
+ public:
+  Service(StringPiece name) : name_(name.str()) {}
+
   virtual ~Service() {}
+
+  std::string name() const { return name_; }
 
   std::shared_ptr<Channel> channel() const {
     if (!channel_) {
@@ -22,7 +26,8 @@ public:
 
   virtual void makeChannel(int port, const TimeoutOption& timeoutOpt) = 0;
 
-protected:
+ protected:
+  std::string name_;
   std::shared_ptr<Channel> channel_;
 };
 

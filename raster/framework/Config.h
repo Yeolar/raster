@@ -17,10 +17,9 @@ std::string generateDefault();
 
 void configLogging(const dynamic& j, bool reload);
 void configProcess(const dynamic& j, bool reload);
-void configActor(const dynamic& j, bool reload);
 void configService(const dynamic& j, bool reload);
 void configThreadPool(const dynamic& j, bool reload);
-void configNetCopy(const dynamic& j, bool reload);
+void configNet(const dynamic& j, bool reload);
 void configMonitor(const dynamic& j, bool reload);
 void configDegrader(const dynamic& j, bool reload);
 void configSampler(const dynamic& j, bool reload);

@@ -10,9 +10,8 @@ namespace rdd {
 IOThreadPoolExecutor::IOThreadPoolExecutor(
     size_t numThreads,
     std::shared_ptr<ThreadFactory> threadFactory,
-    EventLoopManager* ebm,
-    bool waitForAll)
-    : ThreadPoolExecutor(numThreads, std::move(threadFactory), waitForAll),
+    EventLoopManager* ebm)
+    : ThreadPoolExecutor(numThreads, std::move(threadFactory)),
       nextThread_(0),
       eventLoopManager_(ebm) {
   setNumThreads(numThreads);
@@ -37,7 +36,7 @@ void IOThreadPoolExecutor::add(
   auto ioThread = pickThread();
 
   auto task = Task(std::move(func), expiration, std::move(expireCallback));
-  auto wrappedVoidFunc = [ ioThread, task ]() mutable {
+  auto wrappedVoidFunc = [&]() mutable {
     runTask(ioThread, std::move(task));
     ioThread->pendingTasks--;
   };
@@ -95,17 +94,12 @@ void IOThreadPoolExecutor::threadRun(ThreadPtr thread) {
 
   ioThread->eventLoop->addCallback([thread] { thread->startupBaton.post(); });
   while (ioThread->shouldRun) {
-    ioThread->eventLoop->loopForever();
+    ioThread->eventLoop->loop();
   }
   if (isJoin_) {
     while (ioThread->pendingTasks > 0) {
       ioThread->eventLoop->loopOnce();
     }
-  }
-  if (isWaitForAll_) {
-    // some tasks, like thrift asynchronous calls, create additional
-    // event base hookups, let's wait till all of them complete.
-    ioThread->eventLoop->loop();
   }
 
   std::lock_guard<std::mutex> guard(ioThread->eventLoopShutdownMutex_);

@@ -47,7 +47,7 @@ class Event {
 
   static Event* getCurrent();
 
-  Event(const std::shared_ptr<Channel>& channel,
+  Event(std::shared_ptr<Channel> channel,
         std::unique_ptr<Socket> socket);
 
   ~Event();
@@ -89,7 +89,7 @@ class Event {
     return timeoutOpt_;
   }
   Timeout<Event> edeadline() {
-    return Timeout<Event>(this, starttime() + Socket::kLTimeout, true);
+    return Timeout<Event>(this, starttime() + FLAGS_net_conn_timeout, true);
   }
   Timeout<Event> cdeadline() {
     return Timeout<Event>(this, starttime() + timeoutOpt_.ctimeout);
@@ -138,6 +138,16 @@ class Event {
     return transport_->writeData(socket_.get());
   }
 
+  // callback
+
+  void setCompleteCallback(std::function<void(Event*)> cb);
+  void callbackOnComplete();
+
+  void setCloseCallback(std::function<void(Event*)> cb);
+  void callbackOnClose();
+
+  void copyCallbacks(const Event& event);
+
   // user context
 
   template <class T, class... Args>
@@ -175,6 +185,9 @@ class Event {
 
   std::vector<Timestamp> timestamps_;
   TimeoutOption timeoutOpt_;
+
+  std::function<void(Event*)> completeCallback_;
+  std::function<void(Event*)> closeCallback_;
 
   DynamicPtr userCtx_;
 };

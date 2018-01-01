@@ -16,13 +16,7 @@ struct TimeoutOption {
   uint64_t wtimeout;    // write timeout
 };
 
-inline std::ostream& operator<<(std::ostream& os,
-                                const TimeoutOption& timeoutOpt) {
-  os << "{" << timeoutOpt.ctimeout
-     << "," << timeoutOpt.rtimeout
-     << "," << timeoutOpt.wtimeout << "}";
-  return os;
-}
+std::ostream& operator<<(std::ostream& os, const TimeoutOption& timeoutOpt);
 
 struct ClientOption {
   Peer peer;

@@ -9,7 +9,7 @@
 #include <zlib.h>
 #include <gflags/gflags.h>
 
-#include "raster/io/ZlibStreamDecompressor.h"
+#include "raster/io/compression/ZlibStreamDecompressor.h"
 
 DECLARE_int64(zlib_buffer_growth);
 DECLARE_int64(zlib_buffer_minsize);

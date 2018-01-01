@@ -25,21 +25,14 @@ namespace rdd {
 
 class Fiber {
  public:
-  class Task {
-   public:
+  struct Task {
     virtual ~Task() {}
-
     virtual void handle() = 0;
-    virtual void onBlock() {}
-    virtual void onExit() {}
-
     void run();
 
-    void setFiber(Fiber* fiber) { fiber_ = fiber; }
-    Fiber* fiber() const { return fiber_; }
-
-   private:
-    Fiber* fiber_;
+    Fiber* fiber;
+    std::list<VoidFunc> blockCallbacks;
+    VoidFunc scheduleCallback;
   };
 
  public:

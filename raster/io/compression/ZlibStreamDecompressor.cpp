@@ -4,7 +4,7 @@
  */
 
 #include "raster/io/Cursor.h"
-#include "raster/io/ZlibStreamDecompressor.h"
+#include "raster/io/compression/ZlibStreamDecompressor.h"
 
 // IOBuf uses 24 bytes of data for bookeeping purposes, so requesting for 480
 // bytes of data will be rounded up to an allocation of 512 bytes.  (If we

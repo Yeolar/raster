@@ -15,6 +15,13 @@
 
 namespace rdd {
 
+std::ostream& operator<<(std::ostream& os, const TimeoutOption& timeoutOpt) {
+  os << "{" << timeoutOpt.ctimeout
+     << "," << timeoutOpt.rtimeout
+     << "," << timeoutOpt.wtimeout << "}";
+  return os;
+}
+
 std::string getAddr(const std::string& ifname) {
   std::string addr;
   struct ifaddrs *ifaddr, *ifa;

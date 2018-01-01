@@ -12,7 +12,6 @@
 namespace rdd {
 
 Waker::Waker() {
-  role_ = kWaker;
   if (::pipe2(pipeFds_, O_CLOEXEC | O_NONBLOCK) == -1) {
     RDDPLOG(ERROR) << "pipe2 failed";
   }

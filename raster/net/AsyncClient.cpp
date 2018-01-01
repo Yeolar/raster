@@ -7,16 +7,23 @@
 
 namespace rdd {
 
-AsyncClient::AsyncClient(const ClientOption& option)
-  : peer_(option.peer), timeoutOpt_(option.timeout) {
+AsyncClient::AsyncClient(std::shared_ptr<NetHub> hub,
+                         const Peer& peer,
+                         const TimeoutOption& timeout)
+  : hub_(hub), peer_(peer), timeoutOpt_(timeout) {
   RDDLOG(DEBUG) << "AsyncClient: " << peer_ << ", timeout=" << timeoutOpt_;
 }
 
-AsyncClient::AsyncClient(const Peer& peer,
+AsyncClient::AsyncClient(std::shared_ptr<NetHub> hub,
+                         const Peer& peer,
                          uint64_t ctimeout,
                          uint64_t rtimeout,
                          uint64_t wtimeout)
-  : AsyncClient({peer, {ctimeout, rtimeout, wtimeout}}) {}
+  : AsyncClient(hub, peer, {ctimeout, rtimeout, wtimeout}) {}
+
+AsyncClient::AsyncClient(std::shared_ptr<NetHub> hub,
+                         const ClientOption& option)
+  : AsyncClient(hub, option.peer, option.timeout) {}
 
 void AsyncClient::close() {
   freeConnection();
@@ -27,12 +34,9 @@ bool AsyncClient::connect() {
     return false;
   }
   RDDLOG(V2) << *event() << " connect";
-  if (!callbackMode_) {
-    ExecutorPtr executor = getCurrentExecutor();
-    event_->setExecutor(executor.get());
-    executor->addCallback(
-        std::bind(&Actor::addEvent, Singleton<Actor>::get(), event()));
-  }
+  Fiber::Task* task = getCurrentFiberTask();
+  event_->setTask(task);
+  task->blockCallbacks.push_back([&]() { hub_->addEvent(event()); });
   return true;
 }
 
@@ -47,7 +51,7 @@ bool AsyncClient::initConnection() {
     if (event && event->socket()->isConnected()) {
       event->reset();
       event->setState(Event::kToWrite);
-      event_ = event;
+      event_ = std::move(event);
       RDDLOG(DEBUG) << "peer[" << peer_ << "]"
         << " connect (keep-alive,seqid=" << event_->seqid() << ")";
       return true;
@@ -57,9 +61,9 @@ bool AsyncClient::initConnection() {
   if (socket &&
       (!keepalive_ || socket->setKeepAlive()) &&
       socket->connect(peer_)) {
-    auto event = std::make_shared<Event>(channel_, std::move(socket));
+    auto event = make_unique<Event>(channel_, std::move(socket));
     event->setState(Event::kConnect);
-    event_ = event;
+    event_ = std::move(event);
     RDDLOG(DEBUG) << "peer[" << peer_ << "] connect";
     return true;
   }
@@ -69,9 +73,32 @@ bool AsyncClient::initConnection() {
 void AsyncClient::freeConnection() {
   if (keepalive_ && event_->state() != Event::kFail) {
     auto pool = Singleton<EventPoolManager>::get()->getPool(peer_.port());
-    pool->giveBack(event_);
+    pool->giveBack(std::move(event_));
   }
   event_ = nullptr;
+}
+
+bool yieldMultiTask(std::initializer_list<AsyncClient*> clients) {
+  int size = clients.size();
+  if (size != 0) {
+    std::vector<Event*> events(size);
+    std::vector<NetHub*> hubs(size);
+    for (auto& i : clients) {
+      if (i->connected()) {
+        events.push_back(i->event());
+        hubs.push_back(i->hub());
+      }
+    }
+    size = hubs.size();
+    if (size > 0) {
+      if (std::count(hubs.begin(), hubs.end(), hubs[0]) == size) {
+        if (hubs[0]->waitGroup(events)) {
+          return FiberManager::yield();
+        }
+      }
+    }
+  }
+  return false;
 }
 
 } // namespace rdd

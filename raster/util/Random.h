@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <random>
 
-#include "raster/util/ThreadUtil.h"
+#include "raster/thread/ThreadUtil.h"
 
 namespace rdd {
 

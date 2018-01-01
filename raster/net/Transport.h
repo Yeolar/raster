@@ -10,7 +10,7 @@
 namespace rdd {
 
 class Transport {
-public:
+ public:
   enum IngressState {
     kInit,
     kOnReading,
@@ -40,7 +40,7 @@ public:
 
   void clone(Transport* other);
 
-protected:
+ protected:
   Peer peerAddr_;
   Peer localAddr_;
   IngressState state_;
@@ -49,7 +49,7 @@ protected:
 };
 
 class TransportFactory {
-public:
+ public:
   virtual std::unique_ptr<Transport> create() = 0;
 };
 

@@ -12,16 +12,16 @@
 namespace rdd {
 
 class FalconSender : public Monitor::Sender {
-public:
+ public:
   static const char* URL;
 
   explicit FalconSender(const std::string& url = URL);
 
   ~FalconSender();
 
-  virtual bool send(const Monitor::MonMap& value);
+  bool send(const Monitor::MonMap& value) override;
 
-private:
+ private:
   bool post(const std::string& data);
 
   std::string url_;

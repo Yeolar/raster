@@ -1,9 +1,11 @@
 # Copyright (C) 2017, Yeolar
 
 set(RASTER_NET_SRCS
-    Actor.cpp
+    Acceptor.cpp
     AsyncClient.cpp
     ErrorEnum.cpp
+    Group.cpp
+    NetHub.cpp
     NetUtil.cpp
     Peer.cpp
     Socket.cpp
@@ -12,12 +14,13 @@ set(RASTER_NET_SRCS
 add_library(raster_net OBJECT ${RASTER_NET_SRCS})
 
 install(FILES
-    Actor.h
-    AsyncClientExecutor.h
+    Acceptor.h
     AsyncClient.h
     Channel.h
     ErrorEnum.h
     Exception.h
+    Group.h
+    NetHub.h
     NetUtil.h
     Peer.h
     Processor.h

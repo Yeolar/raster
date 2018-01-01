@@ -21,6 +21,7 @@
 #include "raster/thread/SharedMutex.h"
 #include "raster/util/Logging.h"
 #include "raster/util/Macro.h"
+#include "raster/util/Utility.h"
 
 namespace rdd {
 

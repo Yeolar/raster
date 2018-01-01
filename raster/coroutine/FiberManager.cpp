@@ -23,11 +23,13 @@ void FiberManager::run(Fiber* fiber) {
   fiber->execute();
   switch (fiber->status()) {
     case Fiber::kBlock: {
-      fiber->task()->onBlock();
+      for (auto& fn : fiber->task()->blockCallbacks) {
+        fn();
+      }
       break;
     }
     case Fiber::kExit: {
-      fiber->task()->onExit();
+      fiber->task()->scheduleCallback();
       delete fiber;
       break;
     }

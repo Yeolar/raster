@@ -8,10 +8,10 @@
 #include <sys/stat.h>
 
 #include "raster/io/FSUtil.h"
+#include "raster/thread/ThreadUtil.h"
 #include "raster/util/Exception.h"
 #include "raster/util/LogBase.h"
 #include "raster/util/String.h"
-#include "raster/util/ThreadUtil.h"
 
 namespace {
 
@@ -58,7 +58,7 @@ size_t writeLogHeader(char* buffer,
   p += r;
   n -= r;
 
-  pid_t tid = localThreadId();
+  int tid = osThreadId();
   r = snprintf(p, n, ".%06zu %5d %s:%d] ", now % 1000000, tid, file, line);
   p += r;
   n -= r;
@@ -175,7 +175,7 @@ void BaseLogger::write(std::string&& message) {
     fd = fd_ >= 0 ? fd_ : STDERR_FILENO;
     ::write(fd, message.c_str(), message.size());
   }
-  if (splitSize_ > 0 && getSize(fd) >= splitSize_) {
+  if (splitSize_ > 0 && getSize(File(fd)) >= splitSize_) {
     split();
   }
 }

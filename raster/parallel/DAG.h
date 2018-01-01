@@ -5,132 +5,62 @@
 #pragma once
 
 #include <atomic>
-#include <mutex>
 #include <stdexcept>
 #include <vector>
 
-#include "raster/coroutine/Executor.h"
-#include "raster/util/Logging.h"
+#include "raster/concurrency/ThreadPoolExecutor.h"
 
 namespace rdd {
 
 class DAG {
-public:
+ public:
   typedef size_t Key;
 
-  Key add(const ExecutorPtr& executor) {
-    executor->addSchedule(std::bind(&DAG::schedule, this, nodes_.size()));
-    return addNode(executor);
-  }
+  DAG(std::shared_ptr<ThreadPoolExecutor> executor)
+    : executor_(executor) {}
+
+  Key add(VoidFunc&& func);
 
   // a -> b
-  void dependency(Key a, Key b) {
-    nodes_[a].nexts.push_back(b);
-    nodes_[b].waitCount++;
-    nodes_[b].hasPrev = true;
+  void dependency(Key a, Key b);
+
+  void go(VoidFunc&& finishCallback);
+
+  size_t size() const {
+    return nodes_.size();
   }
 
-  size_t size() const { return nodes_.size(); }
-  bool empty() const { return nodes_.empty(); }
-
-  virtual void execute(const ExecutorPtr& executor) {
-    executor->run();
-    executor->callback();
-    executor->schedule();
+  bool empty() const {
+    return nodes_.empty();
   }
 
-  void schedule(Key i) {
-    for (auto key : nodes_[i].nexts) {
-      if (--nodes_[key].waitCount == 0) {
-        execute(nodes_[key].executor);
-      }
-    }
-  }
-
-  Key go(const ExecutorPtr& executor) {
-    if (hasCycle()) {
-      throw std::runtime_error("Cycle in DAG graph");
-    }
-    std::vector<Key> rootNodes;
-    std::vector<Key> leafNodes;
-    for (Key key = 0; key < nodes_.size(); key++) {
-      if (!nodes_[key].hasPrev) {
-        rootNodes.push_back(key);
-      }
-      if (nodes_[key].nexts.empty()) {
-        leafNodes.push_back(key);
-      }
-    }
-    auto sourceKey = addNode(nullptr);
-    for (auto key : rootNodes) {
-      dependency(sourceKey, key);
-    }
-    auto sinkKey = addNode(executor);
-    for (auto key : leafNodes) {
-      dependency(key, sinkKey);
-    }
-    return sourceKey;
-  }
-
-private:
+ private:
   struct Node {
-    Node(const ExecutorPtr& executor_) : executor(executor_) {}
+    explicit Node(VoidFunc&& func_, VoidFunc&& schedule_)
+      : func(std::move(func_)),
+        schedule(std::move(schedule_)) {}
 
     Node(Node&& node) {
-      std::swap(executor, node.executor);
+      std::swap(func, node.func);
+      std::swap(schedule, node.schedule);
       std::swap(nexts, node.nexts);
-      std::swap(hasPrev, node.hasPrev);
+      hasPrev = node.hasPrev;
       waitCount.exchange(node.waitCount.load());
     }
 
-    ExecutorPtr executor;
+    VoidFunc func;
+    VoidFunc schedule;
     std::vector<Key> nexts;
     bool hasPrev{false};
     std::atomic<size_t> waitCount{0};
   };
 
-  Key addNode(const ExecutorPtr& executor) {
-    nodes_.emplace_back(executor);
-    return nodes_.size() - 1;
-  }
+  bool hasCycle();
 
-  bool hasCycle() {
-    std::vector<std::vector<Key>> nexts;
-    for (auto& node : nodes_) {
-      nexts.push_back(node.nexts);
-    }
-    std::vector<size_t> targets(nodes_.size());
-    for (auto& edges : nexts) {
-      for (auto key : edges) {
-        targets[key]++;
-      }
-    }
-    std::vector<Key> keys;
-    for (Key key = 0; key < nodes_.size(); key++) {
-      if (!nodes_[key].hasPrev) {
-        keys.push_back(key);
-      }
-    }
-    while (!keys.empty()) {
-      auto key = keys.back();
-      keys.pop_back();
-      while (!nexts[key].empty()) {
-        auto next = nexts[key].back();
-        nexts[key].pop_back();
-        if (--targets[next] == 0) {
-          keys.push_back(next);
-        }
-      }
-    }
-    for (auto& edges : nexts) {
-      if (!edges.empty()) {
-        return true;
-      }
-    }
-    return false;
-  }
+  void schedule(Key i);
 
   std::vector<Node> nodes_;
+  std::shared_ptr<ThreadPoolExecutor> executor_;
 };
 
 } // namespace rdd

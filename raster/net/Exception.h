@@ -12,7 +12,7 @@
 namespace rdd {
 
 class NetException : public std::exception {
-public:
+ public:
   explicit NetException(std::string const& msg)
     : msg_(msg), code_(0) {}
 
@@ -36,7 +36,7 @@ public:
   void setCode(int code) { code_ = code; }
   int getCode() const { return code_; }
 
-private:
+ private:
   const std::string msg_;
   int code_;
 };

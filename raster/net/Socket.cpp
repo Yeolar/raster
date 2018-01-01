@@ -270,4 +270,10 @@ const char* Socket::roleName() const {
   return roleStrings[role_];
 }
 
+std::ostream& operator<<(std::ostream& os, const Socket& socket) {
+  os << socket.roleName()[0] << ":" << socket.fd()
+     << "[" << socket.peer() << "]";
+  return os;
+}
+
 } // namespace rdd

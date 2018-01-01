@@ -28,7 +28,7 @@ Fiber::Fiber(int stackSize, std::unique_ptr<Task> task)
     stackLimit_(new unsigned char[stackSize]),
     stackSize_(stackSize),
     context_(std::bind(&Task::run, task_.get()), stackLimit_, stackSize_) {
-  task_->setFiber(this);
+  task_->fiber = this;
   timestamps_.push_back(std::move(Timestamp(status_)));
   ++count_;
 }

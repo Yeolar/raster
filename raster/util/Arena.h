@@ -9,8 +9,8 @@
 #include <stdexcept>
 #include <boost/intrusive/slist.hpp>
 
+#include "raster/thread/ThreadUtil.h"
 #include "raster/util/Conv.h"
-#include "raster/util/ThreadUtil.h"
 
 namespace rdd {
 

@@ -6,25 +6,25 @@
 
 namespace rdd {
 
-std::shared_ptr<Event> EventPool::get(const Peer& peer) {
+std::unique_ptr<Event> EventPool::get(const Peer& peer) {
   std::lock_guard<std::mutex> guard(lock_);
   auto& q = pool_[peer];
   if (!q.empty()) {
-    std::shared_ptr<Event> event = q.front();
+    auto event = std::move(q.front());
     q.pop_front();
     return event;
   }
   return nullptr;
 }
 
-bool EventPool::giveBack(const std::shared_ptr<Event>& event) {
+bool EventPool::giveBack(std::unique_ptr<Event> event) {
   std::lock_guard<std::mutex> guard(lock_);
   auto& q = pool_[event->peer()];
   if (q.size() > 1000000) {
     RDDLOG(ERROR) << "too many events (>1000000)";
     return false;
   }
-  q.push_back(event);
+  q.push_back(std::move(event));
   return true;
 }
 
@@ -40,7 +40,7 @@ size_t EventPool::count() const {
 EventPool* EventPoolManager::getPool(int id) {
   std::lock_guard<std::mutex> guard(lock_);
   if (pool_.find(id) == pool_.end()) {
-    pool_.emplace(id, std::make_shared<EventPool>());
+    pool_.emplace(id, make_unique<EventPool>());
   }
   return pool_[id].get();
 }

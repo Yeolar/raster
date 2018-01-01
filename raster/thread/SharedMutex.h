@@ -518,7 +518,7 @@ class SharedMutexImpl {
 
     bool doWait(Futex& futex, uint32_t expected, uint32_t waitMask) {
       auto result = futex.futexWaitUntil(expected, deadline(), waitMask);
-      return result != rdd::detail::FutexResult::TIMEDOUT;
+      return result != rdd::FutexResult::TIMEDOUT;
     }
   };
 
@@ -532,7 +532,7 @@ class SharedMutexImpl {
 
     bool doWait(Futex& futex, uint32_t expected, uint32_t waitMask) {
       auto result = futex.futexWaitUntil(expected, absDeadline_, waitMask);
-      return result != rdd::detail::FutexResult::TIMEDOUT;
+      return result != rdd::FutexResult::TIMEDOUT;
     }
   };
 

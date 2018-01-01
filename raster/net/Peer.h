@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <string.h>
 #include <array>
+#include <cstring>
 #include <iostream>
 #include <string>
 #include <tuple>
@@ -19,7 +19,7 @@ typedef std::array<uint8_t, 4> ByteArray4;
 typedef std::array<uint8_t, 16> ByteArray16;
 
 class IPAddressV4 {
-public:
+ public:
   IPAddressV4() {}
   IPAddressV4(const in_addr src) noexcept : addr_(src) {}
   IPAddressV4(const ByteArray4& src) noexcept : addr_(src) {}
@@ -41,7 +41,7 @@ public:
 
   size_t hash() const;
 
-private:
+ private:
   union AddressStorage {
     in_addr inAddr_;
     ByteArray4 bytes_;
@@ -54,7 +54,7 @@ private:
 };
 
 class IPAddressV6 {
-public:
+ public:
   IPAddressV6() {}
   IPAddressV6(const in6_addr& src) noexcept : addr_(src) {}
   IPAddressV6(const ByteArray16& src) noexcept : addr_(src) {}
@@ -82,7 +82,7 @@ public:
 
   size_t hash() const;
 
-private:
+ private:
   std::tuple<ByteArray16, uint16_t> tie() const {
     return std::tie(addr_.bytes_, scope_);
   }
@@ -100,7 +100,7 @@ private:
 };
 
 class Peer {
-public:
+ public:
   static int getPortFrom(const struct sockaddr* address);
 
   static const char* getFamilyNameFrom(
@@ -211,7 +211,7 @@ public:
 
   size_t hash() const;
 
-private:
+ private:
   struct addrinfo* getAddrInfo(const char* host, uint16_t port, int flags);
   struct addrinfo* getAddrInfo(const char* host, const char* port, int flags);
   void setFromAddrInfo(const struct addrinfo* results);

@@ -12,8 +12,7 @@ namespace rdd {
 
 class EventTask : public Fiber::Task {
  public:
-  EventTask(std::unique_ptr<Event> event)
-    : event_(std::move(event)) {
+  EventTask(Event* event) : event_(event) {
     event_->setTask(this);
   }
 
@@ -21,17 +20,13 @@ class EventTask : public Fiber::Task {
 
   void handle() override {
     event_->processor()->run();
-  }
-
-  void onExit() override {
     event_->setState(Event::kToWrite);
-    Singleton<Actor>::get()->addEvent(std::move(event_));
   }
 
-  Event* event() const { return event_.get(); }
+  Event* event() const { return event_; }
 
  private:
-  std::unique_ptr<Event> event_;
+  Event* event_;
 };
 
 } // namespace rdd

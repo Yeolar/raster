@@ -4,7 +4,7 @@
 
 #include "raster/framework/Monitor.h"
 #include "raster/io/event/EventHandler.h"
-#include "raster/net/Actor.h"
+#include "raster/io/event/EventLoop.h"
 
 namespace rdd {
 
@@ -19,14 +19,17 @@ void EventHandler::onListen(Event* event) {
       !(socket->setNonBlocking())) {
     return;
   }
-  if (Singleton<Actor>::get()->exceedConnectionLimit()) {
+  if (Socket::count() >= FLAGS_net_conn_limit) {
     RDDLOG(WARN) << "exceed connection capacity, drop request";
     return;
   }
 
-  auto evnew = make_unique<Event>(event->channel(), std::move(socket));
+  auto evnew = new Event(event->channel(), std::move(socket));
+  evnew->copyCallbacks(*event);
   RDDLOG(V1) << *evnew << " accepted";
   evnew->setState(Event::kNext);
+  RDDLOG(V2) << *evnew << " add event";
+  loop_->pushEvent(evnew);
   loop_->dispatchEvent(evnew);
 }
 
@@ -138,15 +141,15 @@ void EventHandler::onComplete(Event* event) {
       return;
     }
 
-    auto ev = loop_->popEvent(event);
+    loop_->popEvent(event);
 
     // on result
-    if (ev->socket()->isClient()) {
-      RDDMON_CNT("conn.success-" + ev->label());
-      RDDMON_AVG("conn.cost-" + ev->label(), ev->cost() / 1000);
+    if (event->socket()->isClient()) {
+      RDDMON_CNT("conn.success-" + event->label());
+      RDDMON_AVG("conn.cost-" + event->label(), event->cost() / 1000);
     }
-    if (!ev->isForward()) {
-      Singleton<Actor>::get()->execute(ev);
+    if (!event->isForward()) {
+      event->callbackOnComplete();  // execute
     }
     return;
   }
@@ -191,11 +194,13 @@ void EventHandler::onError(Event* event) {
 }
 
 void EventHandler::closePeer(Event* event) {
-  auto ev = loop_->popEvent(event);
+  loop_->popEvent(event);
 
-  if (ev->socket()->isClient()) {
-    ev->setState(Event::kFail);
-    Singleton<Actor>::get()->execute(ev);
+  if (event->socket()->isClient()) {
+    event->setState(Event::kFail);
+    event->callbackOnClose();  // execute
+  } else {
+    delete event;
   }
 }
 

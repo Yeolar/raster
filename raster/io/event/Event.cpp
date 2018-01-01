@@ -2,6 +2,7 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/coroutine/FiberManager.h"
 #include "raster/io/event/Event.h"
 #include "raster/io/event/EventTask.h"
 #include "raster/net/Channel.h"
@@ -23,7 +24,7 @@ Event* Event::getCurrent() {
 
 std::atomic<uint64_t> Event::globalSeqid_(1);
 
-Event::Event(const std::shared_ptr<Channel>& channel,
+Event::Event(std::shared_ptr<Channel> channel,
              std::unique_ptr<Socket> socket)
   : channel_(channel)
   , socket_(std::move(socket))
@@ -90,6 +91,25 @@ std::unique_ptr<Processor> Event::processor() {
     throw std::runtime_error("client channel has no processor");
   }
   return channel_->processorFactory()->create(this);
+}
+
+void Event::setCompleteCallback(std::function<void(Event*)> cb) {
+  completeCallback_ = std::move(cb);
+}
+void Event::callbackOnComplete() {
+  completeCallback_(this);
+}
+
+void Event::setCloseCallback(std::function<void(Event*)> cb) {
+  closeCallback_ = std::move(cb);
+}
+void Event::callbackOnClose() {
+  closeCallback_(this);
+}
+
+void Event::copyCallbacks(const Event& event) {
+  completeCallback_ = event.completeCallback_;
+  closeCallback_ = event.closeCallback_;
 }
 
 } // namespace rdd

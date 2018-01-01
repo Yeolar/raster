@@ -23,7 +23,7 @@ std::string timePrintf(time_t t, const char *format) {
   size_t bytesUsed = 0;
 
   do {
-    bytesUsed = strftime(&output[0], remaining, format, tm);
+    bytesUsed = strftime(&output[0], remaining, format, &tm);
     if (bytesUsed == 0) {
       remaining *= 2;
       if (remaining > formatLen * 16) {
@@ -44,12 +44,12 @@ bool isSameDay(time_t t1, time_t t2) {
   struct tm tm;
 
   ::localtime_r(&t1, &tm);
-  int y1 = tm->tm_year;
-  int d1 = tm->tm_yday;
+  int y1 = tm.tm_year;
+  int d1 = tm.tm_yday;
 
   ::localtime_r(&t2, &tm);
-  int y2 = tm->tm_year;
-  int d2 = tm->tm_yday;
+  int y2 = tm.tm_year;
+  int d2 = tm.tm_yday;
 
   return (y1 == y2 && d1 == d2);
 }

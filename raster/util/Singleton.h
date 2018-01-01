@@ -58,6 +58,8 @@
 #include <memory>
 #include <mutex>
 
+#include "raster/util/Macro.h"
+
 namespace rdd {
 
 namespace detail {

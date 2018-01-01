@@ -25,8 +25,7 @@ class IOThreadPoolExecutor : public ThreadPoolExecutor {
       size_t numThreads,
       std::shared_ptr<ThreadFactory> threadFactory =
           std::make_shared<ThreadFactory>("IOThreadPool"),
-      EventLoopManager* ebm = EventLoopManager::get(),
-      bool waitForAll = false);
+      EventLoopManager* ebm = EventLoopManager::get());
 
   ~IOThreadPoolExecutor() override;
 

@@ -10,10 +10,8 @@ namespace rdd {
 
 ThreadPoolExecutor::ThreadPoolExecutor(
     size_t /* numThreads */,
-    std::shared_ptr<ThreadFactory> threadFactory,
-    bool isWaitForAll)
+    std::shared_ptr<ThreadFactory> threadFactory)
     : threadFactory_(std::move(threadFactory)),
-      isWaitForAll_(isWaitForAll),
       taskStatsCallbacks_(std::make_shared<TaskStatsCallbackRegistry>()) {}
 
 ThreadPoolExecutor::~ThreadPoolExecutor() {
@@ -29,6 +27,24 @@ ThreadPoolExecutor::Task::Task(
       expireCallback_(std::move(expireCallback)) {
   // Assume that the task in enqueued on creation
   enqueueTime_ = timestampNow();
+}
+
+ThreadPoolExecutor::Task::Task(Task&& other) noexcept
+    : func_(std::move(other.func_)),
+      stats_(other.stats_),
+      enqueueTime_(other.enqueueTime_),
+      expiration_(other.expiration_),
+      expireCallback_(std::move(other.expireCallback_)) {
+}
+
+ThreadPoolExecutor::Task&
+ThreadPoolExecutor::Task::operator=(Task&& other) noexcept {
+  func_.swap(other.func_);
+  stats_ = other.stats_;
+  enqueueTime_ = other.enqueueTime_;
+  expiration_ = other.expiration_;
+  expireCallback_.swap(other.expireCallback_);
+  return *this;
 }
 
 void ThreadPoolExecutor::runTask(const ThreadPtr& thread, Task&& task) {

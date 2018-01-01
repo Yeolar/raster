@@ -10,7 +10,7 @@
 namespace rdd {
 
 class Channel {
-public:
+ public:
   Channel(const Peer& peer,
           const TimeoutOption& timeoutOpt,
           std::unique_ptr<TransportFactory> transportFactory = nullptr,
@@ -36,7 +36,7 @@ public:
     return processorFactory_.get();
   }
 
-private:
+ private:
   int id_;
   Peer peer_;
   TimeoutOption timeoutOpt_;

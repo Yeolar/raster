@@ -18,14 +18,14 @@ class EventPool {
  public:
   EventPool() {}
 
-  std::shared_ptr<Event> get(const Peer& peer);
+  std::unique_ptr<Event> get(const Peer& peer);
 
-  bool giveBack(const std::shared_ptr<Event>& event);
+  bool giveBack(std::unique_ptr<Event> event);
 
   size_t count() const;
 
  private:
-  std::unordered_map<Peer, std::deque<std::shared_ptr<Event>>> pool_;
+  std::unordered_map<Peer, std::deque<std::unique_ptr<Event>>> pool_;
   mutable std::mutex lock_;
 };
 
@@ -36,7 +36,7 @@ class EventPoolManager {
   EventPool* getPool(int id);
 
  private:
-  std::unordered_map<int, std::shared_ptr<EventPool>> pool_;
+  std::unordered_map<int, std::unique_ptr<EventPool>> pool_;
   mutable std::mutex lock_;
 };
 

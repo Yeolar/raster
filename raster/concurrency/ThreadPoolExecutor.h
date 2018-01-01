@@ -19,8 +19,7 @@ class ThreadPoolExecutor : public virtual Executor {
  public:
   explicit ThreadPoolExecutor(
       size_t numThreads,
-      std::shared_ptr<ThreadFactory> threadFactory,
-      bool isWaitForAll = false);
+      std::shared_ptr<ThreadFactory> threadFactory);
 
   ~ThreadPoolExecutor() override;
 
@@ -139,6 +138,10 @@ class ThreadPoolExecutor : public virtual Executor {
         VoidFunc&& func,
         uint64_t expiration,
         VoidFunc&& expireCallback);
+
+    Task(Task&&) noexcept;
+    Task& operator=(Task&&) noexcept;
+
     VoidFunc func_;
     TaskStats stats_;
     uint64_t enqueueTime_;
@@ -213,7 +216,6 @@ class ThreadPoolExecutor : public virtual Executor {
   };
 
   std::shared_ptr<ThreadFactory> threadFactory_;
-  const bool isWaitForAll_; // whether to wait till event base loop exits
 
   ThreadList threadList_;
   RWSpinLock threadListLock_;

@@ -161,4 +161,38 @@ inline constexpr auto applyTuple(F&& f, Tuples&&... t)
       tuple_detail::MakeIndexSequenceFromTuple<Tuples...>{});
 }
 
+/**
+ *  Backports from C++17 of:
+ *    std::in_place_t
+ *    std::in_place_type_t
+ *    std::in_place_index_t
+ *    std::in_place
+ *    std::in_place_type
+ *    std::in_place_index
+ */
+
+struct in_place_tag {};
+template <class>
+struct in_place_type_tag {};
+template <std::size_t>
+struct in_place_index_tag {};
+
+using in_place_t = in_place_tag (&)(in_place_tag);
+template <class T>
+using in_place_type_t = in_place_type_tag<T> (&)(in_place_type_tag<T>);
+template <std::size_t I>
+using in_place_index_t = in_place_index_tag<I> (&)(in_place_index_tag<I>);
+
+inline in_place_tag in_place(in_place_tag = {}) {
+  return {};
+}
+template <class T>
+inline in_place_type_tag<T> in_place_type(in_place_type_tag<T> = {}) {
+  return {};
+}
+template <std::size_t I>
+inline in_place_index_tag<I> in_place_index(in_place_index_tag<I> = {}) {
+  return {};
+}
+
 } // namespace rdd

@@ -13,18 +13,18 @@ namespace rdd {
 class Event;
 
 class Processor {
-public:
+ public:
   Processor(Event* event) : event_(event) {}
   virtual ~Processor() {}
 
   virtual void run() = 0;
 
-protected:
+ protected:
   Event* event_;
 };
 
 class ProcessorFactory {
-public:
+ public:
   virtual std::unique_ptr<Processor> create(Event* event) = 0;
 };
 

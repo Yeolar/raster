@@ -9,7 +9,7 @@
 #include <stdexcept>
 
 #include "raster/io/event/EventLoop.h"
-#include "raster/util/ThreadUtil.h"
+#include "raster/thread/ThreadUtil.h"
 
 namespace rdd {
 

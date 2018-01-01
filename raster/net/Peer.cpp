@@ -3,7 +3,6 @@
  */
 
 #include <inttypes.h>
-#include <string.h>
 #include <sys/utsname.h>
 #include <ifaddrs.h>
 #include <net/if.h>

@@ -8,8 +8,15 @@
 #include <memory>
 #include <string>
 #include <unistd.h>
+#include <gflags/gflags.h>
 
 #include "raster/net/NetUtil.h"
+
+DEFINE_uint64(net_conn_limit, 100000,
+              "Limit # of net connection.");
+
+DEFINE_uint64(net_conn_timeout, 600000000,
+              "Long-polling timeout # of net connection.");
 
 namespace rdd {
 
@@ -22,13 +29,10 @@ namespace rdd {
 #define RDD_SOCKET_ENUM(role) k##role
 
 class Socket {
-public:
+ public:
   enum Role {
     RDD_SOCKET_GEN(RDD_SOCKET_ENUM)
   };
-
-  static constexpr uint64_t kLTimeout = 600000000;// long-polling timeout: 10min
-  static constexpr size_t   kLCount   = 80000;    // long-polling count
 
   static size_t count() { return count_; }
 
@@ -89,7 +93,7 @@ public:
   bool isClient() const { return role_ == Role::kClient; }
   bool isServer() const { return role_ == Role::kServer; }
 
-private:
+ private:
   static std::atomic<size_t> count_;
 
   int fd_{-1};
@@ -97,11 +101,7 @@ private:
   Role role_{kNone};
 };
 
-inline std::ostream& operator<<(std::ostream& os, const Socket& socket) {
-  os << socket.roleName()[0] << ":" << socket.fd()
-     << "[" << socket.peer() << "]";
-  return os;
-}
+std::ostream& operator<<(std::ostream& os, const Socket& socket);
 
 #undef RDD_SOCKET_ENUM
 

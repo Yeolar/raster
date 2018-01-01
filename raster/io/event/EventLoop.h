@@ -25,44 +25,25 @@ class EventLoop {
 
   ~EventLoop() {}
 
-  void listen(const std::shared_ptr<Channel>& channel, int backlog = 64);
+  void loop();
+  void loopOnce();
 
-  bool isRunning() const {
-    return loopThread_ != 0;
-  }
-
-  bool inLoopThread() const {
-    return loopThread_ == 0 || pthread_equal(loopThread_, pthread_self());
-  }
-
-  bool inRunningLoopThread() const {
-    return pthread_equal(loopThread_, pthread_self());
-  }
-
-  void waitUntilRunning() {
-    while (!isRunning()) {
-      std::this_thread::yield();
-    }
-  }
-
-  void loop() { loopBody(false); }
-  void loopOnce() { loopBody(true); }
   void stop();
 
-  void addEvent(std::unique_ptr<Event> event);
+  void addEvent(Event* event);
   void addCallback(VoidFunc&& callback);
 
+  friend class EventHandler;
+
  private:
-  void loopBody(bool once);
+  void loopBody(bool once = false);
 
-  void dispatchEvent(std::unique_ptr<Event> event);
   void dispatchEvent(Event* event);
-
   void updateEvent(Event* event, uint32_t events);
-
   void restartEvent(Event* event);
 
-  std::unique_ptr<Event> popEvent(Event* event);
+  void pushEvent(Event* event);
+  void popEvent(Event* event);
 
   void checkTimeoutEvents();
 
@@ -70,14 +51,14 @@ class EventLoop {
   int timeout_;
 
   std::atomic<bool> stop_;
-  std::atomic<pthread_t> loopThread_;
+  std::atomic<std::thread::id> loopThread_;
 
   std::vector<int> listenFds_;
   Waker waker_;
-  std::map<int, std::unique_ptr<Event>> fdEvents_;
+  std::map<int, Event*> fdEvents_;
   EventHandler handler_;
 
-  std::vector<std::unique_ptr<Event>> events_;
+  std::vector<Event*> events_;
   std::mutex eventsLock_;
   std::vector<VoidFunc> callbacks_;
   std::mutex callbacksLock_;

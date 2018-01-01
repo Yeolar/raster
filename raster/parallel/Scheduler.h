@@ -7,92 +7,47 @@
 #include <map>
 #include <vector>
 
-#include "raster/coroutine/FiberManager.h"
-#include "raster/coroutine/GenericExecutor.h"
-#include "raster/net/Actor.h"
 #include "raster/parallel/DAG.h"
 #include "raster/parallel/Graph.h"
-#include "raster/parallel/JobExecutor.h"
-#include "raster/util/ReflectObject.h"
 
 namespace rdd {
 
-class ActorDAG : public DAG {
-public:
-  void execute(const ExecutorPtr& executor) {
-    Singleton<Actor>::get()->execute(executor);
-  }
+class JobBase {
+ public:
+  virtual ~JobBase() {}
+  virtual void run() = 0;
+
+  void setName(const std::string& name) { name_ = name; }
+  std::string name() const { return name_; }
+
+ private:
+  std::string name_;
 };
 
-class Scheduler {
-public:
-  Scheduler() {}
+class ParallelScheduler {
+ public:
+  explicit ParallelScheduler(std::shared_ptr<ThreadPoolExecutor> executor);
 
-  Scheduler(const Graph& graph,
-            const JobExecutor::ContextPtr& ctx = nullptr) {
-    init(graph, ctx);
-  }
-  Scheduler(const std::string& key,
-            const JobExecutor::ContextPtr& ctx = nullptr) {
-    init(Singleton<GraphManager>::get()->getGraph(key), ctx);
-  }
+  ParallelScheduler(std::shared_ptr<ThreadPoolExecutor> executor,
+                    const Graph& graph);
 
-  void add(const ExecutorPtr& executor,
-           const std::string& name = "",
-           const std::vector<std::string>& next = {}) {
-    map_[name] = dag_.add(executor);
-    graph_.add(name, next);
-  }
+  void add(const std::string& name,
+           const std::vector<std::string>& next,
+           VoidFunc&& func);
 
-  void add(VoidFunc&& executor,
-           const std::string& name = "",
-           const std::vector<std::string>& next = {}) {
-    add(ExecutorPtr(new FunctionExecutor(std::move(executor))), name, next);
-  }
+  void add(const std::string& name,
+           const std::vector<std::string>& next,
+           JobBase* job);
 
-  void add(JobExecutor* executor,
-           const JobExecutor::ContextPtr& ctx,
-           const std::string& name,
-           const std::vector<std::string>& next) {
-    executor->setName(name);
-    executor->setContext(ctx);
-    add(ExecutorPtr(executor), name, next);
-  }
+  void add(const std::string& name,
+           const std::vector<std::string>& next);
 
-  void add(const JobExecutor::ContextPtr& ctx,
-           const std::string& name,
-           const std::vector<std::string>& next) {
-    auto clsname = name.substr(0, name.find(':'));
-    add(makeReflectObject<JobExecutor>(clsname), ctx, name, next);
-  }
+  void run(VoidFunc&& finishCallback);
 
-  void run() {
-    if (!dag_.empty()) {
-      setDependency();
-      ExecutorPtr executor = getCurrentExecutor();
-      executor->addCallback(
-          std::bind(&ActorDAG::schedule, &dag_, dag_.go(executor)));
-      FiberManager::yield();
-    }
-  }
+ private:
+  void setDependency();
 
-private:
-  void init(const Graph& graph, const JobExecutor::ContextPtr& ctx) {
-    for (auto& p : graph) {
-      add(ctx, p.node, p.next);
-    }
-  }
-
-  void setDependency() {
-    for (auto& p : graph_) {
-      for (auto& q : p.next) {
-        dag_.dependency(map_[p.node], map_[q]);
-      }
-    }
-    setup_ = true;
-  }
-
-  ActorDAG dag_;
+  DAG dag_;
   Graph graph_;
   std::map<std::string, DAG::Key> map_;
   bool setup_{false};

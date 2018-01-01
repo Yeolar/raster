@@ -2,12 +2,10 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <signal.h>
-#include <string.h>
-
 #include "raster/framework/Config.h"
 #include "raster/framework/Signal.h"
 #include "raster/util/Backtrace.h"
+#include "raster/util/Exception.h"
 #include "raster/util/Logging.h"
 #include "raster/util/MemoryProtect.h"
 #include "raster/util/ProcessUtil.h"
@@ -76,7 +74,7 @@ void setupMemoryProtectSignal() {
 }
 
 void sendSignal(int signo, const char* pidfile) {
-  checkUnixError(kill(ProcessUtil::readPid(pidfile), signo));
+  checkUnixError(kill(readPid(pidfile), signo));
 }
 
 } // namespace rdd
