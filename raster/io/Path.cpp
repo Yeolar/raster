@@ -2,12 +2,13 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/io/Path.h"
+
 #include <deque>
 #include <iterator>
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "raster/io/Path.h"
 #include "raster/util/Exception.h"
 #include "raster/util/String.h"
 

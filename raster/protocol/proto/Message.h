@@ -9,7 +9,6 @@
 #include <google/protobuf/service.h>
 
 #include "raster/io/Cursor.h"
-#include "raster/protocol/proto/IOBufInputStream.h"
 #include "raster/protocol/proto/RpcController.h"
 
 namespace rdd {
@@ -22,74 +21,32 @@ enum {
   CANCEL_MSG   = 3
 };
 
-inline char readChar(io::Cursor& in) {
-  return in.read<char>();
-}
+char readChar(io::Cursor& in);
 
-inline void writeChar(char c, IOBufQueue& out) {
-  out.append(&c, sizeof(char));
-}
+void writeChar(char c, IOBufQueue& out);
 
-inline int readInt(io::Cursor& in) {
-  return in.read<int>();
-}
+int readInt(io::Cursor& in);
 
-inline void writeInt(int i, IOBufQueue& out) {
-  out.append(&i, sizeof(int));
-}
+void writeInt(int i, IOBufQueue& out);
 
-inline std::string readString(io::Cursor& in) {
-  int n = readInt(in);
-  return n > 0 ? in.readFixedString(n) : std::string();
-}
+std::string readString(io::Cursor& in);
 
-inline void writeString(const std::string& s, IOBufQueue& out) {
-  writeInt(s.length(), out);
-  if (s.length() > 0) {
-    out.append(s);
-  }
-}
+void writeString(const std::string& s, IOBufQueue& out);
 
-inline const google::protobuf::MethodDescriptor* readMethodDescriptor(
-    io::Cursor& in) {
-  return google::protobuf::DescriptorPool::generated_pool()
-    ->FindMethodByName(readString(in));
-}
+const google::protobuf::MethodDescriptor* readMethodDescriptor(
+    io::Cursor& in);
 
-inline void writeMethodDescriptor(
+void writeMethodDescriptor(
     const google::protobuf::MethodDescriptor& method,
-    IOBufQueue& out) {
-  writeString(method.full_name(), out);
-}
+    IOBufQueue& out);
 
-inline void readMessage(
+void readMessage(
     io::Cursor& in,
-    std::shared_ptr<google::protobuf::Message>& msg) {
-  const google::protobuf::Descriptor* descriptor =
-    google::protobuf::DescriptorPool::generated_pool()
-      ->FindMessageTypeByName(readString(in));
-  msg.reset();
-  if (descriptor) {
-    msg.reset(google::protobuf::MessageFactory::generated_factory()
-              ->GetPrototype(descriptor)->New());
-    IOBufInputStream stream(&in);
-    if (msg && msg->ParseFromZeroCopyStream(&stream)) {
-      return;
-    }
-    msg.reset();
-  }
-  throw std::runtime_error("fail to read Message");
-}
+    std::shared_ptr<google::protobuf::Message>& msg);
 
-inline void writeMessage(
+void writeMessage(
     const google::protobuf::Message& msg,
-    IOBufQueue& out) {
-  writeString(msg.GetDescriptor()->full_name(), out);
-  size_t n = msg.ByteSize();
-  out.preallocate(n, n);
-  msg.SerializeToArray(out.writableTail(), n);
-  out.postallocate(n);
-}
+    IOBufQueue& out);
 
 void parseRequestFrom(
     io::Cursor& in,

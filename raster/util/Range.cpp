@@ -6,9 +6,9 @@
 // @author Mark Rabkin (mrabkin@fb.com)
 // @author Andrei Alexandrescu (andrei.alexandrescu@fb.com)
 
-#include <iostream>
-
 #include "raster/util/Range.h"
+
+#include <iostream>
 
 namespace rdd {
 

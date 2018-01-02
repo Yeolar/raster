@@ -21,7 +21,7 @@ namespace rdd {
  * or various protocol constraints may be violated.
  */
 class HTTPException : public NetException {
-public:
+ public:
   /**
    * Indicates which direction of the data flow was affected by this
    * exception. For instance, if a class receives HTTPException(INGRESS),
@@ -126,7 +126,7 @@ public:
     return std::move(partialMsg_);
   }
 
-private:
+ private:
   Direction dir_;
   NetError netError_{kErrorNone};
   uint32_t statusCode_{0};

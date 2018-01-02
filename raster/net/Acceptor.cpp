@@ -15,14 +15,14 @@ void Acceptor::addService(std::unique_ptr<Service> service) {
 }
 
 void Acceptor::configService(
-    const std::string& name, int port, const TimeoutOption& timeoutOpt) {
+    const std::string& name, int port, const TimeoutOption& timeout) {
   auto service = get_deref_smart_ptr(services_, name);
   if (!service) {
     RDDLOG(FATAL) << "service: [" << name << "] not added";
     return;
   }
 
-  service->makeChannel(port, timeoutOpt);
+  service->makeChannel(port, timeout);
   listen(service);
 }
 

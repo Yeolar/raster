@@ -22,6 +22,9 @@ namespace rdd {
 class AsyncClient {
  public:
   AsyncClient(std::shared_ptr<NetHub> hub,
+              const ClientOption& option);
+
+  AsyncClient(std::shared_ptr<NetHub> hub,
               const Peer& peer,
               const TimeoutOption& timeout);
 
@@ -31,23 +34,17 @@ class AsyncClient {
               uint64_t rtimeout = 1000000,
               uint64_t wtimeout = 300000);
 
-  AsyncClient(std::shared_ptr<NetHub> hub,
-              const ClientOption& option);
-
   virtual ~AsyncClient() {
     close();
   }
 
-  void setKeepAlive() { keepalive_ = true; }
-  bool keepAlive() const { return keepalive_; }
-
   virtual bool connect();
-  virtual void callback();
-  virtual void close();
 
   virtual bool connected() const {
     return event_ != nullptr;
   }
+
+  virtual void close();
 
   NetHub* hub() const {
     return hub_.get();
@@ -55,6 +52,14 @@ class AsyncClient {
 
   Event* event() const {
     return event_.get();
+  }
+
+  void setKeepAlive() {
+    keepalive_ = true;
+  }
+
+  bool keepAlive() const {
+    return keepalive_;
   }
 
  protected:
@@ -65,7 +70,7 @@ class AsyncClient {
 
   std::shared_ptr<NetHub> hub_;
   Peer peer_;
-  TimeoutOption timeoutOpt_;
+  TimeoutOption timeout_;
   bool keepalive_{false};
   std::unique_ptr<Event> event_;
   std::shared_ptr<Channel> channel_;

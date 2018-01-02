@@ -3,6 +3,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/util/TestUtil.h"
+
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -14,7 +16,6 @@
 #include "raster/util/Exception.h"
 #include "raster/util/Logging.h"
 #include "raster/util/String.h"
-#include "raster/util/TestUtil.h"
 
 namespace rdd {
 namespace test {

@@ -50,7 +50,7 @@ struct HTTPHeaderSize {
  *     headers.add("Location", location);
  */
 class HTTPHeaders {
-public:
+ public:
   /*
    * separator used to concatenate multiple values of the same header
    * check out sections 4.2 and 14.45 from rfc2616
@@ -184,7 +184,7 @@ public:
   static std::bitset<256>& entityHeaderCodes();
   static std::bitset<256>& perHopHeaderCodes();
 
-private:
+ private:
   std::vector<HTTPHeaderCode> codes_;
   std::vector<const std::string *> headerNames_;
   std::vector<std::string> headerValues_;

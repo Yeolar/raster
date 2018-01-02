@@ -19,7 +19,7 @@ namespace rdd {
  * underlying the input StringPiece
  */
 class ParseURL {
-public:
+ public:
   ParseURL() {}
   explicit ParseURL(StringPiece urlVal) {
     init(urlVal);
@@ -61,7 +61,7 @@ public:
 
   void stripBrackets();
 
-private:
+ private:
   void parse();
 
   void parseNonFully();

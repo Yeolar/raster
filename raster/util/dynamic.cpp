@@ -3,9 +3,10 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/util/dynamic.h"
+
 #include <bits/functexcept.h>
 
-#include "raster/util/dynamic.h"
 #include "raster/util/Hash.h"
 
 namespace rdd {

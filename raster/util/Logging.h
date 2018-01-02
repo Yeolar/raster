@@ -14,7 +14,7 @@ namespace rdd {
 namespace logging {
 
 class RDDLogger : public BaseLogger {
-public:
+ public:
   RDDLogger() : BaseLogger("rdd") {}
 };
 

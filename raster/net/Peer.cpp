@@ -2,13 +2,11 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <inttypes.h>
-#include <sys/utsname.h>
-#include <ifaddrs.h>
-#include <net/if.h>
-#include <netdb.h>
-
 #include "raster/net/Peer.h"
+
+#include <cinttypes>
+#include <net/if.h>
+
 #include "raster/util/Conv.h"
 #include "raster/util/Exception.h"
 #include "raster/util/Hash.h"

@@ -13,5 +13,4 @@ install(FILES
     Fiber.h
     FiberHub.h
     FiberManager.h
-    FunctionTask.h
     DESTINATION include/raster/coroutine)

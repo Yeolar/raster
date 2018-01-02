@@ -2,12 +2,13 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/util/Time.h"
+
 #include <cmath>
 #include <cstring>
 #include <stdexcept>
 
 #include "raster/util/Logging.h"
-#include "raster/util/Time.h"
 
 namespace rdd {
 

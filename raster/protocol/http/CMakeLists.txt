@@ -1,6 +1,8 @@
 # Copyright (C) 2017, Yeolar
 
 set(RASTER_PROTOCOL_HTTP_SRCS
+    AsyncClient.cpp
+    AsyncServer.cpp
     HTTP1xCodec.cpp
     HTTPCommonHeaders.cpp
     HTTPException.cpp
@@ -10,6 +12,8 @@ set(RASTER_PROTOCOL_HTTP_SRCS
     ParseURL.cpp
     Processor.cpp
     RequestHandler.cpp
+    SyncClient.cpp
+    SyncTransport.cpp
     Transport.cpp
     Util.cpp
 )

@@ -2,9 +2,9 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <cstring>
-
 #include "uconv.h"
+
+#include <cstring>
 
 namespace rdd {
 namespace uconv {

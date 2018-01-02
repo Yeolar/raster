@@ -19,7 +19,7 @@ class Acceptor {
   void configService(
       const std::string& name,
       int port,
-      const TimeoutOption& timeoutOpt);
+      const TimeoutOption& timeout);
 
   void start();
   void stop();

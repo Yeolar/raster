@@ -3,9 +3,10 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/concurrency/ThreadedExecutor.h"
+
 #include <chrono>
 
-#include "raster/concurrency/ThreadedExecutor.h"
 #include "raster/util/Logging.h"
 
 namespace rdd {

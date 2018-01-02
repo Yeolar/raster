@@ -3,13 +3,13 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/io/FileUtil.h"
+
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/file.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-
-#include "raster/io/FileUtil.h"
 
 namespace rdd {
 

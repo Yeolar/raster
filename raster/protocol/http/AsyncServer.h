@@ -10,22 +10,15 @@
 namespace rdd {
 
 class HTTPAsyncServer : public Service {
-public:
-  void addRouter(const std::string& handler, const std::string& regex) {
-    routers_.emplace(handler, regex);
-  }
+ public:
+  HTTPAsyncServer(StringPiece name) : Service(name) {}
+  ~HTTPAsyncServer() override {}
 
-  virtual void makeChannel(int port, const TimeoutOption& timeoutOpt) {
-    Peer peer;
-    peer.setFromLocalPort(port);
-    channel_ = std::make_shared<Channel>(
-        peer,
-        timeoutOpt,
-        make_unique<HTTPTransportFactory>(TransportDirection::DOWNSTREAM),
-        make_unique<HTTPProcessorFactory>(routers_));
-  }
+  void makeChannel(int port, const TimeoutOption& timeoutOpt) override;
 
-private:
+  void addRouter(const std::string& handler, const std::string& regex);
+
+ private:
   std::map<std::string, std::string> routers_;
 };
 

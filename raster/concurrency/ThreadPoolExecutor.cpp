@@ -4,6 +4,7 @@
  */
 
 #include "raster/concurrency/ThreadPoolExecutor.h"
+
 #include "raster/util/ScopeGuard.h"
 
 namespace rdd {

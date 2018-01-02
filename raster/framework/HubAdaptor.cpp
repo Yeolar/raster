@@ -3,6 +3,7 @@
  */
 
 #include "raster/framework/HubAdaptor.h"
+
 #include "raster/framework/Monitor.h"
 
 namespace rdd {

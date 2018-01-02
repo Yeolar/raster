@@ -3,6 +3,7 @@
  */
 
 #include "raster/io/event/EPoll.h"
+
 #include "raster/util/Exception.h"
 #include "raster/util/Logging.h"
 

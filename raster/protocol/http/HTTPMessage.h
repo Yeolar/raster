@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <array>
 #include <map>
 #include <mutex>
 #include <string>
@@ -29,7 +28,7 @@ namespace rdd {
  * All header names stored in this class are case-insensitive.
  */
 class HTTPMessage {
-public:
+ public:
   HTTPMessage();
   ~HTTPMessage();
   HTTPMessage(const HTTPMessage& message);
@@ -291,7 +290,7 @@ public:
   static std::string createQueryString(
       const std::map<std::string, std::string>& params, uint32_t maxSize);
 
-private:
+ private:
   void parseCookies() const;
 
   void parseQueryParams() const;

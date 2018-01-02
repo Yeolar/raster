@@ -2,9 +2,10 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/util/ProcessUtil.h"
+
 #include "raster/io/FileUtil.h"
 #include "raster/util/Logging.h"
-#include "raster/util/ProcessUtil.h"
 
 namespace rdd {
 

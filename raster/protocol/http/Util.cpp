@@ -2,15 +2,16 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/protocol/http/Util.h"
+
 #include "raster/protocol/http/HTTPMessage.h"
 #include "raster/protocol/http/ParseURL.h"
-#include "raster/protocol/http/Util.h"
+#include "raster/thread/ThreadUtil.h"
+#include "raster/thread/UnionBasedStatic.h"
 #include "raster/util/Algorithm.h"
 #include "raster/util/Logging.h"
 #include "raster/util/MapUtil.h"
 #include "raster/util/String.h"
-#include "raster/util/ThreadUtil.h"
-#include "raster/util/UnionBasedStatic.h"
 
 namespace rdd {
 

@@ -13,17 +13,21 @@ namespace rdd {
 template <class K, class V>
 class LockedMap {
  public:
+  typedef typename std::map<K, V>::key_type key_type;
+  typedef typename std::map<K, V>::mapped_type mapped_type;
+  typedef typename std::map<K, V>::value_type value_type;
+
   LockedMap() {}
 
-  V operator[](const K& key) {
+  mapped_type operator[](const key_type& key) {
     return map_.wlock()->operator[](key);
   }
 
-  V operator[](K&& key) {
+  mapped_type operator[](key_type&& key) {
     return map_.wlock()->operator[](std::move(key));
   }
 
-  bool insert(const V& value) {
+  bool insert(const value_type& value) {
     return map_.wlock()->insert(value).second;
   }
 
@@ -32,8 +36,19 @@ class LockedMap {
     return map_.wlock()->emplace(std::forward<Args>(args)...).second;
   }
 
-  size_t erase(const K& key) {
+  void update(const value_type& value) {
+    map_.wlock()->operator[](value.first) = value.second;
+  }
+
+  size_t erase(const key_type& key) {
     return map_.wlock()->erase(key);
+  }
+
+  mapped_type erase_get(const key_type& key) {
+    auto wlockedMap = map_.wlock();
+    mapped_type value = wlockedMap->operator[](key);
+    wlockedMap->erase(key);
+    return std::move(value);
   }
 
   void clear() {
@@ -44,12 +59,12 @@ class LockedMap {
     return map_.rlock()->size();
   }
 
-  size_t count(const K& key) const {
-    return map_.rlock(key)->count();
-  }
-
   bool empty() const {
     return map_.rlock()->empty();
+  }
+
+  size_t count(const key_type& key) const {
+    return map_.rlock()->count(key);
   }
 
   template <typename F>

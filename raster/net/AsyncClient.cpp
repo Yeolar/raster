@@ -2,16 +2,17 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/io/event/EventPool.h"
 #include "raster/net/AsyncClient.h"
+
+#include "raster/io/event/EventPool.h"
 
 namespace rdd {
 
 AsyncClient::AsyncClient(std::shared_ptr<NetHub> hub,
                          const Peer& peer,
                          const TimeoutOption& timeout)
-  : hub_(hub), peer_(peer), timeoutOpt_(timeout) {
-  RDDLOG(DEBUG) << "AsyncClient: " << peer_ << ", timeout=" << timeoutOpt_;
+  : hub_(hub), peer_(peer), timeout_(timeout) {
+  RDDLOG(DEBUG) << "AsyncClient: " << peer_ << ", timeout=" << timeout_;
 }
 
 AsyncClient::AsyncClient(std::shared_ptr<NetHub> hub,
@@ -38,10 +39,6 @@ bool AsyncClient::connect() {
   event_->setTask(task);
   task->blockCallbacks.push_back([&]() { hub_->addEvent(event()); });
   return true;
-}
-
-void AsyncClient::callback() {
-  RDDLOG(DEBUG) << "peer[" << peer_ << "] finished";
 }
 
 bool AsyncClient::initConnection() {

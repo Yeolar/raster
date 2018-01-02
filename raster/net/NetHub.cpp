@@ -2,9 +2,10 @@
  * Copyright (C) 2018, Yeolar
  */
 
+#include "raster/net/NetHub.h"
+
 #include "raster/io/event/EventTask.h"
 #include "raster/net/Channel.h"
-#include "raster/net/NetHub.h"
 
 namespace rdd {
 

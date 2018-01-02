@@ -2,9 +2,9 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <arpa/inet.h>
-
 #include "raster/protocol/binary/Transport.h"
+
+#include <arpa/inet.h>
 
 namespace rdd {
 

@@ -3,6 +3,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/util/Uuid.h"
+
 #include <sys/time.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -11,7 +13,6 @@
 
 #include "raster/util/Random.h"
 #include "raster/util/String.h"
-#include "raster/util/Uuid.h"
 
 namespace rdd {
 

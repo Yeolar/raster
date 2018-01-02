@@ -52,7 +52,7 @@ namespace rdd {
  *
  */
 class ResponseBuilder {
-public:
+ public:
   ResponseBuilder() {}
 
   void setupTransport(HTTPTransport* transport) {
@@ -154,7 +154,7 @@ public:
     transport_->sendEOM();
   }
 
-private:
+ private:
   HTTPTransport* transport_{nullptr};
   std::unique_ptr<HTTPMessage> headers_;
   std::unique_ptr<IOBuf> body_;

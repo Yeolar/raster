@@ -5,64 +5,31 @@
 #pragma once
 
 #include "raster/net/AsyncClient.h"
-#include "raster/protocol/binary/Transport.h"
 
 namespace rdd {
 
 class BinaryAsyncClient : public AsyncClient {
-public:
-  BinaryAsyncClient(const ClientOption& option)
-    : AsyncClient(option) {
-    channel_ = makeChannel();
-  }
+ public:
+  BinaryAsyncClient(const ClientOption& option);
+
+  BinaryAsyncClient(const Peer& peer,
+                    const TimeoutOption& timeout);
+
   BinaryAsyncClient(const Peer& peer,
                     uint64_t ctimeout = 100000,
                     uint64_t rtimeout = 1000000,
-                    uint64_t wtimeout = 300000)
-    : BinaryAsyncClient({peer, {ctimeout, rtimeout, wtimeout}}) {
-  }
-  virtual ~BinaryAsyncClient() {}
+                    uint64_t wtimeout = 300000);
 
-  bool recv(ByteRange& _return) {
-    if (!event_ || event_->state() == Event::kFail) {
-      return false;
-    }
-    auto transport = event_->transport<BinaryTransport>();
-    _return = transport->body->coalesce();
-    return true;
-  }
+  ~BinaryAsyncClient() override {}
 
-  bool send(const ByteRange& request) {
-    if (!event_) {
-      return false;
-    }
-    auto transport = event_->transport<BinaryTransport>();
-    transport->sendHeader(request.size());
-    transport->sendBody(IOBuf::copyBuffer(request));
-    return true;
-  }
+  bool recv(ByteRange& response);
 
-  bool fetch(ByteRange& _return, const ByteRange& request) {
-    return (send(request) &&
-            FiberManager::yield() &&
-            recv(_return));
-  }
+  bool send(const ByteRange& request);
 
-  bool fetchNoWait(const ByteRange& request) {
-    if (send(request)) {
-      Singleton<Actor>::get()->execute((AsyncClient*)this);
-      return true;
-    }
-    return false;
-  }
+  bool fetch(ByteRange& response, const ByteRange& request);
 
-protected:
-  virtual std::shared_ptr<Channel> makeChannel() {
-    return std::make_shared<Channel>(
-        peer_,
-        timeoutOpt_,
-        make_unique<BinaryTransportFactory>());
-  }
+ protected:
+  std::shared_ptr<Channel> makeChannel() override;
 };
 
 } // namespace rdd

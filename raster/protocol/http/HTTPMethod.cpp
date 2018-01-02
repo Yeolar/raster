@@ -2,12 +2,13 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/protocol/http/HTTPMethod.h"
+
 #include <vector>
 
 #include "raster/protocol/http/HTTPException.h"
-#include "raster/protocol/http/HTTPMethod.h"
 #include "raster/util/Conv.h"
-#include "raster/util/UnionBasedStatic.h"
+#include "raster/thread/UnionBasedStatic.h"
 
 #define HTTP_METHOD_STR(method) #method
 

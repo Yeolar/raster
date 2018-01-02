@@ -3,6 +3,7 @@
  */
 
 #include "raster/framework/PeriodicScheduler.h"
+
 #include "raster/util/Time.h"
 
 namespace rdd {

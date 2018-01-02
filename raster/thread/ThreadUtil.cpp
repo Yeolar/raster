@@ -2,10 +2,10 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/thread/ThreadUtil.h"
+
 #include <cstring>
 #include <type_traits>
-
-#include "raster/thread/ThreadUtil.h"
 
 namespace rdd {
 

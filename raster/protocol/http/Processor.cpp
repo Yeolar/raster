@@ -2,8 +2,9 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/protocol/http/HTTPMethod.h"
 #include "raster/protocol/http/Processor.h"
+
+#include "raster/protocol/http/HTTPMethod.h"
 #include "raster/util/ReflectObject.h"
 #include "raster/util/ScopeGuard.h"
 
@@ -71,7 +72,7 @@ std::unique_ptr<Processor> HTTPProcessorFactory::create(Event* event) {
     if (boost::regex_match(url.c_str(), match, kv.second)) {
       return make_unique<HTTPProcessor>(
           event,
-          makeSharedReflectObject<RequestHandler>(kv.first));
+          makeSharedReflectObject<RequestHandler>(kv.first.c_str()));
     }
   }
   return make_unique<HTTPProcessor>(event, std::make_shared<RequestHandler>());

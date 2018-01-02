@@ -3,9 +3,9 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <stdexcept>
-
 #include "raster/ssl/OpenSSL.h"
+
+#include <stdexcept>
 
 namespace rdd {
 namespace ssl {

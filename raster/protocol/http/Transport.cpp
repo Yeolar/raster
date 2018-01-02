@@ -3,8 +3,6 @@
  */
 
 #include "raster/protocol/http/Transport.h"
-#include "raster/protocol/http/Util.h"
-#include "raster/util/Logging.h"
 
 namespace rdd {
 

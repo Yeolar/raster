@@ -3,9 +3,10 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/io/compression/Compression.h"
+
 #include <zlib.h>
 
-#include "raster/io/compression/Compression.h"
 #include "raster/util/Conv.h"
 #include "raster/util/Logging.h"
 #include "raster/util/Memory.h"

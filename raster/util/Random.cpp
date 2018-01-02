@@ -3,11 +3,12 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/util/Random.h"
+
 #include <memory>
 
 #include "raster/io/FileUtil.h"
 #include "raster/util/Logging.h"
-#include "raster/util/Random.h"
 
 namespace rdd {
 

@@ -25,6 +25,7 @@ class Processor {
 
 class ProcessorFactory {
  public:
+  virtual ~ProcessorFactory() {}
   virtual std::unique_ptr<Processor> create(Event* event) = 0;
 };
 

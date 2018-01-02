@@ -2,11 +2,12 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/io/Waker.h"
+
 #include <fcntl.h>
 #include <unistd.h>
 
 #include "raster/io/FileUtil.h"
-#include "raster/io/Waker.h"
 #include "raster/util/Logging.h"
 
 namespace rdd {

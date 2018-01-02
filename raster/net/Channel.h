@@ -12,12 +12,12 @@ namespace rdd {
 class Channel {
  public:
   Channel(const Peer& peer,
-          const TimeoutOption& timeoutOpt,
+          const TimeoutOption& timeout,
           std::unique_ptr<TransportFactory> transportFactory = nullptr,
           std::unique_ptr<ProcessorFactory> processorFactory = nullptr)
     : id_(peer.port()),
       peer_(peer),
-      timeoutOpt_(timeoutOpt),
+      timeout_(timeout),
       transportFactory_(std::move(transportFactory)),
       processorFactory_(std::move(processorFactory)) {
   }
@@ -26,7 +26,7 @@ class Channel {
 
   const Peer& peer() const { return peer_; }
 
-  TimeoutOption timeoutOption() const { return timeoutOpt_; }
+  TimeoutOption timeoutOption() const { return timeout_; }
 
   TransportFactory* transportFactory() const {
     return transportFactory_.get();
@@ -39,7 +39,7 @@ class Channel {
  private:
   int id_;
   Peer peer_;
-  TimeoutOption timeoutOpt_;
+  TimeoutOption timeout_;
   std::unique_ptr<TransportFactory> transportFactory_;
   std::unique_ptr<ProcessorFactory> processorFactory_;
 };

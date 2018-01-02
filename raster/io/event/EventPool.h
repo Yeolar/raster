@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <deque>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
+#include <vector>
 
 #include "raster/io/event/Event.h"
 #include "raster/net/NetUtil.h"
@@ -20,12 +20,12 @@ class EventPool {
 
   std::unique_ptr<Event> get(const Peer& peer);
 
-  bool giveBack(std::unique_ptr<Event> event);
+  void giveBack(std::unique_ptr<Event> event);
 
   size_t count() const;
 
  private:
-  std::unordered_map<Peer, std::deque<std::unique_ptr<Event>>> pool_;
+  std::unordered_map<Peer, std::vector<std::unique_ptr<Event>>> pool_;
   mutable std::mutex lock_;
 };
 

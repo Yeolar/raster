@@ -12,31 +12,29 @@
 #include "raster/net/NetUtil.h"
 #include "raster/net/Socket.h"
 #include "raster/protocol/binary/Transport.h"
-#include "raster/protocol/proto/Message.h"
-#include "raster/util/LockedMap.h"
+#include "raster/thread/LockedMap.h"
 
 namespace rdd {
 
 class PBRpcChannel : public google::protobuf::RpcChannel {
-public:
-  PBRpcChannel() {}
-  virtual ~PBRpcChannel() {}
+ public:
+  ~PBRpcChannel() override {}
 
-  virtual void CallMethod(
+  void CallMethod(
       const google::protobuf::MethodDescriptor* method,
       google::protobuf::RpcController* controller,
       const google::protobuf::Message* request,
       google::protobuf::Message* response,
-      google::protobuf::Closure* done);
+      google::protobuf::Closure* done) override;
 
   void process(const std::unique_ptr<IOBuf>& buf);
 
-protected:
+ protected:
   virtual void send(
       std::unique_ptr<IOBuf> buf,
       std::function<void(bool, const std::string&)> resultCb) = 0;
 
-private:
+ private:
   struct Handle {
     Handle(google::protobuf::RpcController* controller_,
            google::protobuf::Message* response_,
@@ -58,63 +56,38 @@ private:
 };
 
 class PBSyncRpcChannel : public PBRpcChannel {
-public:
-  PBSyncRpcChannel(const Peer& peer) : peer_(peer) {}
+ public:
+  PBSyncRpcChannel(const Peer& peer, const TimeoutOption& timeout)
+    : peer_(peer), timeout_(timeout) {}
 
-  virtual ~PBSyncRpcChannel() {}
+  ~PBSyncRpcChannel() override {}
 
-  void setTimeout(const TimeoutOption& opt) {
-    socket_->setConnTimeout(opt.ctimeout);
-    socket_->setRecvTimeout(opt.rtimeout);
-    socket_->setSendTimeout(opt.wtimeout);
-  }
+  void open();
 
-  void open() {
-    socket_ = Socket::createSyncSocket();
-    socket_->connect(peer_);
-  }
+  bool isOpen();
 
-  bool isOpen() {
-    return socket_->isConnected();
-  }
+  void close();
 
-  void close() {
-    socket_->close();
-  }
-
-private:
-  virtual void send(
+ private:
+  void send(
       std::unique_ptr<IOBuf> buf,
-      std::function<void(bool, const std::string&)> resultCb) {
-    transport_.sendHeader(buf->computeChainDataLength());
-    transport_.sendBody(std::move(buf));
-    transport_.writeData(socket_.get());
-    resultCb(true, "");
-
-    transport_.readData(socket_.get());
-    process(transport_.body);
-  }
+      std::function<void(bool, const std::string&)> resultCb) override;
 
   Peer peer_;
+  TimeoutOption timeout_;
   std::unique_ptr<Socket> socket_;
   BinaryTransport transport_;
 };
 
 class PBAsyncRpcChannel : public PBRpcChannel {
-public:
+ public:
   PBAsyncRpcChannel(Event* event) : event_(event) {}
+  ~PBAsyncRpcChannel() override {}
 
-  virtual ~PBAsyncRpcChannel() {}
-
-private:
-  virtual void send(
+ private:
+  void send(
       std::unique_ptr<IOBuf> buf,
-      std::function<void(bool, const std::string&)> resultCb) {
-    auto transport = event_->transport<BinaryTransport>();
-    transport->sendHeader(buf->computeChainDataLength());
-    transport->sendBody(std::move(buf));
-    resultCb(true, "");
-  }
+      std::function<void(bool, const std::string&)> resultCb) override;
 
   Event* event_;
 };

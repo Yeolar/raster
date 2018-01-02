@@ -2,6 +2,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/io/FSUtil.h"
+
 #include <cassert>
 #include <cerrno>
 #include <dirent.h>
@@ -13,7 +15,6 @@
 #include <unistd.h>
 
 #include "raster/io/FileUtil.h"
-#include "raster/io/FSUtil.h"
 #include "raster/util/Exception.h"
 
 namespace rdd {

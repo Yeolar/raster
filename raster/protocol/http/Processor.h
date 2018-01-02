@@ -12,28 +12,28 @@
 namespace rdd {
 
 class HTTPProcessor : public Processor {
-public:
+ public:
   HTTPProcessor(
       Event* event,
       const std::shared_ptr<RequestHandler>& handler)
     : Processor(event), handler_(handler) {}
 
-  virtual ~HTTPProcessor() {}
+  ~HTTPProcessor() override {}
 
-  virtual void run();
+  void run() override;
 
-protected:
+ protected:
   std::shared_ptr<RequestHandler> handler_;
 };
 
 class HTTPProcessorFactory : public ProcessorFactory {
-public:
+ public:
   HTTPProcessorFactory(const std::map<std::string, std::string>& routers);
-  virtual ~HTTPProcessorFactory() {}
+  ~HTTPProcessorFactory() override {}
 
-  virtual std::unique_ptr<Processor> create(Event* event);
+  std::unique_ptr<Processor> create(Event* event) override;
 
-private:
+ private:
   std::map<std::string, boost::regex> routers_;
 };
 

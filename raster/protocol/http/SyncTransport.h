@@ -4,44 +4,32 @@
 
 #pragma once
 
-#include "raster/io/Cursor.h"
-#include "raster/net/Protocol.h"
 #include "raster/protocol/http/Transport.h"
 
 namespace rdd {
 
 class HTTPSyncTransport : public HTTPTransport {
-public:
-  HTTPSyncTransport(const Peer& peer)
+ public:
+  HTTPSyncTransport(const Peer& peer, const TimeoutOption& timeout)
     : HTTPTransport(TransportDirection::UPSTREAM),
-      peer_(peer) {
-  }
+      peer_(peer),
+      timeout_(timeout) {}
 
-  virtual ~HTTPSyncTransport() {}
+  ~HTTPSyncTransport() override {}
 
-  void open() {
-    socket_ = Socket::createSyncSocket();
-    socket_->connect(peer_);
-  }
+  void open();
 
-  bool isOpen() {
-    return socket_->isConnected();
-  }
+  bool isOpen();
 
-  void close() {
-    socket_->close();
-  }
+  void close();
 
-  void send() {
-    writeData(socket_.get());
-  }
+  void send();
 
-  void recv() {
-    readData(socket_.get());
-  }
+  void recv();
 
-private:
+ private:
   Peer peer_;
+  TimeoutOption timeout_;
   std::unique_ptr<Socket> socket_;
 };
 

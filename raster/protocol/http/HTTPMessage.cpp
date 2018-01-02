@@ -3,12 +3,11 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <array>
-#include <string>
+#include "raster/protocol/http/HTTPMessage.h"
+
 #include <utility>
 #include <vector>
 
-#include "raster/protocol/http/HTTPMessage.h"
 #include "raster/util/String.h"
 #include "raster/util/Time.h"
 

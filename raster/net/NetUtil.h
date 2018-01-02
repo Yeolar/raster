@@ -16,23 +16,15 @@ struct TimeoutOption {
   uint64_t wtimeout;    // write timeout
 };
 
-std::ostream& operator<<(std::ostream& os, const TimeoutOption& timeoutOpt);
+std::ostream& operator<<(std::ostream& os, const TimeoutOption& timeout);
 
 struct ClientOption {
   Peer peer;
   TimeoutOption timeout;
 };
 
-std::string getAddr(const std::string& ifname);
-
-std::string getNodeName(bool trimSuffix = false);
+std::string getNodeName();
 
 std::string getNodeIp();
-
-std::string ipv4ToHost(const std::string& ip, bool trimSuffix = false);
-
-bool isValidIP(const std::string& ip);
-
-bool isValidPort(uint16_t port);
 
 } // namespace rdd

@@ -10,22 +10,16 @@ std::unique_ptr<Event> EventPool::get(const Peer& peer) {
   std::lock_guard<std::mutex> guard(lock_);
   auto& q = pool_[peer];
   if (!q.empty()) {
-    auto event = std::move(q.front());
-    q.pop_front();
+    auto event = std::move(q.back());
+    q.pop_back();
     return event;
   }
   return nullptr;
 }
 
-bool EventPool::giveBack(std::unique_ptr<Event> event) {
+void EventPool::giveBack(std::unique_ptr<Event> event) {
   std::lock_guard<std::mutex> guard(lock_);
-  auto& q = pool_[event->peer()];
-  if (q.size() > 1000000) {
-    RDDLOG(ERROR) << "too many events (>1000000)";
-    return false;
-  }
-  q.push_back(std::move(event));
-  return true;
+  pool_[event->peer()].push_back(std::move(event));
 }
 
 size_t EventPool::count() const {

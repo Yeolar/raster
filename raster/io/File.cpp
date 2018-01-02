@@ -3,12 +3,13 @@
 * Copyright (C) 2017, Yeolar
 */
 
+#include "raster/io/File.h"
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 
-#include "raster/io/File.h"
 #include "raster/io/FileUtil.h"
 #include "raster/util/Exception.h"
 #include "raster/util/Logging.h"

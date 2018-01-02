@@ -2,7 +2,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <functional>
+#include "raster/util/LogBase.h"
+
 #include <iomanip>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -10,7 +11,6 @@
 #include "raster/io/FSUtil.h"
 #include "raster/thread/ThreadUtil.h"
 #include "raster/util/Exception.h"
-#include "raster/util/LogBase.h"
 #include "raster/util/String.h"
 
 namespace {
@@ -93,7 +93,9 @@ void BaseLogger::run() {
   using namespace std::placeholders;
 
   while (true) {
-    queue_.sweep(std::bind(&BaseLogger::write, this, _1));
+    queue_.sweep([&](std::string&& message) {
+      write(std::move(message));
+    });
     usleep(1000);
   }
 }

@@ -2,9 +2,9 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <sstream>
-
 #include "raster/protocol/http/HTTPException.h"
+
+#include <sstream>
 
 namespace rdd {
 

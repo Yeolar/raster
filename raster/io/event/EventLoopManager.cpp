@@ -2,9 +2,9 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <atomic>
-
 #include "raster/io/event/EventLoopManager.h"
+
+#include <atomic>
 
 namespace rdd {
 

@@ -31,12 +31,12 @@ std::ostream& operator<<(std::ostream& os, const TransportDirection dir);
  * representation of an HTTP request and HTTP/1.1.
  */
 class HTTP1xCodec {
-public:
+ public:
   /**
    * Callback interface that users of HTTP1xCodec must implement
    */
   class Callback {
-  public:
+   public:
     virtual void onMessageBegin(HTTPMessage* msg) = 0;
 
     virtual void onHeadersComplete(std::unique_ptr<HTTPMessage> msg) = 0;
@@ -118,7 +118,7 @@ public:
 
   size_t generateAbort(IOBufQueue& writeBuf);
 
-private:
+ private:
   enum class HeaderParseState : uint8_t {
     kParsingHeaderIdle,
     kParsingHeaderStart,

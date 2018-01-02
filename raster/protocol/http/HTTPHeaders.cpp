@@ -3,10 +3,11 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <vector>
-
 #define RDD_HTTPHEADERS_IMPL
 #include "raster/protocol/http/HTTPHeaders.h"
+
+#include <vector>
+
 #include "raster/util/Logging.h"
 
 namespace rdd {

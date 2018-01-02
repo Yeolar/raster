@@ -4,6 +4,7 @@
  */
 
 #include "raster/concurrency/CPUThreadPoolExecutor.h"
+
 #include "raster/thread/BlockingQueue.h"
 
 namespace rdd {

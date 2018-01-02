@@ -2,6 +2,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/util/SysUtil.h"
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -9,8 +11,6 @@
 #define _GNU_SOURCE
 #endif
 #include <sched.h>
-
-#include "raster/util/SysUtil.h"
 
 namespace rdd {
 

@@ -3,6 +3,7 @@
  */
 
 #include "raster/framework/Degrader.h"
+
 #include "raster/util/Logging.h"
 #include "raster/util/MapUtil.h"
 #include "raster/util/Time.h"

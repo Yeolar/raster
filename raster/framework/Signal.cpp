@@ -2,8 +2,9 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/framework/Config.h"
 #include "raster/framework/Signal.h"
+
+#include "raster/framework/Config.h"
 #include "raster/util/Backtrace.h"
 #include "raster/util/Exception.h"
 #include "raster/util/Logging.h"

@@ -2,8 +2,9 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/coroutine/FiberManager.h"
 #include "raster/io/event/Event.h"
+
+#include "raster/coroutine/FiberManager.h"
 #include "raster/io/event/EventTask.h"
 #include "raster/net/Channel.h"
 

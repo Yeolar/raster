@@ -3,6 +3,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/util/MemoryMapping.h"
+
 #include <algorithm>
 #include <functional>
 #include <system_error>
@@ -12,7 +14,6 @@
 #include <gflags/gflags.h>
 
 #include "raster/io/HugePages.h"
-#include "raster/util/MemoryMapping.h"
 
 // Linux implementations of unmap/mlock/munlock take a kernel
 // semaphore and block other threads from doing other memory

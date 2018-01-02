@@ -6,67 +6,36 @@
 
 #include "raster/net/NetUtil.h"
 #include "raster/protocol/binary/SyncTransport.h"
-#include "raster/util/Logging.h"
 
 namespace rdd {
 
 class BinarySyncClient {
-public:
-  BinarySyncClient(const Peer& peer)
-    : peer_(peer) {
-    init();
-  }
-  BinarySyncClient(const ClientOption& option)
-    : peer_(option.peer) {
-    init();
-  }
-  virtual ~BinarySyncClient() {
-    close();
-  }
+ public:
+  BinarySyncClient(const ClientOption& option);
 
-  void close() {
-    if (transport_->isOpen()) {
-      transport_->close();
-    }
-  }
+  BinarySyncClient(const Peer& peer,
+                   const TimeoutOption& timeout);
 
-  bool connect() {
-    try {
-      transport_->open();
-    }
-    catch (std::exception& e) {
-      RDDLOG(ERROR) << "BinarySyncClient: connect " << peer_
-        << " failed, " << e.what();
-      return false;
-    }
-    RDDLOG(DEBUG) << "connect peer[" << peer_ << "]";
-    return true;
-  }
+  BinarySyncClient(const Peer& peer,
+                   uint64_t ctimeout = 100000,
+                   uint64_t rtimeout = 1000000,
+                   uint64_t wtimeout = 300000);
 
-  bool connected() const {
-    return transport_->isOpen();
-  }
+  virtual ~BinarySyncClient();
 
-  bool fetch(ByteRange& _return, const ByteRange& request) {
-    try {
-      transport_->send(request);
-      transport_->recv(_return);
-    }
-    catch (std::exception& e) {
-      RDDLOG(ERROR) << "BinarySyncClient: fetch " << peer_
-        << " failed, " << e.what();
-      return false;
-    }
-    return true;
-  }
+  void close();
 
-private:
-  void init() {
-    transport_.reset(new BinarySyncTransport(peer_));
-    RDDLOG(DEBUG) << "SyncClient: " << peer_;
-  }
+  bool connect();
+
+  bool connected() const;
+
+  bool fetch(ByteRange& response, const ByteRange& request);
+
+ private:
+  void init();
 
   Peer peer_;
+  TimeoutOption timeout_;
   std::unique_ptr<BinarySyncTransport> transport_;
 };
 

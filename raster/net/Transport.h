@@ -29,6 +29,7 @@ class Transport {
 
   void setPeerAddress(const Peer& peer) { peerAddr_ = peer; }
   const Peer& peerAddress() const { return peerAddr_; }
+
   void setLocalAddress(const Peer& local) { localAddr_ = local; }
   const Peer& localAddress() const { return localAddr_; }
 
@@ -50,6 +51,7 @@ class Transport {
 
 class TransportFactory {
  public:
+  virtual ~TransportFactory() {}
   virtual std::unique_ptr<Transport> create() = 0;
 };
 

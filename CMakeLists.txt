@@ -78,6 +78,7 @@ add_subdirectory(raster/enc)
 add_subdirectory(raster/framework)
 add_subdirectory(raster/gen)
 add_subdirectory(raster/io)
+add_subdirectory(raster/io/compression)
 add_subdirectory(raster/io/event)
 add_subdirectory(raster/net)
 add_subdirectory(raster/parallel)
@@ -100,12 +101,14 @@ add_library(raster_static STATIC
     $<TARGET_OBJECTS:raster_enc>
     $<TARGET_OBJECTS:raster_framework>
     $<TARGET_OBJECTS:raster_io>
+    $<TARGET_OBJECTS:raster_io_compression>
     $<TARGET_OBJECTS:raster_io_event>
     $<TARGET_OBJECTS:raster_net>
     $<TARGET_OBJECTS:raster_plugins_flume>
     $<TARGET_OBJECTS:raster_protocol_binary>
     $<TARGET_OBJECTS:raster_protocol_http>
     $<TARGET_OBJECTS:raster_protocol_proto>
+    $<TARGET_OBJECTS:raster_protocol_thrift>
     $<TARGET_OBJECTS:raster_ssl>
     $<TARGET_OBJECTS:raster_thread>
     $<TARGET_OBJECTS:raster_util>
@@ -120,12 +123,14 @@ add_library(raster_shared SHARED
     $<TARGET_OBJECTS:raster_enc>
     $<TARGET_OBJECTS:raster_framework>
     $<TARGET_OBJECTS:raster_io>
+    $<TARGET_OBJECTS:raster_io_compression>
     $<TARGET_OBJECTS:raster_io_event>
     $<TARGET_OBJECTS:raster_net>
     $<TARGET_OBJECTS:raster_plugins_flume>
     $<TARGET_OBJECTS:raster_protocol_binary>
     $<TARGET_OBJECTS:raster_protocol_http>
     $<TARGET_OBJECTS:raster_protocol_proto>
+    $<TARGET_OBJECTS:raster_protocol_thrift>
     $<TARGET_OBJECTS:raster_ssl>
     $<TARGET_OBJECTS:raster_thread>
     $<TARGET_OBJECTS:raster_util>
@@ -161,6 +166,7 @@ if(GTEST_FOUND)
     add_subdirectory(raster/framework/test)
     add_subdirectory(raster/gen/test)
     add_subdirectory(raster/io/test)
+    add_subdirectory(raster/io/compression/test)
     add_subdirectory(raster/io/event/test)
     add_subdirectory(raster/parallel/test)
     add_subdirectory(raster/protocol/http/test)

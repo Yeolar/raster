@@ -2,12 +2,12 @@
 
 set(RASTER_PARALLEL_SRCS
     DAG.cpp
-    Scheduler.cpp
+    ParallelScheduler.cpp
 )
 add_library(raster_parallel OBJECT ${RASTER_PARALLEL_SRCS})
 
 install(FILES
     DAG.h
     Graph.h
-    Scheduler.h
+    ParallelScheduler.h
     DESTINATION include/raster/parallel)

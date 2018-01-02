@@ -12,11 +12,8 @@
 
 #include "raster/net/NetUtil.h"
 
-DEFINE_uint64(net_conn_limit, 100000,
-              "Limit # of net connection.");
-
-DEFINE_uint64(net_conn_timeout, 600000000,
-              "Long-polling timeout # of net connection.");
+DECLARE_uint64(net_conn_limit);
+DECLARE_uint64(net_conn_timeout);
 
 namespace rdd {
 

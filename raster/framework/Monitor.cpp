@@ -3,6 +3,7 @@
  */
 
 #include "raster/framework/Monitor.h"
+
 #include "raster/thread/ThreadUtil.h"
 #include "raster/util/Algorithm.h"
 #include "raster/util/Logging.h"

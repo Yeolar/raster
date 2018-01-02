@@ -24,7 +24,7 @@ class Service {
     return channel_;
   }
 
-  virtual void makeChannel(int port, const TimeoutOption& timeoutOpt) = 0;
+  virtual void makeChannel(int port, const TimeoutOption& timeout) = 0;
 
  protected:
   std::string name_;

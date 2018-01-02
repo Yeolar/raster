@@ -2,19 +2,20 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/framework/Config.h"
+
 #include <map>
 #include <set>
 #include <string>
 #include <typeinfo>
 
-#include "raster/framework/Config.h"
 #include "raster/framework/Degrader.h"
 #include "raster/framework/FalconSender.h"
 #include "raster/framework/HubAdaptor.h"
 #include "raster/framework/Monitor.h"
 #include "raster/framework/Sampler.h"
 #include "raster/io/FileUtil.h"
-#include "raster/parallel/Scheduler.h"
+#include "raster/parallel/ParallelScheduler.h"
 #include "raster/thread/ThreadUtil.h"
 #include "raster/util/Logging.h"
 #include "raster/util/ProcessUtil.h"

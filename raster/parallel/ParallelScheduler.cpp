@@ -2,7 +2,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/parallel/Scheduler.h"
+#include "raster/parallel/ParallelScheduler.h"
+
 #include "raster/util/ReflectObject.h"
 
 namespace rdd {

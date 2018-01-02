@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "raster/io/IOBuf.h"
 #include "raster/net/NetUtil.h"
 #include "raster/net/Socket.h"
 #include "raster/protocol/binary/Transport.h"
@@ -12,39 +11,27 @@
 namespace rdd {
 
 class BinarySyncTransport : public BinaryTransport {
-public:
-  BinarySyncTransport(const Peer& peer)
+ public:
+  BinarySyncTransport(const Peer& peer, const TimeoutOption& timeout)
     : BinaryTransport(),
-      peer_(peer) {}
+      peer_(peer),
+      timeout_(timeout) {}
 
-  virtual ~BinarySyncTransport() {}
+  ~BinarySyncTransport() override {}
 
-  void open() {
-    socket_ = Socket::createSyncSocket();
-    socket_->connect(peer_);
-  }
+  void open();
 
-  bool isOpen() {
-    return socket_->isConnected();
-  }
+  bool isOpen();
 
-  void close() {
-    socket_->close();
-  }
+  void close();
 
-  void send(const ByteRange& request) {
-    sendHeader(request.size());
-    sendBody(IOBuf::copyBuffer(request));
-    writeData(socket_.get());
-  }
+  void send(const ByteRange& request);
 
-  void recv(ByteRange& response) {
-    readData(socket_.get());
-    response = body->coalesce();
-  }
+  void recv(ByteRange& response);
 
-private:
+ private:
   Peer peer_;
+  TimeoutOption timeout_;
   std::unique_ptr<Socket> socket_;
 };
 

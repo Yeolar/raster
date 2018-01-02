@@ -11,7 +11,7 @@
 namespace rdd {
 
 class Semaphore {
-public:
+ public:
   Semaphore(unsigned int value = 0) {
     checkUnixError(sem_init(&sem_, 0, value), "sem_init");
   }
@@ -32,7 +32,7 @@ public:
     checkUnixError(sem_trywait(&sem_), "sem_trywait");
   }
 
-private:
+ private:
   mutable sem_t sem_;
 };
 

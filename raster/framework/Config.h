@@ -26,7 +26,7 @@ void configSampler(const dynamic& j, bool reload);
 void configJobGraph(const dynamic& j, bool reload);
 
 class ConfigManager {
-public:
+ public:
   ConfigManager() {}
 
   void setConfFile(const char* conf) {
@@ -39,7 +39,7 @@ public:
 
   void load();
 
-private:
+ private:
   const char* conf_;
   std::vector<ConfigTask> tasks_;
   bool inited_{false};

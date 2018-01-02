@@ -3,6 +3,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/util/RendezvousHash.h"
+
 #include <algorithm>
 #include <limits>
 #include <map>
@@ -10,7 +12,6 @@
 #include <math.h>
 
 #include "raster/util/Hash.h"
-#include "raster/util/RendezvousHash.h"
 
 namespace rdd {
 
