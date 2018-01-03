@@ -80,7 +80,7 @@ struct static_function_deleter {
 
 template <class Alloc, class T>
 class StlAllocator {
-public:
+ public:
   typedef T value_type;
   typedef T* pointer;
   typedef T& reference;
@@ -132,7 +132,7 @@ public:
     return alloc_ == other.alloc_;
   }
 
-private:
+ private:
   Alloc* alloc_;
 };
 
@@ -176,21 +176,6 @@ struct GivesZeroFilledMemory : public std::false_type {};
 
 template <>
 struct GivesZeroFilledMemory<MMapAlloc> : public std::true_type {};
-
-struct CacheLocality {
-  enum {
-    /// Memory locations on the same cache line are subject to false
-    /// sharing, which is very bad for performance.  Microbenchmarks
-    /// indicate that pairs of cache lines also see interference under
-    /// heavy use of atomic operations (observed for atomic increment on
-    /// Sandy Bridge).
-    kFalseSharingRange = 128
-  };
-};
-
-/// An attribute that will cause a variable or field to be aligned so that
-/// it doesn't have false sharing with anything at a smaller memory address.
-#define RDD_ALIGN_TO_AVOID_FALSE_SHARING RDD_ALIGNED(128)
 
 inline void* alignAddress(void* addr) {
   return (void*)(((size_t)addr) & ~((size_t)sysconf(_SC_PAGESIZE) - 1));

@@ -3,10 +3,11 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/io/RecordIO.h"
+
 #include <sys/types.h>
 
 #include "raster/io/FileUtil.h"
-#include "raster/io/RecordIO.h"
 #include "raster/util/Exception.h"
 #include "raster/util/Memory.h"
 #include "raster/util/ScopeGuard.h"

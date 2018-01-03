@@ -1,24 +1,25 @@
 /*
  * Copyright 2017 Facebook, Inc.
- * Copyright (C) 2017, Yeolar
+ * Copyright (C) 2018, Yeolar
  */
 
 #pragma once
 
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <cstddef>
 #include <string>
 #include <utility>
 #include <vector>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #include <boost/operators.hpp>
 
-#include "raster/io/FSUtil.h"
+#include "raster/io/Path.h"
 
 namespace rdd {
 
 struct HugePageSize : private boost::totally_ordered<HugePageSize> {
-  explicit HugePageSize(size_t s) : size(s) { }
+  explicit HugePageSize(size_t s) : size(s) {}
 
   Path filePath(const Path& relpath) const {
     return mountPoint / relpath;

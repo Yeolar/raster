@@ -4,10 +4,9 @@
 
 #pragma once
 
+#include <csignal>
 #include <vector>
-#include <signal.h>
 
-#include "raster/util/Exception.h"
 #include "raster/util/Function.h"
 
 namespace rdd {
@@ -23,11 +22,11 @@ void setupMemoryProtectSignal();
 void sendSignal(int signo, const char* pidfile);
 
 class Shutdown {
-public:
+ public:
   Shutdown() {}
 
-  void addTask(const VoidFunc& callback) {
-    callbacks_.push_back(callback);
+  void addTask(VoidFunc&& callback) {
+    callbacks_.push_back(std::move(callback));
   }
 
   void run() {
@@ -37,7 +36,7 @@ public:
     exit(0);
   }
 
-private:
+ private:
   std::vector<VoidFunc> callbacks_;
 };
 

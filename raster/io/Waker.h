@@ -4,49 +4,36 @@
 
 #pragma once
 
-#include <unistd.h>
-#include <fcntl.h>
-
-#include "raster/io/Descriptor.h"
-#include "raster/util/Logging.h"
+#include <iostream>
 
 namespace rdd {
 
-class Waker : public Descriptor {
-public:
-  Waker() {
-    if (pipe2(pipeFds_, O_CLOEXEC | O_NONBLOCK) == -1) {
-      RDDPLOG(ERROR) << "pipe2 failed";
-    }
-  }
+class Waker {
+ public:
+  Waker();
 
   ~Waker() {
     close();
   }
 
-  virtual int fd() const { return pipeFds_[0]; }
-  virtual int role() const { return -1; }
-  virtual char roleLabel() const { return 'W'; }
-  virtual std::string str() { return to<std::string>("W:", fd(), "[]"); }
-
-  void wake() {
-    checkUnixError(write(pipeFds_[1], (void*)"x", 1), "write error");
-    RDDLOG(V2) << "waker wake";
+  int fd() const {
+    return pipeFds_[0];
   }
 
-  void consume() {
-    char c;
-    while (read(pipeFds_[0], &c, 1) > 0) {}
-    RDDLOG(V2) << "waker consume";
+  int fd2() const {
+    return pipeFds_[1];
   }
 
-private:
-  void close() {
-    ::close(pipeFds_[0]);
-    ::close(pipeFds_[1]);
-  }
+  void wake() const;
+
+  void consume() const;
+
+ private:
+  void close();
 
   int pipeFds_[2];
 };
+
+std::ostream& operator<<(std::ostream& os, const Waker& waker);
 
 } // namespace rdd

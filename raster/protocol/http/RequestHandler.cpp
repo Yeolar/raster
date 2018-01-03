@@ -2,8 +2,6 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/io/IOBufQueue.h"
-#include "raster/protocol/http/HTTPMessage.h"
 #include "raster/protocol/http/RequestHandler.h"
 
 namespace rdd {
@@ -33,50 +31,6 @@ void RequestHandler::onTrace() {
   throw HTTPException(405);
 }
 
-#if 0
-void RequestHandler::clear() {
-  response->headers.removeAll();
-  response->headers.set(HTTP_HEADER_SERVER, "Raster/1.0");
-  response->headers.set(HTTP_HEADER_CONTENT_TYPE, "text/html; charset=UTF-8");
-  setDefaultHeaders();
-  if (!request->supportHTTP_1_1() &&
-      request->headers.getSingleOrEmpty(HTTP_HEADER_CONNECTION) == "Keep-Alive")
-    response->headers.set(HTTP_HEADER_CONNECTION, "Keep-Alive");
-  response->data->clear();
-  response->statusCode = 200;
-}
-
-void RequestHandler::setStatusCode(int code) {
-  response->statusCode = code;
-}
-
-int RequestHandler::getStatusCode() const {
-  return response->statusCode;
-}
-
-void RequestHandler::write(StringPiece sp) {
-  response->appendData(sp);
-}
-
-void RequestHandler::writeHtml(StringPiece sp) {
-  response->headers.set(HTTP_HEADER_CONTENT_TYPE,
-                        "text/html; charset=UTF-8");
-  response->appendData(sp);
-}
-
-void RequestHandler::writeJson(const dynamic& json) {
-  response->headers.set(HTTP_HEADER_CONTENT_TYPE,
-                        "application/json; charset=UTF-8");
-  response->appendData(toJson(json));
-}
-
-void RequestHandler::writeText(StringPiece sp) {
-  response->headers.set(HTTP_HEADER_CONTENT_TYPE,
-                        "text/plain; charset=UTF-8");
-  response->appendData(sp);
-}
-#endif
-
 void RequestHandler::handleException(const HTTPException& e) {
   RDDLOG(WARN) << e;
   sendError(e.getStatusCode());
@@ -93,10 +47,12 @@ void RequestHandler::handleException() {
 }
 
 void RequestHandler::sendError(uint16_t code) {
-  auto msg = HTTPMessage::getDefaultReason(code);
   response
     .status(code)
-    .body(code).body(": ").body(msg).body("\r\n")
+    .body(code)
+    .body(": ")
+    .body(HTTPMessage::getDefaultReason(code))
+    .body("\r\n")
     .sendWithEOM();
 }
 

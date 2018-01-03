@@ -6,113 +6,90 @@
 
 #include <stdexcept>
 #include <string.h>
+#include <iostream>
 #include <memory>
 #include <arpa/inet.h>
 
 #include "raster/coroutine/Fiber.h"
 #include "raster/io/IOBuf.h"
-#include "raster/io/Waker.h"
 #include "raster/net/Socket.h"
-#include "raster/util/ContextWrapper.h"
+#include "raster/net/Transport.h"
+#include "raster/util/DynamicPtr.h"
 
 namespace rdd {
 
-class Event;
 class Channel;
 class Processor;
 
-Event* createEvent(const std::shared_ptr<Channel>& channel,
-                   const std::shared_ptr<Socket>& socket);
+#define RDD_IO_EVENT_GEN(x) \
+    x(Init),                \
+    x(Connect),             \
+    x(Listen),              \
+    x(ToRead),              \
+    x(Reading),             \
+    x(Readed),              \
+    x(ToWrite),             \
+    x(Writing),             \
+    x(Writed),              \
+    x(Next),                \
+    x(Fail),                \
+    x(Timeout),             \
+    x(Error),               \
+    x(Unknown)
+
+#define RDD_IO_EVENT_ENUM(state) k##state
 
 class Event {
-public:
-  enum {
-    INIT = 0, // 0
-    FAIL,     // 1
-    LISTEN,   // 2
-    TIMEOUT,  // 3
-    ERROR,    // 4
-    TOREAD,   // 5
-    READING,  // 6
-    READED,   // 7
-    TOWRITE,  // 8
-    WRITING,  // 9
-    WRITED,   // 10
-    NEXT,     // 11
-    CONNECT,  // 12
-    WAKER,    // 13
+ public:
+  enum State {
+    RDD_IO_EVENT_GEN(RDD_IO_EVENT_ENUM)
   };
 
-  enum {
-    NONE = 0,
-    FORWARD = 1,
-  };
+  static Event* getCurrent();
 
-  static Event* getCurrentEvent();
+  Event(std::shared_ptr<Channel> channel,
+        std::unique_ptr<Socket> socket);
 
-  Event(const std::shared_ptr<Channel>& channel,
-        const std::shared_ptr<Socket>& socket);
+  ~Event();
 
-  Event(Waker* waker);
-
-  virtual ~Event();
-
-  virtual void reset();
-
-  Descriptor* descriptor() const { return (socket() ?: (Descriptor*)waker_); }
-  int fd() const { return descriptor()->fd(); }
-  int role() const { return descriptor()->role(); }
-  char roleLabel() const { return descriptor()->roleLabel(); }
-  std::string str() const { return descriptor()->str(); }
-
-  Socket* socket() const { return socket_.get(); }
-  Peer peer() const { return socket_->peer(); }
-
-  std::string label() const;
-  const char* typeName() const;
+  void reset();
 
   uint64_t seqid() const { return seqid_; }
 
-  int type() const { return type_; }
-  void setType(int type) {
-    type_ = type;
-    record(Timestamp(type));
-  }
+  State state() const { return state_; }
+  void setState(State state);
+  const char* stateName() const;
 
   int group() const { return group_; }
   void setGroup(int group) { group_ = group; }
 
-  bool isForward() const { return action_ == FORWARD; }
-  void setForward() { action_ = FORWARD; }
+  bool isForward() const { return forward_; }
+  void setForward() { forward_ = true; }
 
-  std::shared_ptr<Channel> channel() const;
-  std::shared_ptr<Processor> processor();
+  Fiber::Task* task() const { return task_; }
+  void setTask(Fiber::Task* task) { task_ = task; }
 
-  Executor* executor() const { return executor_; }
-  void setExecutor(Executor* executor) { executor_ = executor; }
-
-  int readData();
-  int writeData();
+  // time
 
   void restart();
 
-  void record(Timestamp timestamp);
-
   uint64_t starttime() const {
-    return timestamps_.empty() ? 0 : timestamps_.front().stamp;
+    return timestamps_.front().stamp;
   }
   uint64_t cost() const {
-    return timestamps_.empty() ? 0 : timePassed(starttime());
+    return timePassed(starttime());
   }
   std::string timestampStr() const {
     return join("-", timestamps_);
   }
 
+  // timeout
+
   const TimeoutOption& timeoutOption() const {
     return timeoutOpt_;
   }
   Timeout<Event> edeadline() {
-    return Timeout<Event>(this, starttime() + Socket::LTIMEOUT, true);
+    return Timeout<Event>(this, starttime() + FLAGS_net_conn_timeout, true);
   }
   Timeout<Event> cdeadline() {
     return Timeout<Event>(this, starttime() + timeoutOpt_.ctimeout);
@@ -134,62 +111,94 @@ public:
     return cost() > timeoutOpt_.wtimeout;
   }
 
+  // socket
+
+  Socket* socket() const { return socket_.get(); }
+  int fd() const { return socket_->fd(); }
+  Peer peer() const { return socket_->peer(); }
+
+  std::string label() const;
+
+  // channel
+
+  std::shared_ptr<Channel> channel() const;
+  std::unique_ptr<Processor> processor();
+
+  // transport
+
+  template <class T = Transport>
+  T* transport() const {
+    return reinterpret_cast<T*>(transport_.get());
+  }
+
+  int readData() {
+    return transport_->readData(socket_.get());
+  }
+  int writeData() {
+    return transport_->writeData(socket_.get());
+  }
+
+  // callback
+
+  void setCompleteCallback(std::function<void(Event*)> cb);
+  void callbackOnComplete();
+
+  void setCloseCallback(std::function<void(Event*)> cb);
+  void callbackOnClose();
+
+  void copyCallbacks(const Event& event);
+
+  // user context
+
   template <class T, class... Args>
-  void createUserContext(Args&&... args) {
+  void setUserContext(Args&&... args) {
     userCtx_.set(new T(std::forward<Args>(args)...));
   }
-  void destroyUserContext() {
-    userCtx_.dispose();
-  }
 
   template <class T>
-  T& userContext() { return *((T*)userCtx_.ptr); }
+  T& userContext() { return *userCtx_.get<T>(); }
   template <class T>
-  const T& userContext() const { return *((T*)userCtx_.ptr); }
+  const T& userContext() const { return *userCtx_.get<T>(); }
 
-  NOCOPY(Event);
+  Event(const Event&) = delete;
+  Event& operator=(const Event&) = delete;
 
-  std::unique_ptr<IOBuf> rbuf;
-  std::unique_ptr<IOBuf> wbuf;
-
-  size_t rlen;  // left to read
-  size_t wlen;  // already write
-
-private:
+ private:
   uint64_t timeout() const {
-    switch (socket_->role()) {
-      case Socket::SERVER: return timeoutOpt_.wtimeout;
-      case Socket::CLIENT: return timeoutOpt_.rtimeout;
-    }
+    if (socket_->isClient()) return timeoutOpt_.rtimeout;
+    if (socket_->isServer()) return timeoutOpt_.wtimeout;
     return std::max(timeoutOpt_.rtimeout, timeoutOpt_.wtimeout);
   }
 
   static std::atomic<uint64_t> globalSeqid_;
 
   uint64_t seqid_;
-  int type_;
+  State state_;
   int group_;
-  int action_;
+  bool forward_;
 
   std::shared_ptr<Channel> channel_;
-  std::shared_ptr<Socket> socket_;
+  std::unique_ptr<Socket> socket_;
+  std::unique_ptr<Transport> transport_;
 
-  Waker* waker_;
-  Executor* executor_;
+  Fiber::Task* task_;
 
   std::vector<Timestamp> timestamps_;
   TimeoutOption timeoutOpt_;
 
-  ContextWrapper userCtx_;
+  std::function<void(Event*)> completeCallback_;
+  std::function<void(Event*)> closeCallback_;
+
+  DynamicPtr userCtx_;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Event& event) {
-  os << "ev("
-     << (void*)(&event) << ", "
-     << event.str() << ", "
-     << event.typeName() << ", "
-     << event.timestampStr() << ")";
+  os << "ev(" << *event.socket()
+     << ", " << event.stateName()
+     << ", " << event.timestampStr() << ")";
   return os;
 }
+
+#undef RDD_IO_EVENT_ENUM
 
 } // namespace rdd

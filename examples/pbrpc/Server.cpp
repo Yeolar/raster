@@ -3,9 +3,10 @@
  */
 
 #include <gflags/gflags.h>
+
 #include "raster/framework/Config.h"
+#include "raster/framework/HubAdaptor.h"
 #include "raster/framework/Signal.h"
-#include "raster/net/Actor.h"
 #include "raster/protocol/proto/AsyncClient.h"
 #include "raster/protocol/proto/AsyncServer.h"
 #include "raster/util/Logging.h"
@@ -13,15 +14,15 @@
 #include "raster/util/Uuid.h"
 #include "Proxy.pb.h"
 
-static const char* VERSION = "1.0.0";
+static const char* VERSION = "1.1.0";
 
 DEFINE_string(conf, "server.json", "Server config file");
 
-namespace rdd {
-namespace pbrpc {
+using namespace rdd;
+using namespace rdd::pbrpc;
 
 class ProxyServiceImpl : public ProxyService {
-public:
+ public:
   ProxyServiceImpl() {
     RDDLOG(DEBUG) << "ProxyService init";
   }
@@ -49,12 +50,13 @@ public:
     response->set_code(ResultCode::OK);
 
     if (!request->forward().empty()) {
-      Peer peer(request->forward());
+      Peer peer;
+      peer.setFromIpPort(request->forward());
       Query q;
       q.set_traceid(request->traceid());
       q.set_query(request->query());
       Result r;
-      PBAsyncClient<ProxyService::Stub> client(peer.host, peer.port);
+      PBAsyncClient<ProxyService::Stub> client(peer);
       if (!client.connect() ||
           !client.fetch(&ProxyService::Stub::run, r, q)) {
         response->set_code(ResultCode::E_BACKEND_FAILURE);
@@ -66,18 +68,13 @@ public:
     if (!checkOK(response)) return;
   }
 
-private:
+ private:
   bool checkOK(Result* response) {
     return response->code() < 1000;
   }
 
   std::string failReason_;
 };
-
-}
-}
-
-using namespace rdd;
 
 int main(int argc, char* argv[]) {
   google::SetVersionString(VERSION);
@@ -88,23 +85,21 @@ int main(int argc, char* argv[]) {
   setupShutdownSignal(SIGINT);
   setupShutdownSignal(SIGTERM);
 
-  auto service = new PBAsyncServer();
-  service->addService(std::make_shared<pbrpc::ProxyServiceImpl>());
-  Singleton<Actor>::get()->addService(
-      "Proxy", std::shared_ptr<Service>(service));
+  auto service = make_unique<PBAsyncServer>("Proxy");
+  service->addService(std::make_shared<ProxyServiceImpl>());
+  Singleton<HubAdaptor>::get()->addService(std::move(service));
 
   config(FLAGS_conf.c_str(), {
          {configLogging, "logging"},
-         {configActor, "actor"},
          {configService, "service"},
          {configThreadPool, "thread"},
-         {configNetCopy, "net.copy"},
+         {configNet, "net"},
          {configMonitor, "monitor"},
          {configJobGraph, "job.graph"}
          });
 
   RDDLOG(INFO) << "rdd start ... ^_^";
-  Singleton<Actor>::get()->start();
+  Singleton<HubAdaptor>::get()->startService();
 
   google::ShutDownCommandLineFlags();
 

@@ -3,12 +3,13 @@
 * Copyright (C) 2017, Yeolar
 */
 
+#include "raster/io/File.h"
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 
-#include "raster/io/File.h"
 #include "raster/io/FileUtil.h"
 #include "raster/util/Exception.h"
 #include "raster/util/Logging.h"
@@ -17,8 +18,7 @@ namespace rdd {
 
 File::File() noexcept : fd_(-1), ownsFd_(false) {}
 
-File::File(int fd, bool ownsFd) noexcept
-  : fd_(fd), ownsFd_(ownsFd) {
+File::File(int fd, bool ownsFd) noexcept : fd_(fd), ownsFd_(ownsFd) {
   RDDCHECK(fd >= -1) << "fd must be -1 or non-negative";
   RDDCHECK(fd != -1 || !ownsFd) << "cannot own -1";
 }
@@ -27,7 +27,7 @@ File::File(const char* name, int flags, mode_t mode)
   : fd_(::open(name, flags, mode))
   , ownsFd_(false) {
   if (fd_ == -1) {
-    throwSystemError("open(", name, ") failed");
+    throwSystemError("open(\"", name, "\", ", flags, ", ", mode, ") failed");
   }
   ownsFd_ = true;
 }
@@ -35,8 +35,12 @@ File::File(const char* name, int flags, mode_t mode)
 File::File(const std::string& name, int flags, mode_t mode)
   : File(name.c_str(), flags, mode) {}
 
+File::File(StringPiece name, int flags, mode_t mode)
+  : File(name.str(), flags, mode) {}
+
 File::File(File&& other) noexcept
-  : fd_(other.fd_), ownsFd_(other.ownsFd_) {
+  : fd_(other.fd_)
+  , ownsFd_(other.ownsFd_) {
   other.release();
 }
 
@@ -55,13 +59,15 @@ File::~File() {
   }
 }
 
-File File::temporary() {
+/* static */ File File::temporary() {
+  // make a temp file with tmpfile(), dup the fd, then return it in a File.
   FILE* tmpFile = tmpfile();
   checkFopenError(tmpFile, "tmpfile() failed");
   SCOPE_EXIT { fclose(tmpFile); };
 
   int fd = ::dup(fileno(tmpFile));
   checkUnixError(fd, "dup() failed");
+
   return File(fd, true);
 }
 
@@ -98,32 +104,21 @@ void File::swap(File& other) {
   std::swap(ownsFd_, other.ownsFd_);
 }
 
-void File::allocate(size_t offset, size_t bytes) {
-  int r = ::posix_fallocate(fd_, to<off_t>(offset), to<off_t>(bytes));
-  checkPosixError(r, "posix_fallocate() bytes [",
-                  offset, ", ", offset + bytes, ") failed");
+void File::lock() { doLock(LOCK_EX); }
+bool File::try_lock() { return doTryLock(LOCK_EX); }
+void File::lock_shared() { doLock(LOCK_SH); }
+bool File::try_lock_shared() { return doTryLock(LOCK_SH); }
+
+void File::doLock(int op) {
+  checkUnixError(flockNoInt(fd_, op), "flock() failed (lock)");
 }
 
-void File::truncate(size_t bytes) {
-  checkUnixError(::ftruncate(fd_, to<off_t>(bytes)), "ftruncate() failed");
-}
-
-void File::fsync() const {
-  checkUnixError(::fsync(fd_), "fsync() failed");
-}
-
-void File::fdatasync() const {
-  checkUnixError(::fdatasync(fd_), "fdatasync() failed");
-}
-
-void File::lock() {
-  checkUnixError(flockNoInt(fd_, LOCK_EX), "flock() failed (lock)");
-}
-
-bool File::try_lock() {
-  int r = flockNoInt(fd_, LOCK_EX | LOCK_NB);
+bool File::doTryLock(int op) {
+  int r = flockNoInt(fd_, op | LOCK_NB);
   // flock returns EWOULDBLOCK if already locked
-  if (r == -1 && errno == EWOULDBLOCK) return false;
+  if (r == -1 && errno == EWOULDBLOCK) {
+    return false;
+  }
   checkUnixError(r, "flock() failed (try_lock)");
   return true;
 }
@@ -132,17 +127,41 @@ void File::unlock() {
   checkUnixError(flockNoInt(fd_, LOCK_UN), "flock() failed (unlock)");
 }
 
-size_t File::getSize() const {
+void File::unlock_shared() { unlock(); }
+
+void swap(File& a, File& b) {
+  a.swap(b);
+}
+
+void allocate(const File& file, size_t offset, size_t bytes) {
+  checkPosixError(::posix_fallocate(file.fd(), off_t(offset), off_t(bytes)),
+                  "posix_fallocate() bytes [", offset, ", ", offset + bytes,
+                  ") failed");
+}
+
+void truncate(const File& file, size_t bytes) {
+  checkUnixError(ftruncateNoInt(file.fd(), off_t(bytes)), "ftruncate() failed");
+}
+
+void fsync(const File& file) {
+  checkUnixError(fsyncNoInt(file.fd()), "fsync() failed");
+}
+
+void fdatasync(const File& file) {
+  checkUnixError(fdatasyncNoInt(file.fd()), "fdatasync() failed");
+}
+
+size_t getSize(const File& file) {
   struct stat stat;
-  checkUnixError(fstat(fd_, &stat), "stat failed");
-  return to<size_t>(stat.st_size);
+  checkUnixError(::fstat(file.fd(), &stat), "stat failed");
+  return size_t(stat.st_size);
 }
 
 FileContents::FileContents(const File& origFile)
-    : file_(origFile.dup()), fileLen_(file_.getSize()), map_(nullptr) {
+    : file_(origFile.dup()), fileLen_(getSize(file_)), map_(nullptr) {
   // len of 0 for empty files results in invalid argument
   if (fileLen_ > 0) {
-    map_ = mmap(nullptr, fileLen_, PROT_READ, MAP_SHARED, file_.fd(), 0);
+    map_ = ::mmap(nullptr, fileLen_, PROT_READ, MAP_SHARED, file_.fd(), 0);
     if (map_ == MAP_FAILED) {
       throwSystemError("mmap() failed");
     }
@@ -151,7 +170,7 @@ FileContents::FileContents(const File& origFile)
 
 FileContents::~FileContents() {
   if (map_) {
-    munmap(const_cast<void*>(map_), fileLen_);
+    ::munmap(const_cast<void*>(map_), fileLen_);
   }
 }
 
@@ -162,10 +181,11 @@ void FileContents::copy(size_t offset, void* buf, size_t length) {
 }
 
 size_t FileContents::copyPartial(size_t offset, void* buf, size_t maxLength) {
-  if (offset >= fileLen_)
+  if (offset >= fileLen_) {
     return 0;
+  }
   size_t length = std::min(fileLen_ - offset, maxLength);
-  memcpy(buf, static_cast<const char*>(map_) + offset, length);
+  std::memcpy(buf, static_cast<const char*>(map_) + offset, length);
   return length;
 }
 

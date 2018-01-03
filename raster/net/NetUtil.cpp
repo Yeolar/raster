@@ -2,80 +2,27 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+#include "raster/net/NetUtil.h"
+
 #include <sys/utsname.h>
 #include <arpa/inet.h>
-#include <ifaddrs.h>
 #include <netdb.h>
 
-#include "raster/net/NetUtil.h"
 #include "raster/util/Logging.h"
 
 namespace rdd {
 
-Peer::Peer(int fd) {
-  char ni_host[NI_MAXHOST];
-  char ni_serv[NI_MAXSERV];
-  struct sockaddr addr;
-  socklen_t addrlen;
-  memset(&addr, 0, sizeof(addr));
-  addrlen = sizeof(addr);
-  int r = getpeername(fd, &addr, &addrlen);
-  if (r == -1) {
-    RDDPLOG(ERROR) << "getpeername failed";
-    return;
-  }
-  r = getnameinfo(&addr, addrlen,
-                  ni_host, sizeof(ni_host),
-                  ni_serv, sizeof(ni_serv),
-                  NI_NUMERICHOST | NI_NUMERICSERV);
-  if (r != 0) {
-    RDDLOG(ERROR) << "getnameinfo failed, " << gai_strerror(r) << ", "
-      << (r == EAI_SYSTEM ? strerror(errno) : "");
-    return;
-  }
-  host = ni_host;
-  port = to<int>(ni_serv);
+std::ostream& operator<<(std::ostream& os, const TimeoutOption& timeout) {
+  os << "{" << timeout.ctimeout
+     << "," << timeout.rtimeout
+     << "," << timeout.wtimeout << "}";
+  return os;
 }
 
-std::string getAddr(const std::string& ifname) {
-  std::string addr;
-  struct ifaddrs *ifaddr, *ifa;
-  char ni_host[NI_MAXHOST];
-  int r = getifaddrs(&ifaddr);
-  if (r == -1) {
-    RDDPLOG(ERROR) << "getifaddrs failed";
-    return addr;
-  }
-  for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
-    if (ifa->ifa_addr != nullptr &&
-        ifa->ifa_name == ifname &&
-        ifa->ifa_addr->sa_family == AF_INET) {
-      r = getnameinfo(ifa->ifa_addr, sizeof(sockaddr_in),
-                      ni_host, NI_MAXHOST,
-                      nullptr, 0,
-                      NI_NUMERICHOST);
-      if (r != 0) {
-        RDDLOG(ERROR) << "getnameinfo failed, " << gai_strerror(r) << ", "
-          << (r == EAI_SYSTEM ? strerror(errno) : "");
-      } else {
-        addr = ni_host;
-      }
-      break;
-    }
-  }
-  freeifaddrs(ifaddr);
-  return addr;
-}
-
-std::string getNodeName(bool trimSuffix) {
+std::string getNodeName() {
   struct utsname buf;
   if (uname(&buf) != -1) {
-    char* s = buf.nodename;
-    char* p = strchr(s, '.');
-    return trimSuffix && p ? std::string(s, p - s) : s;
+    return buf.nodename;
   }
   return "(unknown)";
 }
@@ -99,37 +46,6 @@ std::string getNodeIp() {
     }
   }
   return ip.empty() ? "(unknown)" : ip;
-}
-
-// TODO prefer to use getnameinfo
-std::string ipv4ToHost(const std::string& ip, bool trimSuffix) {
-  struct in_addr addr;
-  if (inet_pton(AF_INET, ip.c_str(), &addr) != 1) {
-    return ip + "(failed to get host)";
-  }
-  struct hostent *he = gethostbyaddr(&addr, sizeof(addr), AF_INET);
-  if (!he) {
-    return ip + "(failed to get host)";
-  }
-  char* s = he->h_name;
-  char* p = strchr(s, '.');
-  return trimSuffix && p ? std::string(s, p - s) : s;
-}
-
-bool isValidIP(const std::string& ip) {
-  struct addrinfo *ai, hints;
-  memset(&hints, 0, sizeof(hints));
-  hints.ai_flags = AI_NUMERICHOST;
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_STREAM;
-  if (getaddrinfo(ip.c_str(), 0, &hints, &ai) != 0) {
-    return false;
-  }
-  return ai != nullptr;
-}
-
-bool isValidPort(uint16_t port) {
-  return port > 0;
 }
 
 } // namespace rdd

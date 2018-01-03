@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include <cstdio>
 #include <mutex>
-#include <stdio.h>
 
 #include "raster/util/Conv.h"
 #include "raster/util/ThreadUtil.h"

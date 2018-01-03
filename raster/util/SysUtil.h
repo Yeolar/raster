@@ -11,10 +11,6 @@
 
 namespace rdd {
 
-inline void asm_volatile_pause() {
-  asm volatile ("pause");
-}
-
 inline int getCpuNum() {
   return sysconf(_SC_NPROCESSORS_CONF);
 }
@@ -29,10 +25,18 @@ struct StatVFS {
     statvfs(path, &stats);
   }
 
-  size_t blockFree() const { return stats.f_bsize * stats.f_bfree; }
-  size_t blockAvailable() const { return stats.f_bsize * stats.f_bavail; }
-  size_t inodeFree() const { return stats.f_ffree; }
-  size_t inodeAvailable() const { return stats.f_favail; }
+  size_t blockFree() const {
+    return stats.f_bsize * stats.f_bfree;
+  }
+  size_t blockAvailable() const {
+    return stats.f_bsize * stats.f_bavail;
+  }
+  size_t inodeFree() const {
+    return stats.f_ffree;
+  }
+  size_t inodeAvailable() const {
+    return stats.f_favail;
+  }
 };
 
 struct SysInfo {
@@ -42,8 +46,12 @@ struct SysInfo {
     sysinfo(&info);
   }
 
-  size_t ramTotal() const { return info.totalram; }
-  size_t ramFree() const { return info.freeram; }
+  size_t ramTotal() const {
+    return info.totalram;
+  }
+  size_t ramFree() const {
+    return info.freeram;
+  }
 };
 
 struct ProcessInfo {
@@ -54,7 +62,7 @@ struct ProcessInfo {
     initMemory();
   }
 
-private:
+ private:
   void initMemory();
 };
 

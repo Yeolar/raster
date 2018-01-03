@@ -3,10 +3,10 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <string.h>
-#include <cxxabi.h>
-
 #include "raster/util/Demangle.h"
+
+#include <cstring>
+#include <cxxabi.h>
 
 namespace rdd {
 

@@ -3,6 +3,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/util/Checksum.h"
+
 #include <stdexcept>
 #include <immintrin.h>
 #include <nmmintrin.h>
@@ -10,8 +12,6 @@
 #include <boost/preprocessor/arithmetic/add.hpp>
 #include <boost/preprocessor/arithmetic/sub.hpp>
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
-
-#include "raster/util/Checksum.h"
 
 namespace rdd {
 

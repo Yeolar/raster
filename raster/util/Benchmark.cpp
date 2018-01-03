@@ -3,6 +3,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/util/Benchmark.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -11,7 +13,6 @@
 #include <utility>
 #include <vector>
 
-#include "raster/util/Benchmark.h"
 #include "raster/util/Logging.h"
 
 using namespace std;

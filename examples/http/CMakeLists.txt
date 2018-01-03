@@ -5,8 +5,8 @@ add_executable(httpserver
 )
 target_link_libraries(httpserver raster_static)
 
-#add_executable(httpserver-bench
-#    Bench.cpp
-#)
-#target_link_libraries(httpserver-bench raster_static)
+add_executable(httpserver-bench
+    Bench.cpp
+)
+target_link_libraries(httpserver-bench raster_static)
 

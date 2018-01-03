@@ -3,7 +3,7 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include <stdint.h>
+#include <cstdint>
 #include <functional>
 #include <iterator>
 #include <utility>
@@ -54,7 +54,7 @@ size_t hash_combine_generic(const T& t, const Ts&... ts) {
 }
 
 class StdHasher {
-public:
+ public:
   template <typename T>
   static size_t hash(const T& t) {
     return std::hash<T>()(t);
@@ -260,7 +260,7 @@ namespace std {
 // items in the pair.
 template <typename T1, typename T2>
 struct hash<std::pair<T1, T2>> {
-public:
+ public:
   size_t operator()(const std::pair<T1, T2>& x) const {
     return rdd::hash::hash_combine(x.first, x.second);
   }

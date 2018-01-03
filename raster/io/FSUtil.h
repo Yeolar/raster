@@ -42,8 +42,10 @@ void removeFile(const File& dir, const Path& path);
 
 void rename(const Path& oldPath, const Path& newPath);
 
-void rename(const File& oldDir, const Path& oldChild,
-            const File& newDir, const Path& newChild);
+void rename(const File& oldDir,
+            const Path& oldChild,
+            const File& newDir,
+            const Path& newChild);
 
 void syncDirectory(const Path& path);
 

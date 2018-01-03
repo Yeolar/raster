@@ -12,7 +12,7 @@
 namespace rdd {
 
 class MemoryProtect {
-public:
+ public:
   MemoryProtect() {}
 
   MemoryProtect(void* addr, size_t size = sysconf(_SC_PAGESIZE))
@@ -40,7 +40,7 @@ public:
     set(PROT_READ | PROT_WRITE);
   }
 
-private:
+ private:
   void* addr_{nullptr};
   size_t size_{0};
 };

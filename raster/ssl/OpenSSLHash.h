@@ -15,10 +15,10 @@
 namespace rdd {
 
 class OpenSSLHash {
-public:
+ public:
 
   class Digest {
-  public:
+   public:
     Digest() : ctx_(EVP_MD_CTX_new()) {}
 
     Digest(const Digest& other) {
@@ -57,7 +57,7 @@ public:
       md_ = nullptr;
     }
 
-  private:
+   private:
     const EVP_MD* md_ = nullptr;
     EvpMdCtxUniquePtr ctx_{nullptr};
   };
@@ -94,7 +94,7 @@ public:
   }
 
   class Hmac {
-  public:
+   public:
     Hmac() : ctx_(HMAC_CTX_new()) {}
 
     void hash_init(const EVP_MD* md, ByteRange key) {
@@ -119,7 +119,7 @@ public:
       check_libssl_result(size, int(len));
       md_ = nullptr;
     }
-  private:
+   private:
     const EVP_MD* md_ = nullptr;
     HmacCtxUniquePtr ctx_{nullptr};
   };
@@ -161,7 +161,7 @@ public:
     hmac(out, EVP_sha256(), key, data);
   }
 
-private:
+ private:
   static inline void check_out_size(size_t size, MutableByteRange out) {
     if (LIKELY(size == out.size())) {
       return;

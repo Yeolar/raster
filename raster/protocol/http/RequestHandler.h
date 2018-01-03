@@ -7,12 +7,11 @@
 #include "raster/protocol/http/HTTPException.h"
 #include "raster/protocol/http/HTTPMessage.h"
 #include "raster/protocol/http/ResponseBuilder.h"
-#include "raster/util/json.h"
 
 namespace rdd {
 
 class RequestHandler {
-public:
+ public:
   virtual ~RequestHandler() {}
 
   virtual void onGet     ();
@@ -26,17 +25,6 @@ public:
 
   virtual void prepare() {}
   virtual void finish() {}
-  virtual void setDefaultHeaders() {}
-
-  void clear();
-
-  void setStatusCode(int code);
-  int getStatusCode() const;
-
-  void write(StringPiece sp);
-  void writeHtml(StringPiece sp);
-  void writeJson(const dynamic& json);
-  void writeText(StringPiece sp);
 
   void handleException(const HTTPException& e);
   void handleException(const std::exception& e);
@@ -53,7 +41,7 @@ public:
   HTTPHeaders* trailers;
   ResponseBuilder response;
 
-protected:
+ protected:
   std::string locale_;
 };
 

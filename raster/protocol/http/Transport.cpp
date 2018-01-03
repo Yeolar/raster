@@ -2,30 +2,22 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/net/Protocol.h"
 #include "raster/protocol/http/Transport.h"
-#include "raster/protocol/http/Util.h"
-#include "raster/util/Logging.h"
 
 namespace rdd {
 
-void HTTPTransport::parseReadData(IOBuf* buf) {
-  buf->coalesce();
-  codec_.onIngress(*buf);
-  buf->trimStart(buf->length());
+void HTTPTransport::reset() {
 }
 
-void HTTPTransport::pushWriteData(IOBuf* buf) {
-  buf->appendChain(writeBuf_.move());
-}
-
-size_t HTTPTransport::getContentLength() {
-  if (headers) {
-    auto value = headers->getHeaders().getSingleOrEmpty(
-        HTTP_HEADER_CONTENT_LENGTH);
-    return value.empty() ? 0 : to<size_t>(value);
+void HTTPTransport::processReadData() {
+  const IOBuf* buf;
+  while ((buf = readBuf_.front()) != nullptr && buf->length() != 0) {
+    size_t bytesParsed = codec_.onIngress(*buf);
+    if (bytesParsed == 0) {
+      break;
+    }
+    readBuf_.trimStart(bytesParsed);
   }
-  return 0;
 }
 
 #if 0
@@ -142,7 +134,8 @@ void HTTPTransport::onWriting() {
 #endif
 
 void HTTPTransport::onMessageBegin(HTTPMessage* msg) {
-  state_ = kOnReading;
+  msg->setClientAddress(peerAddr_);
+  msg->setDstAddress(localAddr_);
 }
 
 void HTTPTransport::onHeadersComplete(std::unique_ptr<HTTPMessage> msg) {
@@ -150,7 +143,11 @@ void HTTPTransport::onHeadersComplete(std::unique_ptr<HTTPMessage> msg) {
 }
 
 void HTTPTransport::onBody(std::unique_ptr<IOBuf> chain) {
-  body = std::move(chain);
+  if (body) {
+    body->appendChain(std::move(chain));
+  } else {
+    body = std::move(chain);
+  }
 }
 
 void HTTPTransport::onChunkHeader(size_t length) {}
@@ -162,7 +159,7 @@ void HTTPTransport::onTrailersComplete(std::unique_ptr<HTTPHeaders> trailers_) {
 }
 
 void HTTPTransport::onMessageComplete() {
-  state_ = kOnReadingFinish;
+  state_ = kFinish;
 }
 
 void HTTPTransport::onError(const HTTPException& error) {

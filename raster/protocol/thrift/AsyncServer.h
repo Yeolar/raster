@@ -6,47 +6,51 @@
 
 #include "raster/net/Service.h"
 #include "raster/protocol/thrift/Processor.h"
-#include "raster/protocol/thrift/Protocol.h"
+#include "raster/protocol/binary/Transport.h"
 
 namespace rdd {
 
 template <class If, class P>
 class TAsyncServer : public Service {
-public:
-  If* handler() {
-    auto pf = channel_->processorFactory();
-    return ((ThriftProcessorFactory<P, If, ThriftProcessor>*)(pf.get()))
-      ->handler();
+ public:
+  TAsyncServer(StringPiece name) : Service(name) {}
+  ~TAsyncServer() override {}
+
+  void makeChannel(int port, const TimeoutOption& timeout) override {
+    Peer peer;
+    peer.setFromLocalPort(port);
+    channel_ = std::make_shared<Channel>(
+        peer,
+        timeout,
+        make_unique<BinaryTransportFactory>(),
+        make_unique<TProcessorFactory<P, If, TProcessor>>());
   }
 
-  virtual void makeChannel(int port, const TimeoutOption& timeoutOpt) {
-    std::shared_ptr<Protocol> protocol(
-      new TFramedProtocol());
-    std::shared_ptr<ProcessorFactory> processorFactory(
-      new ThriftProcessorFactory<P, If, ThriftProcessor>());
-    Peer peer = {"", port};
-    channel_ = std::make_shared<Channel>(
-      Channel::DEFAULT, peer, timeoutOpt, protocol, processorFactory);
+  If* handler() {
+    auto pf = channel_->processorFactory();
+    return ((TProcessorFactory<P, If, TProcessor>*)(pf))->handler();
   }
 };
 
 template <class If, class P>
 class TZlibAsyncServer : public Service {
-public:
-  If* handler() {
-    auto pf = channel_->processorFactory();
-    return ((ThriftProcessorFactory<P, If, ThriftZlibProcessor>*)(pf.get()))
-      ->handler();
+ public:
+  TZlibAsyncServer(StringPiece name) : Service(name) {}
+  ~TZlibAsyncServer() override {}
+
+  void makeChannel(int port, const TimeoutOption& timeout) override {
+    Peer peer;
+    peer.setFromLocalPort(port);
+    channel_ = std::make_shared<Channel>(
+        peer,
+        timeout,
+        make_unique<ZlibTransportFactory>(),
+        make_unique<TProcessorFactory<P, If, TZlibProcessor>>());
   }
 
-  virtual void makeChannel(int port, const TimeoutOption& timeoutOpt) {
-    std::shared_ptr<Protocol> protocol(
-      new TZlibProtocol());
-    std::shared_ptr<ProcessorFactory> processorFactory(
-      new ThriftProcessorFactory<P, If, ThriftZlibProcessor>());
-    Peer peer = {"", port};
-    channel_ = std::make_shared<Channel>(
-      Channel::DEFAULT, peer, timeoutOpt, protocol, processorFactory);
+  If* handler() {
+    auto pf = channel_->processorFactory();
+    return ((TProcessorFactory<P, If, TZlibProcessor>*)(pf))->handler();
   }
 };
 

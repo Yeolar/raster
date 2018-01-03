@@ -8,8 +8,8 @@ set(RASTER_UTIL_SRCS
     Demangle.cpp
     dynamic.cpp
     EscapeTables.cpp
-    Futex.cpp
     json.cpp
+    LogBase.cpp
     MemoryMapping.cpp
     ProcessUtil.cpp
     Random.cpp
@@ -30,34 +30,25 @@ add_library(raster_util OBJECT ${RASTER_UTIL_SRCS})
 install(FILES
     Algorithm.h
     Arena.h
-    AtomicBitSet.h
-    AtomicPtr.h
-    AtomicUnorderedMap.h
+    Asm.h
     Backtrace.h
     Base64.h
     Base64-inl.h
-    Baton.h
     Benchmark.h
     Bits.h
-    BlockingQueue.h
     Checksum.h
-    ContextWrapper.h
     Conv.h
-    Counter.h
     Debug.h
     Demangle.h
     dynamic.h
     dynamic-inl.h
+    DynamicPtr.h
     EvictingCacheMap.h
     Exception.h
     FixedStream.h
     Function.h
-    Futex.h
     Hash.h
     json.h
-    LockedLinkedList.h
-    LockedMap.h
-    LockedQueue.h
     LogBase.h
     Logging.h
     Macro.h
@@ -68,32 +59,24 @@ install(FILES
     noncopyable.h
     Optional.h
     ProcessUtil.h
-    ProducerConsumerQueue.h
     Random.h
     Range.h
     ReflectObject.h
     RendezvousHash.h
-    RWLock.h
-    RWSpinLock.h
     SArray.h
     ScopeGuard.h
-    Sem.h
     Singleton.h
-    SpinLock.h
     SpookyHashV2.h
     String.h
     String-inl.h
     SysUtil.h
     TestUtil.h
-    ThreadUtil.h
     TimedHeap.h
     Time.h
     Traits.h
     Unicode.h
-    UnionBasedStatic.h
     Uri.h
     Utf8StringPiece.h
     Utility.h
     Uuid.h
-    Waiter.h
     DESTINATION include/raster/util)

@@ -3,21 +3,22 @@
  */
 
 #include <gflags/gflags.h>
-#include "raster/concurrency/CPUThreadPool.h"
+
+#include "raster/concurrency/CPUThreadPoolExecutor.h"
 #include "raster/net/NetUtil.h"
 #include "raster/protocol/thrift/SyncClient.h"
 #include "raster/util/Algorithm.h"
 #include "raster/util/Logging.h"
 #include "gen-cpp/Parallel.h"
 
-static const char* VERSION = "1.0.0";
+static const char* VERSION = "1.1.0";
 
 DEFINE_string(addr, "127.0.0.1:8000", "HOST:PORT");
 DEFINE_int32(threads, 8, "concurrent threads");
 DEFINE_int32(count, 100, "request count");
 
-namespace rdd {
-namespace parallel {
+using namespace rdd;
+using namespace rdd::parallel;
 
 bool request(const ClientOption& opt) {
   Query req;
@@ -41,37 +42,31 @@ bool request(const ClientOption& opt) {
   return true;
 }
 
-}
-}
-
-using namespace rdd;
-
 int main(int argc, char* argv[]) {
   google::SetVersionString(VERSION);
   google::SetUsageMessage("Usage : ./parallel-bench");
   google::ParseCommandLineFlags(&argc, &argv, true);
 
-  CPUThreadPool pool(FLAGS_threads);
+  CPUThreadPoolExecutor pool(FLAGS_threads);
   std::atomic<size_t> count(0);
   std::vector<uint64_t> costs(FLAGS_count);
 
-  auto s = pool.subscribeToTaskStats(
-      Observer<Task::Stats>::create(
-          [&](Task::Stats stats) {
+  pool.subscribeToTaskStats(
+      [&](ThreadPoolExecutor::TaskStats stats) {
         costs[count++] = stats.runTime;
-      }));
+      });
 
   ClientOption opt;
-  opt.peer = Peer(FLAGS_addr);
+  opt.peer.setFromIpPort(FLAGS_addr);
   opt.timeout.ctimeout = 10000000;
   opt.timeout.rtimeout = 10000000;
   opt.timeout.wtimeout = 10000000;
 
   for (int i = 0; i < FLAGS_count; i++) {
-    pool.add(std::bind(parallel::request, opt));
+    pool.add(std::bind(request, opt));
   }
 
-  while (pool.getStats().pendingTaskCount > 0) {
+  while (pool.getPoolStats().pendingTaskCount > 0) {
     sleep(1);
     RDDRLOG(INFO) << "handled: " << count;
   }

@@ -3,8 +3,9 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/io/Cursor.h"
 #include "raster/protocol/http/HTTP1xCodec.h"
+
+#include "raster/io/Cursor.h"
 #include "raster/protocol/http/Util.h"
 
 namespace {

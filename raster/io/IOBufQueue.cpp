@@ -3,10 +3,10 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/io/IOBufQueue.h"
+
 #include <string.h>
 #include <stdexcept>
-
-#include "raster/io/IOBufQueue.h"
 
 using std::make_pair;
 using std::pair;

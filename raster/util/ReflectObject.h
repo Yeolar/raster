@@ -14,10 +14,9 @@ namespace rdd {
 
 template <class R>
 class ReflectInfo {
-public:
-  typedef std::map<std::string, ReflectInfo<R>*> ReflectInfoMap;
+ public:
+  typedef std::map<const char*, ReflectInfo<R>*> ReflectInfoMap;
 
-  ReflectInfo() {}
   virtual ~ReflectInfo() {}
 
   virtual R* create() const = 0;
@@ -29,47 +28,51 @@ public:
 
 template <class R, class T>
 class ReflectInfoT : public ReflectInfo<R> {
-public:
-  ReflectInfoT(const std::string& name) : name_(name) {
+ public:
+  ReflectInfoT(const char* name) : name_(name) {
     registerReflectObject();
   }
-  virtual ~ReflectInfoT() {}
+  ~ReflectInfoT() override {}
 
-  virtual R* create() const { return new T(); }
-  std::string name() const { return name_; }
+  R* create() const override { return new T(); }
 
+ private:
   void registerReflectObject() {
-    auto* p = ReflectInfo<R>::get();
-    p->emplace(name(), this);
+    ReflectInfo<R>::get()->emplace(name_, this);
   }
 
-private:
-  std::string name_;
+  const char* name_;
 };
 
 template <class R, class T>
 class ReflectObject : public R {
-public:
+ public:
   virtual ~ReflectObject() {}
 
-private:
+ private:
   static ReflectInfoT<R, T> ri_;
 };
 
 template <class R>
-R* makeReflectObject(const std::string& name) {
+R* makeReflectObject(const char* name) {
   auto* p = ReflectInfo<R>::get();
   auto it = p->find(name);
   return it != p->end() ? it->second->create() : nullptr;
 }
 
 template <class R>
-std::shared_ptr<R> makeSharedReflectObject(const std::string& name) {
+std::shared_ptr<R> makeSharedReflectObject(const char* name) {
   return std::shared_ptr<R>(makeReflectObject<R>(name));
 }
 
+template <class R>
+std::unique_ptr<R> makeUniqueReflectObject(const char* name) {
+  return std::unique_ptr<R>(makeReflectObject<R>(name));
+}
+
+// need wraps with namespace rdd {} when using
 #define RDD_RF_REG(r, name) \
   template <>               \
-  rdd::ReflectInfoT<r, name> rdd::ReflectObject<r, name>::ri_(#name)
+  ReflectInfoT<r, name> ReflectObject<r, name>::ri_(#name)
 
 } // namespace rdd

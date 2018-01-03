@@ -49,7 +49,7 @@ class Context {
   using MainContext = boost::ctx::fcontext_t;
 #endif
 
-public:
+ public:
   Context(VoidFunc&& func,
           unsigned char* stackLimit,
           size_t stackSize)
@@ -98,7 +98,7 @@ public:
 #endif
   }
 
-private:
+ private:
 #if BOOST_VERSION >= 106100
   static void fiberFunc(boost::context::detail::transfer_t transfer) {
     auto ctx = reinterpret_cast<Context*>(transfer.data);

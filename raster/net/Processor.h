@@ -13,26 +13,20 @@ namespace rdd {
 class Event;
 
 class Processor {
-public:
+ public:
   Processor(Event* event) : event_(event) {}
   virtual ~Processor() {}
 
-  virtual bool decodeData() = 0;
-  virtual bool encodeData() = 0;
-  virtual bool run() = 0;
+  virtual void run() = 0;
 
-  template <class T = Event>
-  T* event() const {
-    return reinterpret_cast<T*>(event_);
-  }
-
-protected:
+ protected:
   Event* event_;
 };
 
 class ProcessorFactory {
-public:
-  virtual std::shared_ptr<Processor> create(Event* event) = 0;
+ public:
+  virtual ~ProcessorFactory() {}
+  virtual std::unique_ptr<Processor> create(Event* event) = 0;
 };
 
 } // namespace rdd

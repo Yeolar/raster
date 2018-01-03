@@ -15,23 +15,23 @@
 namespace rdd {
 
 class PBRpcController : public google::protobuf::RpcController {
-public:
+ public:
   PBRpcController() {}
-  virtual ~PBRpcController() {}
+  ~PBRpcController() override {}
 
   // Client-side
-  virtual void Reset();
-  virtual bool Failed() const;
-  virtual std::string ErrorText() const;
-  virtual void StartCancel();
+  void Reset() override;
+  bool Failed() const override;
+  std::string ErrorText() const override;
+  void StartCancel() override;
 
   // Server side
-  virtual void SetFailed(const std::string& reason);
-  virtual bool IsCanceled() const;
-  virtual void NotifyOnCancel(google::protobuf::Closure* closure);
+  void SetFailed(const std::string& reason) override;
+  bool IsCanceled() const override;
+  void NotifyOnCancel(google::protobuf::Closure* closure) override;
 
-  void serializeTo(io::Appender& out) const;
-  void parseFrom(io::RWPrivateCursor& in);
+  void parseFrom(io::Cursor& in);
+  void serializeTo(IOBufQueue& out) const;
 
   void copyFrom(const PBRpcController& o);
 
@@ -40,7 +40,7 @@ public:
 
   void complete();
 
-private:
+ private:
   bool canceled_{false};
   bool failed_{false};
   std::string failedReason_;

@@ -62,7 +62,7 @@ template <class T> struct IsZeroInitializable
     static Y_& test(typename C::type_name*); \
     template <typename> \
     static N_& test(...); \
-  public: \
+   public: \
     const static bool value = (sizeof(test<T>(nullptr)) == sizeof(Y_)); \
   }
 
@@ -78,7 +78,7 @@ template <class T> struct IsZeroInitializable
     static Y_& test(sfinae<UTheClass_, &UTheClass_::func_name>*); \
     template <typename> \
     static N_& test(...); \
-  public: \
+   public: \
     const static bool value = (sizeof(test<TTheClass_>(nullptr)) == sizeof(Y_)); \
   }
 

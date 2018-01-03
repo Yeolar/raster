@@ -11,7 +11,7 @@
 namespace rdd {
 
 class Context {
-public:
+ public:
   Context(VoidFunc&& func,
           unsigned char* stackLimit,
           size_t stackSize)
@@ -30,7 +30,7 @@ public:
     swapcontext(&fiberContext_, &mainContext_);
   }
 
-private:
+ private:
   static void fiberFunc(intptr_t arg) {
     auto ctx = reinterpret_cast<Context*>(arg);
     ctx->func_();

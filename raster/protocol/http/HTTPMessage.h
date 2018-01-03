@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <array>
 #include <map>
 #include <mutex>
 #include <string>
@@ -29,7 +28,7 @@ namespace rdd {
  * All header names stored in this class are case-insensitive.
  */
 class HTTPMessage {
-public:
+ public:
   HTTPMessage();
   ~HTTPMessage();
   HTTPMessage(const HTTPMessage& message);
@@ -39,12 +38,12 @@ public:
   bool getIsChunked() const { return chunked_; }
 
   void setClientAddress(const Peer& addr) { request().clientAddr_ = addr; }
-  const std::string& getClientIP() const { return request().clientAddr_.host; }
-  int getClientPort() const { return request().clientAddr_.port; }
+  const Peer& getClientAddress() const { return request().clientAddr_; }
+  int getClientPort() const { return request().clientAddr_.port(); }
 
   void setDstAddress(const Peer& addr) { dstAddr_ = addr; }
-  const std::string& getDstIP() const { return dstAddr_.host; }
-  int getDstPort() const { return dstAddr_.port; }
+  const Peer& getDstAddress() const { return dstAddr_; }
+  int getDstPort() const { return dstAddr_.port(); }
 
   template <typename T> // T = string
   void setLocalIp(T&& ip) { localIP_ = std::forward<T>(ip); }
@@ -291,7 +290,7 @@ public:
   static std::string createQueryString(
       const std::map<std::string, std::string>& params, uint32_t maxSize);
 
-private:
+ private:
   void parseCookies() const;
 
   void parseQueryParams() const;

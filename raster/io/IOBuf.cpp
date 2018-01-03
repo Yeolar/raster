@@ -3,6 +3,8 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/io/IOBuf.h"
+
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif
@@ -13,7 +15,6 @@
 #include <stdexcept>
 
 #include "raster/io/Cursor.h"
-#include "raster/io/IOBuf.h"
 #include "raster/util/Conv.h"
 #include "raster/util/Macro.h"
 #include "raster/util/Memory.h"

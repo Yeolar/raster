@@ -8,12 +8,12 @@
 #include <cstdint>
 #include <random>
 
-#include "raster/util/ThreadUtil.h"
+#include "raster/thread/ThreadUtil.h"
 
 namespace rdd {
 
 class Random {
-public:
+ public:
   static void secureRandom(void* data, size_t len);
 
   template <class T>

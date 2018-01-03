@@ -34,4 +34,18 @@ TEST(RDDLog, setLevel) {
 TEST(RDDLog, async) {
   Singleton<RDDLogger>::get()->setLogFile("log.txt");
   RDDLOG(INFO) << "async info log to file";
+  Singleton<RDDLogger>::get()->setLogFile("nondir/log.txt");
+}
+
+TEST(RDDLog, raw) {
+  RDDRLOG(INFO) << "raw log";
+}
+
+TEST(RDDLog, cost) {
+  RDDCOST_SCOPE(INFO, 1000) {
+    usleep(100);
+  };
+  RDDCOST_SCOPE(INFO, 1000) {
+    usleep(10000);
+  };
 }

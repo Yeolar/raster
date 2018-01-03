@@ -11,14 +11,9 @@ namespace rdd {
 class EventLoop;
 
 class EventHandler {
-public:
+ public:
   EventHandler(EventLoop* loop) : loop_(loop) {}
 
-  void handle(Event* event, uint32_t etype);
-
-  friend class EventLoop;
-
-private:
   void onListen(Event* event);
   void onConnect(Event* event);
   void onRead(Event* event);
@@ -29,6 +24,7 @@ private:
 
   void closePeer(Event* event);
 
+ private:
   EventLoop* loop_;
 };
 

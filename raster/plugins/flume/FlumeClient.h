@@ -4,14 +4,13 @@
 
 #pragma once
 
-#include <functional>
 #include <memory>
+#include <string>
 #include <vector>
 
+#include "raster/plugins/flume/gen-cpp/scribe_types.h"
 #include "raster/protocol/thrift/SyncClient.h"
-#include "raster/util/Conv.h"
-#include "raster/util/Logging.h"
-#include "raster/util/ProducerConsumerQueue.h"
+#include "raster/thread/AtomicLinkedList.h"
 
 namespace rdd {
 
@@ -19,25 +18,25 @@ class ScribeClient;
 class LogEntry;
 
 class FlumeClient {
-public:
+ public:
   FlumeClient(const ClientOption& option,
               const std::string& category,
               const std::string& logDir);
 
   ~FlumeClient();
 
-  bool add(const std::string& message);
+  void add(std::string&& message);
 
   void send();
 
-private:
+ private:
   void sendInBatch(const std::vector<LogEntry>& entries);
   void writeToDisk(const std::vector<LogEntry>& entries);
 
   std::string category_;
   std::string logDir_;
-  ProducerConsumerQueue<LogEntry> queue_;
-  std::shared_ptr<TSyncClient<ScribeClient>> client_;
+  AtomicLinkedList<LogEntry> queue_;
+  std::unique_ptr<TSyncClient<ScribeClient>> client_;
 };
 
 } // namespace rdd

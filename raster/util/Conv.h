@@ -13,13 +13,13 @@
 #pragma once
 
 #include <algorithm>
-#include <type_traits>
+#include <climits>
+#include <cmath>
 #include <limits>
+#include <stdexcept>
 #include <string>
 #include <tuple>
-#include <stdexcept>
-#include <cmath>
-#include <limits.h>
+#include <type_traits>
 #include <boost/implicit_cast.hpp>
 
 #include "raster/util/Macro.h"

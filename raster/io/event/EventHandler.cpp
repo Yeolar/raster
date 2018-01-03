@@ -2,39 +2,16 @@
  * Copyright (C) 2017, Yeolar
  */
 
-#include "raster/framework/Monitor.h"
 #include "raster/io/event/EventHandler.h"
-#include "raster/net/Actor.h"
-#include "raster/net/Protocol.h"
+
+#include "raster/framework/Monitor.h"
+#include "raster/io/event/EventLoop.h"
 
 namespace rdd {
 
-void EventHandler::handle(Event* event, uint32_t etype) {
-  RDDLOG(V2) << *event << " on event, type=" << etype;
-  switch (event->type()) {
-    case Event::LISTEN:
-      onListen(event); break;
-    case Event::CONNECT:
-      onConnect(event); break;
-    case Event::NEXT:
-      loop_->restartEvent(event);
-    case Event::TOREAD:
-    case Event::READING:
-      onRead(event); break;
-    case Event::TOWRITE:
-    case Event::WRITING:
-      onWrite(event); break;
-    case Event::TIMEOUT:
-      onTimeout(event); break;
-    default:
-      RDDLOG(ERROR) << *event << " error event, type=" << etype;
-      closePeer(event);
-      break;
-  }
-}
-
 void EventHandler::onListen(Event* event) {
-  assert(event->type() == Event::LISTEN);
+  assert(event->state() == Event::kListen);
+
   auto socket = event->socket()->accept();
   if (!(*socket) ||
       !(socket->setReuseAddr()) ||
@@ -43,31 +20,25 @@ void EventHandler::onListen(Event* event) {
       !(socket->setNonBlocking())) {
     return;
   }
-  if (Singleton<Actor>::get()->exceedConnectionLimit()) {
+  if (Socket::count() >= FLAGS_net_conn_limit) {
     RDDLOG(WARN) << "exceed connection capacity, drop request";
     return;
   }
-  Event *evnew = createEvent(event->channel(), socket);
-  if (!evnew) {
-    RDDLOG(ERROR) << "create event failed";
-    return;
-  }
+
+  auto evnew = new Event(event->channel(), std::move(socket));
+  evnew->copyCallbacks(*event);
   RDDLOG(V1) << *evnew << " accepted";
-  if (evnew->isConnectTimeout()) {
-    evnew->setType(Event::TIMEOUT);
-    RDDLOG(WARN) << *evnew << " remove connect timeout request: >"
-      << evnew->timeoutOption().ctimeout;
-    onTimeout(evnew);
-    return;
-  }
-  evnew->setType(Event::NEXT);
+  evnew->setState(Event::kNext);
+  RDDLOG(V2) << *evnew << " add event";
+  loop_->pushEvent(evnew);
   loop_->dispatchEvent(evnew);
 }
 
 void EventHandler::onConnect(Event* event) {
-  assert(event->type() == Event::CONNECT);
+  assert(event->state() == Event::kConnect);
+
   if (event->isConnectTimeout()) {
-    event->setType(Event::TIMEOUT);
+    event->setState(Event::kTimeout);
     RDDLOG(WARN) << *event << " remove connect timeout request: >"
       << event->timeoutOption().ctimeout;
     onTimeout(event);
@@ -76,35 +47,37 @@ void EventHandler::onConnect(Event* event) {
   int err = 1;
   event->socket()->getError(err);
   if (err != 0) {
-    RDDLOG(ERROR) << *event << " connect: close for error: " << strerror(errno);
-    event->setType(Event::ERROR);
+    RDDLOG(ERROR) << *event << " connect: close for error: "
+      << strerror(errno);
+    event->setState(Event::kError);
     onError(event);
     return;
   }
   RDDLOG(V1) << *event << " connect: complete";
-  event->setType(Event::TOWRITE);
+  event->setState(Event::kToWrite);
 }
 
 void EventHandler::onRead(Event* event) {
-  event->setType(Event::READING);
+  event->setState(Event::kReading);
+
   int r = event->readData();
   switch (r) {
     case 1: {
       RDDLOG(V1) << *event << " read: complete";
-      event->setType(Event::READED);
+      event->setState(Event::kReaded);
       onComplete(event);
       break;
     }
     case -1: {
       RDDLOG(ERROR) << *event << " read: close for error: "
         << strerror(errno);
-      event->setType(Event::ERROR);
+      event->setState(Event::kError);
       onError(event);
       break;
     }
     case -2: {
       if (event->isReadTimeout()) {
-        event->setType(Event::TIMEOUT);
+        event->setState(Event::kTimeout);
         RDDLOG(WARN) << *event << " remove read timeout request: >"
           << event->timeoutOption().rtimeout;
         onTimeout(event);
@@ -124,25 +97,26 @@ void EventHandler::onRead(Event* event) {
 }
 
 void EventHandler::onWrite(Event* event) {
-  event->setType(Event::WRITING);
+  event->setState(Event::kWriting);
+
   int r = event->writeData();
   switch (r) {
     case 1: {
       RDDLOG(V1) << *event << " write: complete";
-      event->setType(Event::WRITED);
+      event->setState(Event::kWrited);
       onComplete(event);
       break;
     }
     case -1: {
       RDDLOG(ERROR) << *event << " write: close for error: "
         << strerror(errno);
-      event->setType(Event::ERROR);
+      event->setState(Event::kError);
       onError(event);
       break;
     }
     case -2: {
       if (event->isWriteTimeout()) {
-        event->setType(Event::TIMEOUT);
+        event->setState(Event::kTimeout);
         RDDLOG(WARN) << *event << " remove write timeout request: >"
           << event->timeoutOption().wtimeout;
         onTimeout(event);
@@ -156,74 +130,76 @@ void EventHandler::onWrite(Event* event) {
 }
 
 void EventHandler::onComplete(Event* event) {
-  if (event->type() == Event::READED && event->isReadTimeout()) {
-    event->setType(Event::TIMEOUT);
-    RDDLOG(WARN) << *event << " remove read timeout request: >"
-      << event->timeoutOption().rtimeout;
-    onTimeout(event);
-    return;
-  }
-  if (event->type() == Event::WRITED && event->isWriteTimeout()) {
-    event->setType(Event::TIMEOUT);
-    RDDLOG(WARN) << *event << " remove write timeout request: >"
-      << event->timeoutOption().wtimeout;
-    onTimeout(event);
-    return;
-  }
-  loop_->removeEvent(event);
+  // for server: kReaded -> kWrited
+  // for client: kWrited -> kReaded
 
-  // for server: READED -> WRITED
-  // for client: WRITED -> READED
+  if (event->state() == Event::kReaded) {
+    if (event->isReadTimeout()) {
+      event->setState(Event::kTimeout);
+      RDDLOG(WARN) << *event << " remove read timeout request: >"
+        << event->timeoutOption().rtimeout;
+      onTimeout(event);
+      return;
+    }
 
-  switch (event->type()) {
+    loop_->popEvent(event);
+
     // on result
-    case Event::READED:
-    {
-      if (event->role() == Socket::CLIENT) {
-        RDDMON_CNT("conn.success-" + event->label());
-        RDDMON_AVG("conn.cost-" + event->label(), event->cost() / 1000);
-        if (event->isForward()) {
-          delete event;
-        }
-      }
-      Singleton<Actor>::get()->execute(event);
-      break;
+    if (event->socket()->isClient()) {
+      RDDMON_CNT("conn.success-" + event->label());
+      RDDMON_AVG("conn.cost-" + event->label(), event->cost() / 1000);
     }
+    if (!event->isForward()) {
+      event->callbackOnComplete();  // execute
+    }
+    return;
+  }
+
+  if (event->state() == Event::kWrited) {
+    if (event->isWriteTimeout()) {
+      event->setState(Event::kTimeout);
+      RDDLOG(WARN) << *event << " remove write timeout request: >"
+        << event->timeoutOption().wtimeout;
+      onTimeout(event);
+      return;
+    }
+
+    loop_->updateEvent(event, EPoll::kRead);
+
     // server: wait next; client: wait response
-    case Event::WRITED:
-    {
-      if (event->role() == Socket::SERVER) {
-        RDDMON_CNT("conn.success-" + event->label());
-        RDDMON_AVG("conn.cost-" + event->label(), event->cost() / 1000);
-        event->reset();
-        event->setType(Event::NEXT);
-      } else {
-        event->setType(Event::TOREAD);
-      }
-      loop_->dispatchEvent(event);
-      break;
+    if (event->socket()->isServer()) {
+      RDDMON_CNT("conn.success-" + event->label());
+      RDDMON_AVG("conn.cost-" + event->label(), event->cost() / 1000);
+      event->reset();
+      event->setState(Event::kNext);
+    } else {
+      event->setState(Event::kToRead);
     }
-    default: break;
+    loop_->dispatchEvent(event);
+    return;
   }
 }
 
 void EventHandler::onTimeout(Event *event) {
-  assert(event->type() == Event::TIMEOUT);
+  assert(event->state() == Event::kTimeout);
+
   RDDMON_CNT("conn.timeout-" + event->label());
   closePeer(event);
 }
 
 void EventHandler::onError(Event* event) {
-  assert(event->type() == Event::ERROR);
+  assert(event->state() == Event::kError);
+
   RDDMON_CNT("conn.error-" + event->label());
   closePeer(event);
 }
 
 void EventHandler::closePeer(Event* event) {
-  loop_->removeEvent(event);
-  if (event->role() == Socket::CLIENT) {
-    event->setType(Event::FAIL);
-    Singleton<Actor>::get()->execute(event);
+  loop_->popEvent(event);
+
+  if (event->socket()->isClient()) {
+    event->setState(Event::kFail);
+    event->callbackOnClose();  // execute
   } else {
     delete event;
   }

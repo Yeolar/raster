@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <deque>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
+#include <vector>
 
 #include "raster/io/event/Event.h"
 #include "raster/net/NetUtil.h"
@@ -15,34 +15,28 @@
 namespace rdd {
 
 class EventPool {
-public:
+ public:
   EventPool() {}
 
-  std::shared_ptr<Event> get(const Peer& peer);
+  std::unique_ptr<Event> get(const Peer& peer);
 
-  bool giveBack(const std::shared_ptr<Event>& event);
+  void giveBack(std::unique_ptr<Event> event);
 
   size_t count() const;
 
-private:
-  std::unordered_map<Peer, std::deque<std::shared_ptr<Event>>> pool_;
+ private:
+  std::unordered_map<Peer, std::vector<std::unique_ptr<Event>>> pool_;
   mutable std::mutex lock_;
 };
 
 class EventPoolManager {
-public:
+ public:
   EventPoolManager() {}
 
-  EventPool* getPool(int id) {
-    std::lock_guard<std::mutex> guard(lock_);
-    if (pool_.find(id) == pool_.end()) {
-      pool_.emplace(id, std::make_shared<EventPool>());
-    }
-    return pool_[id].get();
-  }
+  EventPool* getPool(int id);
 
-private:
-  std::unordered_map<int, std::shared_ptr<EventPool>> pool_;
+ private:
+  std::unordered_map<int, std::unique_ptr<EventPool>> pool_;
   mutable std::mutex lock_;
 };
 

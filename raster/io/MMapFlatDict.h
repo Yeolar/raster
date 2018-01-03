@@ -16,11 +16,11 @@ template <
   typename IndexType = uint32_t,
   typename Allocator = MMapAlloc>
 class MMapFlatDict {
-public:
+ public:
   using Block =
     typename FlatDict<Key, Hash, KeyEqual, uint64_t, Allocator>::Block;
 
-public:
+ public:
   explicit MMapFlatDict(size_t maxSize, std::unique_ptr<MMapIOAlloc>&& pool)
     : map_(maxSize),
       pool_(std::move(pool)) {
@@ -79,7 +79,7 @@ public:
     return n;
   }
 
-private:
+ private:
   void update(Key key, std::unique_ptr<IOBuf>&& buf) {
     auto p = map_.emplace(key, std::move(buf));
     if (!p.second) {

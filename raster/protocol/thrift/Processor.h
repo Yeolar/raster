@@ -11,89 +11,53 @@
 #include "raster/3rd/thrift/protocol/TBinaryProtocol.h"
 #include "raster/3rd/thrift/transport/TBufferTransports.h"
 #include "raster/3rd/thrift/transport/TTransportException.h"
-#include "raster/io/event/Event.h"
 #include "raster/net/Processor.h"
-#include "raster/protocol/thrift/Encoding.h"
 
 namespace rdd {
 
-class ThriftProcessor : public Processor {
-public:
-  ThriftProcessor(
+class TProcessor : public Processor {
+ public:
+  TProcessor(
       Event* event,
-      const std::shared_ptr< ::apache::thrift::TProcessor>& processor)
-    : Processor(event), processor_(processor) {
-    pibuf_.reset(new apache::thrift::transport::TMemoryBuffer());
-    pobuf_.reset(new apache::thrift::transport::TMemoryBuffer());
-    piprot_.reset(new apache::thrift::protocol::TBinaryProtocol(pibuf_));
-    poprot_.reset(new apache::thrift::protocol::TBinaryProtocol(pobuf_));
-  }
+      std::unique_ptr< ::apache::thrift::TProcessor> processor);
 
-  virtual ~ThriftProcessor() {}
+  ~TProcessor() override {}
 
-  virtual bool decodeData() {
-    return rdd::thrift::decodeData(event_->rbuf, pibuf_.get());
-  }
+  void run() override;
 
-  virtual bool encodeData() {
-    return rdd::thrift::encodeData(event_->wbuf, pobuf_.get());
-  }
-
-  virtual bool run() {
-    try {
-      return processor_->process(piprot_, poprot_, nullptr);
-    } catch (apache::thrift::protocol::TProtocolException& e) {
-      RDDLOG(WARN) << "catch exception: " << e.what();
-    } catch (std::exception& e) {
-      RDDLOG(WARN) << "catch exception: " << e.what();
-    } catch (...) {
-      RDDLOG(WARN) << "catch unknown exception";
-    }
-    return false;
-  }
-
-protected:
-  std::shared_ptr< ::apache::thrift::TProcessor> processor_;
+ protected:
+  std::unique_ptr< ::apache::thrift::TProcessor> processor_;
   boost::shared_ptr< ::apache::thrift::transport::TMemoryBuffer> pibuf_;
   boost::shared_ptr< ::apache::thrift::transport::TMemoryBuffer> pobuf_;
   boost::shared_ptr< ::apache::thrift::protocol::TBinaryProtocol> piprot_;
   boost::shared_ptr< ::apache::thrift::protocol::TBinaryProtocol> poprot_;
 };
 
-class ThriftZlibProcessor : public ThriftProcessor {
-public:
-  ThriftZlibProcessor(
+class TZlibProcessor : public TProcessor {
+ public:
+  TZlibProcessor(
       Event* event,
-      const std::shared_ptr< ::apache::thrift::TProcessor>& processor)
-    : ThriftProcessor(event, processor) {}
+      std::unique_ptr< ::apache::thrift::TProcessor> processor)
+    : TProcessor(event, std::move(processor)) {}
 
-  virtual ~ThriftZlibProcessor() {}
+  ~TZlibProcessor() override {}
 
-  virtual bool decodeData() {
-    return rdd::thrift::decodeZlibData(event_->rbuf, pibuf_.get());
-  }
-
-  virtual bool encodeData() {
-    return rdd::thrift::encodeZlibData(event_->wbuf, pobuf_.get());
-  }
+  void run() override;
 };
 
 template <class P, class If, class ProcessorType>
-class ThriftProcessorFactory : public ProcessorFactory {
-public:
-  ThriftProcessorFactory() : handler_(new If()) {}
-  virtual ~ThriftProcessorFactory() {}
+class TProcessorFactory : public ProcessorFactory {
+ public:
+  TProcessorFactory() : handler_(new If()) {}
+  ~TProcessorFactory() override {}
 
-  virtual std::shared_ptr<Processor> create(Event* event) {
-    return std::shared_ptr<Processor>(
-      new ProcessorType(
-          event,
-          std::shared_ptr< ::apache::thrift::TProcessor>(new P(handler_))));
+  std::unique_ptr<Processor> create(Event* event) override {
+    return make_unique<ProcessorType>(event, make_unique<P>(handler_));
   }
 
   If* handler() { return handler_.get(); }
 
-private:
+ private:
   boost::shared_ptr<If> handler_;
 };
 

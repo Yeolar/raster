@@ -17,17 +17,16 @@ std::string generateDefault();
 
 void configLogging(const dynamic& j, bool reload);
 void configProcess(const dynamic& j, bool reload);
-void configActor(const dynamic& j, bool reload);
 void configService(const dynamic& j, bool reload);
 void configThreadPool(const dynamic& j, bool reload);
-void configNetCopy(const dynamic& j, bool reload);
+void configNet(const dynamic& j, bool reload);
 void configMonitor(const dynamic& j, bool reload);
 void configDegrader(const dynamic& j, bool reload);
 void configSampler(const dynamic& j, bool reload);
 void configJobGraph(const dynamic& j, bool reload);
 
 class ConfigManager {
-public:
+ public:
   ConfigManager() {}
 
   void setConfFile(const char* conf) {
@@ -40,7 +39,7 @@ public:
 
   void load();
 
-private:
+ private:
   const char* conf_;
   std::vector<ConfigTask> tasks_;
   bool inited_{false};

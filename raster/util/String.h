@@ -5,8 +5,8 @@
 
 #pragma once
 
+#include <cstdarg>
 #include <exception>
-#include <stdarg.h>
 #include <string>
 #include <vector>
 

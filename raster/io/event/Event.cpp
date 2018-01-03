@@ -3,68 +3,39 @@
  */
 
 #include "raster/io/event/Event.h"
-#include "raster/io/event/EventExecutor.h"
+
+#include "raster/coroutine/FiberManager.h"
+#include "raster/io/event/EventTask.h"
 #include "raster/net/Channel.h"
-#include "raster/protocol/http/HTTPEvent.h"
+
+#define RDD_IO_EVENT_STR(state) #state
+
+namespace {
+  static const char* stateStrings[] = {
+    RDD_IO_EVENT_GEN(RDD_IO_EVENT_STR)
+  };
+}
 
 namespace rdd {
 
-Event* createEvent(const std::shared_ptr<Channel>& channel,
-                   const std::shared_ptr<Socket>& socket) {
-  switch (channel->type()) {
-    case Channel::DEFAULT:
-      return new Event(channel, socket);
-    case Channel::HTTP:
-      return new HTTPEvent(channel, socket);
-    default: break;
-  }
-  throw std::runtime_error(
-      to<std::string>("Undefined channel type: ", channel->type()));
-}
-
-Event* Event::getCurrentEvent() {
-  ExecutorPtr executor = getCurrentExecutor();
-  return executor ?
-    std::dynamic_pointer_cast<EventExecutor>(executor)->event() : nullptr;
+Event* Event::getCurrent() {
+  Fiber::Task* task = getCurrentFiberTask();
+  return task ?  reinterpret_cast<EventTask*>(task)->event() : nullptr;
 }
 
 std::atomic<uint64_t> Event::globalSeqid_(1);
 
-Event::Event(const std::shared_ptr<Channel>& channel,
-             const std::shared_ptr<Socket>& socket)
+Event::Event(std::shared_ptr<Channel> channel,
+             std::unique_ptr<Socket> socket)
   : channel_(channel)
-  , socket_(socket)
+  , socket_(std::move(socket))
   , timeoutOpt_(channel->timeoutOption()) {
   reset();
   RDDLOG(V2) << *this << " +";
 }
 
-Event::Event(Waker* waker) {
-  seqid_ = 0;
-  type_ = WAKER;
-  group_ = 0;
-  action_ = NONE;
-  waker_ = waker;
-  executor_ = nullptr;
-}
-
 Event::~Event() {
-  userCtx_.dispose();
   RDDLOG(V2) << *this << " -";
-}
-
-void Event::reset() {
-  restart();
-  seqid_ = globalSeqid_.fetch_add(1);
-  type_ = INIT;
-  group_ = 0;
-  action_ = NONE;
-  waker_ = nullptr;
-  executor_ = nullptr;
-  rbuf = IOBuf::create(Protocol::CHUNK_SIZE);
-  wbuf = IOBuf::create(Protocol::CHUNK_SIZE);
-  rlen = 0;
-  wlen = 0;
 }
 
 void Event::restart() {
@@ -72,49 +43,74 @@ void Event::restart() {
     RDDLOG(V2) << *this << " restart";
     timestamps_.clear();
   }
-  timestamps_.push_back(Timestamp(INIT));
+  state_ = kInit;
+  timestamps_.push_back(Timestamp(kInit));
 }
 
-void Event::record(Timestamp timestamp) {
-  if (!timestamps_.empty()) {
-    timestamp.stamp -= starttime();
+void Event::reset() {
+  restart();
+
+  seqid_ = globalSeqid_.fetch_add(1);
+  group_ = 0;
+  forward_ = false;
+  task_ = nullptr;
+
+  if (transport_) {
+    transport_->reset();
+  } else {
+    if (channel_->transportFactory()) {
+      transport_ = std::move(channel_->transportFactory()->create());
+      transport_->setPeerAddress(socket_->peer());
+      transport_->setLocalAddress(channel_->peer());
+    }
   }
-  timestamps_.push_back(timestamp);
+}
+
+void Event::setState(State state) {
+  state_ = state;
+  timestamps_.push_back(Timestamp(state, timePassed(starttime())));
+}
+
+const char* Event::stateName() const {
+  if (state_ < kInit || state_ >= kUnknown) {
+    return stateStrings[kUnknown];
+  } else {
+    return stateStrings[state_];
+  }
 }
 
 std::string Event::label() const {
-  return to<std::string>(roleLabel(), channel_->id());
-}
-
-const char* Event::typeName() const {
-  static const char* TYPE_NAMES[] = {
-    "INIT", "FAIL", "LISTEN", "TIMEOUT", "ERROR",
-    "TOREAD", "READING", "READED",
-    "TOWRITE", "WRITING", "WRITED",
-    "NEXT", "CONNECT", "WAKER", "UNKNOWN",
-  };
-  int n = (int)NELEMS(TYPE_NAMES) - 1;
-  int i = type_ >= 0 && type_ < n ? type_ : n;
-  return TYPE_NAMES[i];
+  return to<std::string>(socket_->roleName()[0], channel_->id());
 }
 
 std::shared_ptr<Channel> Event::channel() const {
   return channel_;
 }
 
-std::shared_ptr<Processor> Event::processor() {
+std::unique_ptr<Processor> Event::processor() {
   if (!channel_->processorFactory()) {
     throw std::runtime_error("client channel has no processor");
   }
   return channel_->processorFactory()->create(this);
 }
 
-int Event::readData() {
-  return channel_->protocol()->readData(this);
+void Event::setCompleteCallback(std::function<void(Event*)> cb) {
+  completeCallback_ = std::move(cb);
+}
+void Event::callbackOnComplete() {
+  completeCallback_(this);
 }
 
-int Event::writeData() {
-  return channel_->protocol()->writeData(this);
+void Event::setCloseCallback(std::function<void(Event*)> cb) {
+  closeCallback_ = std::move(cb);
+}
+void Event::callbackOnClose() {
+  closeCallback_(this);
+}
+
+void Event::copyCallbacks(const Event& event) {
+  completeCallback_ = event.completeCallback_;
+  closeCallback_ = event.closeCallback_;
 }
 
 } // namespace rdd

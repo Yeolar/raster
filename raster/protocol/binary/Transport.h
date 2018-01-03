@@ -4,68 +4,74 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
-#include <arpa/inet.h>
-
-#include "raster/io/Cursor.h"
-#include "raster/io/IOBuf.h"
-#include "raster/net/NetUtil.h"
-#include "raster/net/Protocol.h"
-#include "raster/net/Socket.h"
-#include "raster/protocol/binary/Encoding.h"
+#include "raster/io/compression/ZlibStreamCompressor.h"
+#include "raster/io/compression/ZlibStreamDecompressor.h"
+#include "raster/net/Transport.h"
+#include "raster/util/Memory.h"
 
 namespace rdd {
 
-class BinaryTransport {
-public:
-  BinaryTransport(const Peer& peer) : peer_(peer), socket_(0) {
-    rbuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
-    wbuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
+class BinaryTransport : public Transport {
+ public:
+  BinaryTransport() { reset(); }
+  ~BinaryTransport() override {}
+
+  void reset() override;
+
+  void processReadData() override;
+
+  size_t onIngress(const IOBuf& buf);
+
+  void sendHeader(uint32_t header);
+  size_t sendBody(std::unique_ptr<IOBuf> body);
+
+  uint32_t header;
+  std::unique_ptr<IOBuf> body;
+
+ private:
+  uint8_t headerBuf_[4];
+  size_t headerSize_;
+  bool headersComplete_;
+};
+
+class BinaryTransportFactory : public TransportFactory {
+ public:
+  BinaryTransportFactory() {}
+  ~BinaryTransportFactory() override {}
+
+  std::unique_ptr<Transport> create() override {
+    return make_unique<BinaryTransport>();
   }
+};
 
-  virtual ~BinaryTransport() {}
+class ZlibTransport : public Transport {
+ public:
+  ZlibTransport() { reset(); }
+  ~ZlibTransport() override {}
 
-  void open() {
-    socket_.setReuseAddr();
-    socket_.setTCPNoDelay();
-    socket_.connect(peer_);
+  void reset() override;
+
+  void processReadData() override;
+
+  size_t onIngress(const IOBuf& buf);
+
+  size_t sendBody(std::unique_ptr<IOBuf> body);
+
+  std::unique_ptr<IOBuf> body;
+
+ private:
+  std::unique_ptr<ZlibStreamCompressor> compressor_;
+  std::unique_ptr<ZlibStreamDecompressor> decompressor_;
+};
+
+class ZlibTransportFactory : public TransportFactory {
+ public:
+  ZlibTransportFactory() {}
+  ~ZlibTransportFactory() override {}
+
+  std::unique_ptr<Transport> create() override {
+    return make_unique<ZlibTransport>();
   }
-
-  bool isOpen() {
-    return socket_.isConnected();
-  }
-
-  void close() {
-    socket_.close();
-  }
-
-  template <class Req>
-  void send(const Req& request) {
-    binary::encodeData(wbuf_, (Req*)&request);
-    io::Cursor cursor(wbuf_.get());
-    auto p = cursor.peek();
-    socket_.send((uint8_t*)p.first, p.second);
-  }
-
-  template <class Res>
-  void recv(Res& response) {
-    io::Appender appender(rbuf_.get(), Protocol::CHUNK_SIZE);
-    uint32_t n = sizeof(uint32_t);
-    appender.ensure(n);
-    appender.append(socket_.recv(appender.writableData(), n));
-    n = ntohl(*TypedIOBuf<uint32_t>(rbuf_.get()).data());
-    appender.ensure(n);
-    appender.append(socket_.recv(appender.writableData(), n));
-    binary::decodeData(rbuf_, (Res*)&response);
-  }
-
-private:
-  Peer peer_;
-  Socket socket_;
-
-  std::unique_ptr<IOBuf> rbuf_;
-  std::unique_ptr<IOBuf> wbuf_;
 };
 
 } // namespace rdd

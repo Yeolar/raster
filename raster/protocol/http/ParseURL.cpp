@@ -3,11 +3,12 @@
  * Copyright (C) 2017, Yeolar
  */
 
+#include "raster/protocol/http/ParseURL.h"
+
 #include <algorithm>
 #include <arpa/inet.h>
 
 #include "raster/3rd/http_parser/http_parser.h"
-#include "raster/protocol/http/ParseURL.h"
 
 namespace rdd {
 
