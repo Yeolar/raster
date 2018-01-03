@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "raster/io/FileUtil.h"
 #include "raster/io/FSUtil.h"
 #include "raster/thread/ThreadUtil.h"
 #include "raster/util/Exception.h"
@@ -175,7 +176,7 @@ void BaseLogger::write(std::string&& message) {
   {
     std::lock_guard<std::mutex> guard(lock_);
     fd = fd_ >= 0 ? fd_ : STDERR_FILENO;
-    ::write(fd, message.c_str(), message.size());
+    writeFull(fd, message.c_str(), message.size());
   }
   if (splitSize_ > 0 && getSize(File(fd)) >= splitSize_) {
     split();
