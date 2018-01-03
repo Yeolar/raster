@@ -3,9 +3,10 @@
  */
 
 #include <gflags/gflags.h>
+
 #include "raster/framework/Config.h"
+#include "raster/framework/HubAdaptor.h"
 #include "raster/framework/Signal.h"
-#include "raster/net/Actor.h"
 #include "raster/protocol/thrift/AsyncClient.h"
 #include "raster/protocol/thrift/AsyncServer.h"
 #include "raster/util/Logging.h"
@@ -13,15 +14,15 @@
 #include "raster/util/Uuid.h"
 #include "gen-cpp/Proxy.h"
 
-static const char* VERSION = "1.0.0";
+static const char* VERSION = "1.1.0";
 
 DEFINE_string(conf, "server.json", "Server config file");
 
-namespace rdd {
-namespace proxy {
+using namespace rdd;
+using namespace rdd::proxy;
 
 class ProxyHandler : virtual public ProxyIf {
-public:
+ public:
   ProxyHandler() {
     RDDLOG(DEBUG) << "ProxyHandler init";
   }
@@ -56,16 +57,11 @@ public:
     if (!checkOK(_return)) return;
   }
 
-private:
+ private:
   bool checkOK(const Result& result) {
     return result.code < 1000;
   }
 };
-
-}
-}
-
-using namespace rdd;
 
 int main(int argc, char* argv[]) {
   google::SetVersionString(VERSION);
@@ -76,22 +72,20 @@ int main(int argc, char* argv[]) {
   setupShutdownSignal(SIGINT);
   setupShutdownSignal(SIGTERM);
 
-  std::shared_ptr<Service> proxy(
-      new TAsyncServer<proxy::ProxyHandler, proxy::ProxyProcessor>());
-  Singleton<Actor>::get()->addService("Proxy", proxy);
+  Singleton<HubAdaptor>::get()->addService(
+      make_unique<TAsyncServer<ProxyHandler, ProxyProcessor>>("Proxy"));
 
   config(FLAGS_conf.c_str(), {
          {configLogging, "logging"},
-         {configActor, "actor"},
          {configService, "service"},
          {configThreadPool, "thread"},
-         {configNetCopy, "net.copy"},
+         {configNet, "net"},
          {configMonitor, "monitor"},
          {configJobGraph, "job.graph"}
          });
 
   RDDLOG(INFO) << "rdd start ... ^_^";
-  Singleton<Actor>::get()->start();
+  Singleton<HubAdaptor>::get()->startService();
 
   google::ShutDownCommandLineFlags();
 

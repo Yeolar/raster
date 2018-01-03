@@ -70,8 +70,9 @@ std::unique_ptr<R> makeUniqueReflectObject(const char* name) {
   return std::unique_ptr<R>(makeReflectObject<R>(name));
 }
 
+// need wraps with namespace rdd {} when using
 #define RDD_RF_REG(r, name) \
   template <>               \
-  ::rdd::ReflectInfoT<r, name> ::rdd::ReflectObject<r, name>::ri_(#name)
+  ReflectInfoT<r, name> ReflectObject<r, name>::ri_(#name)
 
 } // namespace rdd

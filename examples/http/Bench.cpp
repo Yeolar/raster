@@ -6,33 +6,30 @@
 
 #include "raster/concurrency/CPUThreadPoolExecutor.h"
 #include "raster/net/NetUtil.h"
-#include "raster/protocol/thrift/SyncClient.h"
+#include "raster/protocol/http/SyncClient.h"
 #include "raster/util/Algorithm.h"
 #include "raster/util/Logging.h"
-#include "gen-cpp/Parallel.h"
 
 static const char* VERSION = "1.1.0";
 
 DEFINE_string(addr, "127.0.0.1:8000", "HOST:PORT");
+DEFINE_string(forward, "", "HOST:PORT");
 DEFINE_int32(threads, 8, "concurrent threads");
 DEFINE_int32(count, 100, "request count");
 
 using namespace rdd;
-using namespace rdd::parallel;
 
 bool request(const ClientOption& opt) {
-  Query req;
-  req.__set_traceid("rddt");
-  req.__set_query("query");
-  Result res;
 
-  TSyncClient<ParallelClient> client(opt);
+  HTTPSyncClient client(opt);
   if (!client.connect()) {
     return false;
   }
   try {
-    client.fetch(&ParallelClient::run, res, req);
-    if (res.code != 0) {
+    HTTPMessage headers;
+    auto body = IOBuf::maybeCopyBuffer("");
+    client.fetch(headers, std::move(body));
+    if (client.headers()->getStatusCode() != 200) {
       return false;
     }
   }
@@ -44,7 +41,7 @@ bool request(const ClientOption& opt) {
 
 int main(int argc, char* argv[]) {
   google::SetVersionString(VERSION);
-  google::SetUsageMessage("Usage : ./parallel-bench");
+  google::SetUsageMessage("Usage : ./httpserver-bench");
   google::ParseCommandLineFlags(&argc, &argv, true);
 
   CPUThreadPoolExecutor pool(FLAGS_threads);

@@ -37,16 +37,24 @@ void HubAdaptor::startService() {
   acceptor_.start();
 }
 
-CPUThreadPoolExecutor* HubAdaptor::getCPUThreadPoolExecutor(int poolId) {
-  auto pool = get_deref_smart_ptr(cpuPoolMap_, poolId);
-  if (!pool) {
-    pool = get_deref_smart_ptr(cpuPoolMap_, 0);
-    if (!pool) {
-      RDDLOG(FATAL) << "CPUThreadPool" << poolId
-        << " and CPUThreadPool0 not found";
-    }
+CPUThreadPoolExecutor*
+HubAdaptor::getCPUThreadPoolExecutor(int poolId) {
+  auto it = cpuPoolMap_.find(poolId);
+  if (it != cpuPoolMap_.end()) {
+    return it->second.get();
   }
-  return pool;
+  RDDLOG(FATAL) << "CPUThreadPool" << poolId << " not found";
+  return nullptr;
+}
+
+std::shared_ptr<CPUThreadPoolExecutor>
+HubAdaptor::getSharedCPUThreadPoolExecutor(int poolId) {
+  auto it = cpuPoolMap_.find(poolId);
+  if (it != cpuPoolMap_.end()) {
+    return it->second;
+  }
+  RDDLOG(FATAL) << "CPUThreadPool" << poolId << " not found";
+  return nullptr;
 }
 
 EventLoop* HubAdaptor::getEventLoop() {

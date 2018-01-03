@@ -38,10 +38,15 @@ void ParallelScheduler::add(const std::string& name,
   add(name, next, job);
 }
 
-void ParallelScheduler::run(VoidFunc&& finishCallback) {
+void ParallelScheduler::run(bool blocking) {
   if (!dag_.empty()) {
     setDependency();
-    dag_.go(std::move(finishCallback));
+    if (blocking) {
+      dag_.go([&]() { waiter_.notify_one(); });
+    } else {
+      dag_.go(nullptr);
+    }
+    waiter_.wait();
   }
 }
 

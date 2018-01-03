@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <boost/regex.hpp>
+
 #include "raster/net/Service.h"
 #include "raster/protocol/http/Processor.h"
 
@@ -16,10 +18,16 @@ class HTTPAsyncServer : public Service {
 
   void makeChannel(int port, const TimeoutOption& timeoutOpt) override;
 
-  void addRouter(const std::string& handler, const std::string& regex);
+  template <class T, class ...Args>
+  void addHandler(const std::string& regex, Args&&... args) {
+    handlers_.emplace(boost::regex(regex),
+                      std::make_shared<T>(std::forward<Args>(args)...));
+  }
+
+  std::shared_ptr<RequestHandler> matchHandler(const std::string& url) const;
 
  private:
-  std::map<std::string, std::string> routers_;
+  std::map<boost::regex, std::shared_ptr<RequestHandler>> handlers_;
 };
 
 } // namespace rdd

@@ -33,9 +33,12 @@ class HubAdaptor : public NetHub {
   // NetHub
   EventLoop* getEventLoop() override;
 
+  std::shared_ptr<CPUThreadPoolExecutor>
+    getSharedCPUThreadPoolExecutor(int poolId);
+
  private:
   std::unique_ptr<IOThreadPoolExecutor> ioPool_;
-  std::map<int, std::unique_ptr<CPUThreadPoolExecutor>> cpuPoolMap_;
+  std::map<int, std::shared_ptr<CPUThreadPoolExecutor>> cpuPoolMap_;
 
   Acceptor acceptor_;
 };

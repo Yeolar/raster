@@ -159,7 +159,7 @@ struct SingletonHolder {
     Living,
   };
 
-  SingletonHolder(TypeDescriptor type);
+  SingletonHolder(TypeDescriptor type) : type_(type) {}
 
   void createInstance() {
     std::lock_guard<std::mutex> guard(lock_);

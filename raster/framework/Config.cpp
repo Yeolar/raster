@@ -33,6 +33,7 @@ static dynamic defaultLogging() {
 }
 
 void configLogging(const dynamic& j, bool reload) {
+  // reloadable
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config logging error: " << j;
     return;
@@ -122,16 +123,20 @@ void configThreadPool(const dynamic& j, bool reload) {
 static dynamic defaultNet() {
   return dynamic::object
     ("net", dynamic::object
+      ("forwarding", false)
       ("copy", dynamic::array()));
 }
 
 void configNet(const dynamic& j, bool reload) {
-  if (!j.isArray()) {
+  // reloadable
+  if (!j.isObject()) {
     RDDLOG(FATAL) << "config net error: " << j;
     return;
   }
   RDDLOG(INFO) << "config net";
-  for (auto& i : j) {
+  auto forwarding = json::get(j, "forwarding", false);
+  Singleton<HubAdaptor>::get()->setForwarding(forwarding);
+  for (auto& i : j.getDefault("copy", dynamic::array)) {
     ForwardTarget t;
     t.port  = json::get(i, "port", 0);
     t.fpeer = Peer(json::get(i, "fhost", ""), json::get(i, "fport", 0));
@@ -149,6 +154,7 @@ static dynamic defaultMonitor() {
 }
 
 void configMonitor(const dynamic& j, bool reload) {
+  // reloadable
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config monitor error: " << j;
     return;
@@ -182,6 +188,7 @@ static dynamic defaultDegrader() {
 }
 
 void configDegrader(const dynamic& j, bool reload) {
+  // reloadable
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config degrader error: " << j;
     return;
@@ -221,6 +228,7 @@ static dynamic defaultSampler() {
 }
 
 void configSampler(const dynamic& j, bool reload) {
+  // reloadable
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config sampler error: " << j;
     return;
@@ -249,6 +257,7 @@ static dynamic defaultJob() {
 }
 
 void configJobGraph(const dynamic& j, bool reload) {
+  // reloadable
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config job.graph error: " << j;
     return;

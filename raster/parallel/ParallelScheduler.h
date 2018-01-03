@@ -9,6 +9,7 @@
 
 #include "raster/parallel/DAG.h"
 #include "raster/parallel/Graph.h"
+#include "raster/thread/Waiter.h"
 
 namespace rdd {
 
@@ -20,7 +21,7 @@ class JobBase {
   void setName(const std::string& name) { name_ = name; }
   std::string name() const { return name_; }
 
- private:
+ protected:
   std::string name_;
 };
 
@@ -42,7 +43,7 @@ class ParallelScheduler {
   void add(const std::string& name,
            const std::vector<std::string>& next);
 
-  void run(VoidFunc&& finishCallback);
+  void run(bool blocking = false);
 
  private:
   void setDependency();
@@ -51,6 +52,7 @@ class ParallelScheduler {
   Graph graph_;
   std::map<std::string, DAG::Key> map_;
   bool setup_{false};
+  Waiter waiter_;
 };
 
 } // namespace rdd

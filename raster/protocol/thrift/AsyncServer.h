@@ -6,6 +6,7 @@
 
 #include "raster/net/Service.h"
 #include "raster/protocol/thrift/Processor.h"
+#include "raster/protocol/binary/Transport.h"
 
 namespace rdd {
 

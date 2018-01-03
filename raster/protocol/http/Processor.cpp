@@ -5,8 +5,6 @@
 #include "raster/protocol/http/Processor.h"
 
 #include "raster/protocol/http/HTTPMethod.h"
-#include "raster/util/ReflectObject.h"
-#include "raster/util/ScopeGuard.h"
 
 namespace rdd {
 
@@ -57,25 +55,10 @@ void HTTPProcessor::run() {
   }
 }
 
-HTTPProcessorFactory::HTTPProcessorFactory(
-    const std::map<std::string, std::string>& routers) {
-  for (auto& kv : routers) {
-    routers_.emplace(kv.first, boost::regex(kv.second));
-  }
-}
-
 std::unique_ptr<Processor> HTTPProcessorFactory::create(Event* event) {
   auto transport = event->transport<HTTPTransport>();
   auto url = transport->headers->getURL();
-  for (auto& kv : routers_) {
-    boost::cmatch match;
-    if (boost::regex_match(url.c_str(), match, kv.second)) {
-      return make_unique<HTTPProcessor>(
-          event,
-          makeSharedReflectObject<RequestHandler>(kv.first.c_str()));
-    }
-  }
-  return make_unique<HTTPProcessor>(event, std::make_shared<RequestHandler>());
+  return make_unique<HTTPProcessor>(event, router_(url));
 }
 
 } // namespace rdd

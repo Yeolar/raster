@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <boost/regex.hpp>
-
 #include "raster/net/Processor.h"
 #include "raster/protocol/http/RequestHandler.h"
 
@@ -28,13 +26,16 @@ class HTTPProcessor : public Processor {
 
 class HTTPProcessorFactory : public ProcessorFactory {
  public:
-  HTTPProcessorFactory(const std::map<std::string, std::string>& routers);
+  typedef std::function<
+    std::shared_ptr<RequestHandler>(const std::string&)> Router;
+
+  HTTPProcessorFactory(Router router) : router_(std::move(router)) {}
   ~HTTPProcessorFactory() override {}
 
   std::unique_ptr<Processor> create(Event* event) override;
 
  private:
-  std::map<std::string, boost::regex> routers_;
+  Router router_;
 };
 
 } // namespace rdd

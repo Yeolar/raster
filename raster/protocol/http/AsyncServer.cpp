@@ -13,12 +13,21 @@ void HTTPAsyncServer::makeChannel(int port, const TimeoutOption& timeoutOpt) {
       peer,
       timeoutOpt,
       make_unique<HTTPTransportFactory>(TransportDirection::DOWNSTREAM),
-      make_unique<HTTPProcessorFactory>(routers_));
+      make_unique<HTTPProcessorFactory>(
+          [&](const std::string& url) {
+            return matchHandler(url);
+          }));
 }
 
-void HTTPAsyncServer::addRouter(const std::string& handler,
-                                const std::string& regex) {
-  routers_.emplace(handler, regex);
+std::shared_ptr<RequestHandler>
+HTTPAsyncServer::matchHandler(const std::string& url) const {
+  for (auto& kv : handlers_) {
+    boost::cmatch match;
+    if (boost::regex_match(url.c_str(), match, kv.first)) {
+      return kv.second;
+    }
+  }
+  return std::make_shared<RequestHandler>();
 }
 
 } // namespace rdd
