@@ -37,7 +37,6 @@ install(FILES
     Benchmark.h
     Bits.h
     Checksum.h
-    ContextWrapper.h
     Conv.h
     Debug.h
     Demangle.h
