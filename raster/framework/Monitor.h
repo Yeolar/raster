@@ -1,5 +1,17 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
@@ -11,12 +23,11 @@
 #include <thread>
 
 #include "raster/util/Singleton.h"
-#include "raster/util/ThreadUtil.h"
 
 namespace rdd {
 
 class MonitorValue {
-public:
+ public:
   enum {
     MON_CNT = 1,
     MON_AVG = 2,
@@ -25,43 +36,18 @@ public:
     MON_SUM = 16,
   };
 
-  explicit MonitorValue(int type) : type_(type) {
-    reset();
-  }
+  explicit MonitorValue(int type);
 
-  void reset() {
-    isset_ = type_ & (MON_CNT | MON_SUM);
-    count_ = 0;
-    value_ = 0;
-  }
+  void reset();
 
   int type() const { return type_; }
   bool isSet() const { return isset_; }
 
-  void add(int value = 0) {
-    isset_ = true;
-    count_++;
-    switch (type_) {
-      case MON_AVG:
-      case MON_SUM: value_ += value; break;
-      case MON_MIN: value_ = std::min(value_, (int64_t)value); break;
-      case MON_MAX: value_ = std::max(value_, (int64_t)value); break;
-      default: break;
-    }
-  }
+  void add(int value = 0);
 
-  int value() const {
-    switch (type_) {
-      case MON_CNT: return count_;
-      case MON_AVG: return count_ != 0 ? value_ / count_ : 0;
-      case MON_MIN:
-      case MON_MAX:
-      case MON_SUM: return value_;
-      default: return 0;
-    }
-  }
+  int value() const;
 
-private:
+ private:
   int type_;
   bool isset_;
   int count_;
@@ -69,21 +55,17 @@ private:
 };
 
 class Monitor {
-public:
+ public:
   typedef std::map<std::string, int> MonMap;
 
   class Sender {
-  public:
+   public:
     virtual bool send(const MonMap& data) = 0;
   };
 
   Monitor() {}
 
-  void start() {
-    handle_ = std::thread(&Monitor::run, this);
-    setThreadName(handle_.native_handle(), "MonitorThread");
-    handle_.detach();
-  }
+  void start();
 
   void stop() {
     open_ = false;
@@ -101,7 +83,7 @@ public:
 
   void addToMonitor(const std::string& name, int type, int value = 0);
 
-private:
+ private:
   void dump(MonMap& data);
 
   std::string prefix_;

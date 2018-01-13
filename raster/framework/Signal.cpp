@@ -1,13 +1,24 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-#include <signal.h>
-#include <string.h>
+#include "raster/framework/Signal.h"
 
 #include "raster/framework/Config.h"
-#include "raster/framework/Signal.h"
 #include "raster/util/Backtrace.h"
+#include "raster/util/Exception.h"
 #include "raster/util/Logging.h"
 #include "raster/util/MemoryProtect.h"
 #include "raster/util/ProcessUtil.h"
@@ -76,7 +87,7 @@ void setupMemoryProtectSignal() {
 }
 
 void sendSignal(int signo, const char* pidfile) {
-  checkUnixError(kill(ProcessUtil::readPid(pidfile), signo));
+  checkUnixError(kill(readPid(pidfile), signo));
 }
 
 } // namespace rdd

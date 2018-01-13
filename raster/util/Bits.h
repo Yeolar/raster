@@ -1,6 +1,18 @@
 /*
  * Copyright 2017 Facebook, Inc.
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 /**
@@ -50,7 +62,7 @@ typename std::enable_if<
    sizeof(T) <= sizeof(unsigned int)),
   unsigned int>::type
   findFirstSet(T x) {
-  return __builtin_ffs(x);
+  return static_cast<unsigned int>(__builtin_ffs(static_cast<int>(x)));
 }
 
 template <class T>
@@ -62,7 +74,7 @@ typename std::enable_if<
    sizeof(T) <= sizeof(unsigned long)),
   unsigned int>::type
   findFirstSet(T x) {
-  return __builtin_ffsl(x);
+  return static_cast<unsigned int>(__builtin_ffsl(static_cast<long>(x)));
 }
 
 template <class T>
@@ -74,7 +86,7 @@ typename std::enable_if<
    sizeof(T) <= sizeof(unsigned long long)),
   unsigned int>::type
   findFirstSet(T x) {
-  return __builtin_ffsll(x);
+  return static_cast<unsigned int>(__builtin_ffsll(static_cast<long long>(x)));
 }
 
 template <class T>
@@ -99,7 +111,9 @@ typename std::enable_if<
    sizeof(T) <= sizeof(unsigned int)),
   unsigned int>::type
   findLastSet(T x) {
-  return x ? 8 * sizeof(unsigned int) - __builtin_clz(x) : 0;
+  // If X is a power of two X - Y = ((X - 1) ^ Y) + 1. Doing this transformation
+  // allows GCC to remove its own xor that it adds to implement clz using bsr
+  return x ? ((8 * sizeof(unsigned int) - 1) ^ __builtin_clz(x)) + 1 : 0;
 }
 
 template <class T>
@@ -111,7 +125,7 @@ typename std::enable_if<
    sizeof(T) <= sizeof(unsigned long)),
   unsigned int>::type
   findLastSet(T x) {
-  return x ? 8 * sizeof(unsigned long) - __builtin_clzl(x) : 0;
+  return x ? ((8 * sizeof(unsigned long) - 1) ^ __builtin_clzl(x)) + 1 : 0;
 }
 
 template <class T>
@@ -123,7 +137,8 @@ typename std::enable_if<
    sizeof(T) <= sizeof(unsigned long long)),
   unsigned int>::type
   findLastSet(T x) {
-  return x ? 8 * sizeof(unsigned long long) - __builtin_clzll(x) : 0;
+  return x ? ((8 * sizeof(unsigned long long) - 1) ^ __builtin_clzll(x)) + 1
+           : 0;
 }
 
 template <class T>
@@ -142,7 +157,7 @@ typename std::enable_if<
   std::is_integral<T>::value && std::is_unsigned<T>::value,
   T>::type
 nextPowTwo(T v) {
-  return v ? (1ul << findLastSet(v - 1)) : 1;
+  return v ? (T(1) << findLastSet(v - 1)) : 1;
 }
 
 template <class T>
@@ -164,7 +179,7 @@ inline typename std::enable_if<
    sizeof(T) <= sizeof(unsigned int)),
   size_t>::type
   popcount(T x) {
-  return __builtin_popcount(x);
+  return size_t(__builtin_popcount(x));
 }
 
 template <class T>
@@ -175,7 +190,7 @@ inline typename std::enable_if<
    sizeof(T) <= sizeof(unsigned long long)),
   size_t>::type
   popcount(T x) {
-  return __builtin_popcountll(x);
+  return size_t(__builtin_popcountll(x));
 }
 
 /**

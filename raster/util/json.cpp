@@ -1,14 +1,27 @@
 /*
  * Copyright 2017 Facebook, Inc.
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
+#include "raster/util/json.h"
 
 #include <cassert>
 #include <boost/next_prior.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include "raster/util/Conv.h"
-#include "raster/util/json.h"
 #include "raster/util/Range.h"
 #include "raster/util/String.h"
 #include "raster/util/Unicode.h"
@@ -152,7 +165,7 @@ struct Printer {
     }
   }
 
-private:
+ private:
   void printKV(const std::pair<const dynamic, dynamic>& p) const {
     if (!opts_.allow_non_string_keys && !p.first.isString()) {
       throw std::runtime_error("rdd::toJson: JSON object key was not a "
@@ -215,7 +228,7 @@ private:
     out_ += ']';
   }
 
-private:
+ private:
   void outdent() const {
     if (indentLevel_) {
       --*indentLevel_;
@@ -238,10 +251,10 @@ private:
     out_ += indentLevel_ ? " : " : ":";
   }
 
-private:
- std::string& out_;
- unsigned* const indentLevel_;
- serialization_opts const& opts_;
+ private:
+  std::string& out_;
+  unsigned* const indentLevel_;
+  serialization_opts const& opts_;
 };
 
   //////////////////////////////////////////////////////////////////////
@@ -383,7 +396,7 @@ struct Input {
     current_ = range_.empty() ? EOF : range_.front();
   }
 
-private:
+ private:
   StringPiece range_;
   json::serialization_opts const& opts_;
   unsigned lineNum_;

@@ -1,13 +1,24 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
 
+#include <csignal>
 #include <vector>
-#include <signal.h>
 
-#include "raster/util/Exception.h"
 #include "raster/util/Function.h"
 
 namespace rdd {
@@ -23,11 +34,11 @@ void setupMemoryProtectSignal();
 void sendSignal(int signo, const char* pidfile);
 
 class Shutdown {
-public:
+ public:
   Shutdown() {}
 
-  void addTask(const VoidFunc& callback) {
-    callbacks_.push_back(callback);
+  void addTask(VoidFunc&& callback) {
+    callbacks_.push_back(std::move(callback));
   }
 
   void run() {
@@ -37,7 +48,7 @@ public:
     exit(0);
   }
 
-private:
+ private:
   std::vector<VoidFunc> callbacks_;
 };
 

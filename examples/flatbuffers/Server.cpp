@@ -3,9 +3,10 @@
  */
 
 #include <gflags/gflags.h>
+
 #include "raster/framework/Config.h"
+#include "raster/framework/HubAdaptor.h"
 #include "raster/framework/Signal.h"
-#include "raster/net/Actor.h"
 #include "raster/protocol/binary/AsyncClient.h"
 #include "raster/protocol/binary/AsyncServer.h"
 #include "raster/util/Logging.h"
@@ -14,20 +15,20 @@
 #include "Helper.h"
 #include "table_generated.h"
 
-static const char* VERSION = "1.0.0";
+static const char* VERSION = "1.1.0";
 
 DEFINE_string(conf, "server.json", "Server config file");
 
-namespace rdd {
-namespace fbs {
+using namespace rdd;
+using namespace rdd::fbs;
 
-class Proxy : public BinaryProcessor<> {
-public:
-  Proxy(Event* event) : BinaryProcessor<>(event) {
+class Proxy : public BinaryProcessor {
+ public:
+  Proxy(Event* event) : BinaryProcessor(event) {
     RDDLOG(DEBUG) << "Proxy init";
   }
 
-  bool process(ByteRange& response, const ByteRange& request) {
+  void process(ByteRange& response, const ByteRange& request) {
     auto query = ::flatbuffers::GetRoot<Query>(request.data());
     DCHECK(verifyFlatbuffer(query, request));
 
@@ -36,15 +37,16 @@ public:
       ::flatbuffers::FlatBufferBuilder fbb;
       fbb.Finish(CreateResult(fbb, 0, ResultCode_E_SOURCE__UNTRUSTED));
       response.reset(fbb.GetBufferPointer(), fbb.GetSize());
-      return true;
+      return;
     }
 
     auto traceid = generateUuid(query->traceid()->str(), "rdde");
     ResultCode code = ResultCode_OK;
 
     if (query->forward()->Length() != 0) {
-      Peer peer(query->forward()->str());
-      BinaryAsyncClient client(peer.host, peer.port);
+      Peer peer;
+      peer.setFromIpPort(query->forward()->str());
+      BinaryAsyncClient client(peer);
       ::flatbuffers::FlatBufferBuilder fbb;
       fbb.Finish(
           CreateQuery(fbb,
@@ -63,14 +65,8 @@ public:
     ::flatbuffers::FlatBufferBuilder fbb;
     fbb.Finish(CreateResult(fbb, fbb.CreateString(traceid), code));
     response.reset(fbb.GetBufferPointer(), fbb.GetSize());
-    return true;
   }
 };
-
-}
-}
-
-using namespace rdd;
 
 int main(int argc, char* argv[]) {
   google::SetVersionString(VERSION);
@@ -81,22 +77,20 @@ int main(int argc, char* argv[]) {
   setupShutdownSignal(SIGINT);
   setupShutdownSignal(SIGTERM);
 
-  std::shared_ptr<Service> proxy(
-      new BinaryAsyncServer<fbs::Proxy>());
-  Singleton<Actor>::get()->addService("Proxy", proxy);
+  Singleton<HubAdaptor>::get()->addService(
+      make_unique<BinaryAsyncServer<Proxy>>("Proxy"));
 
   config(FLAGS_conf.c_str(), {
          {configLogging, "logging"},
-         {configActor, "actor"},
          {configService, "service"},
          {configThreadPool, "thread"},
-         {configNetCopy, "net.copy"},
+         {configNet, "net"},
          {configMonitor, "monitor"},
          {configJobGraph, "job.graph"}
          });
 
   RDDLOG(INFO) << "rdd start ... ^_^";
-  Singleton<Actor>::get()->start();
+  Singleton<HubAdaptor>::get()->startService();
 
   google::ShutDownCommandLineFlags();
 

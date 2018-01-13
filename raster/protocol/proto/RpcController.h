@@ -1,5 +1,17 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
@@ -15,23 +27,23 @@
 namespace rdd {
 
 class PBRpcController : public google::protobuf::RpcController {
-public:
+ public:
   PBRpcController() {}
-  virtual ~PBRpcController() {}
+  ~PBRpcController() override {}
 
   // Client-side
-  virtual void Reset();
-  virtual bool Failed() const;
-  virtual std::string ErrorText() const;
-  virtual void StartCancel();
+  void Reset() override;
+  bool Failed() const override;
+  std::string ErrorText() const override;
+  void StartCancel() override;
 
   // Server side
-  virtual void SetFailed(const std::string& reason);
-  virtual bool IsCanceled() const;
-  virtual void NotifyOnCancel(google::protobuf::Closure* closure);
+  void SetFailed(const std::string& reason) override;
+  bool IsCanceled() const override;
+  void NotifyOnCancel(google::protobuf::Closure* closure) override;
 
-  void serializeTo(io::Appender& out) const;
-  void parseFrom(io::RWPrivateCursor& in);
+  void parseFrom(io::Cursor& in);
+  void serializeTo(IOBufQueue& out) const;
 
   void copyFrom(const PBRpcController& o);
 
@@ -40,7 +52,7 @@ public:
 
   void complete();
 
-private:
+ private:
   bool canceled_{false};
   bool failed_{false};
   std::string failedReason_;

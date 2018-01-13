@@ -1,12 +1,24 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
+#include "raster/protocol/proto/RpcChannel.h"
 
 #include <sstream>
 
-#include "raster/protocol/proto/Encoding.h"
 #include "raster/protocol/proto/Message.h"
-#include "raster/protocol/proto/RpcChannel.h"
 #include "raster/protocol/proto/RpcController.h"
 #include "raster/util/Uuid.h"
 
@@ -28,11 +40,10 @@ void PBRpcChannel::CallMethod(
     }
   }
   std::shared_ptr<Handle> handle(new Handle(controller, response, done));
-  handles_[callId] = handle;
-  std::unique_ptr<IOBuf> buf(IOBuf::create(Protocol::CHUNK_SIZE));
-  io::Appender out(buf.get(), Protocol::CHUNK_SIZE);
+  handles_.update(std::make_pair(callId, handle));
+  IOBufQueue out(IOBufQueue::cacheChainLength());
   proto::serializeRequest(callId, *method, *request, out);
-  send(buf, std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
+  send(out.move(), std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
 }
 
 void PBRpcChannel::messageSent(
@@ -40,7 +51,7 @@ void PBRpcChannel::messageSent(
     const std::string& reason,
     std::string callId) {
   if (!success) {
-    std::shared_ptr<Handle> handle = handles_.erase(callId);
+    std::shared_ptr<Handle> handle = handles_.erase_get(callId);
     if (handle) {
       PBRpcController* c = dynamic_cast<PBRpcController*>(handle->controller);
       if (c) {
@@ -57,26 +68,25 @@ void PBRpcChannel::messageSent(
 }
 
 void PBRpcChannel::startCancel(std::string callId) {
-  if (handles_.contains(callId)) {
-    std::unique_ptr<IOBuf> buf(IOBuf::create(Protocol::CHUNK_SIZE));
-    io::Appender out(buf.get(), Protocol::CHUNK_SIZE);
-    proto::serializeCancel(callId, out);
-    send(buf, std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
+  if (handles_.count(callId) == 0) {
+    return;
   }
+  IOBufQueue out(IOBufQueue::cacheChainLength());
+  proto::serializeCancel(callId, out);
+  send(out.move(), std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
 }
 
 void PBRpcChannel::process(const std::unique_ptr<IOBuf>& buf) {
   try {
-    io::RWPrivateCursor in(buf.get());
+    io::Cursor in(buf.get());
     int type = proto::readInt(in);
     switch (type) {
-      case proto::RESPONSE_MSG:
-      {
+      case proto::RESPONSE_MSG: {
         std::string callId;
         PBRpcController controller;
         std::shared_ptr<google::protobuf::Message> response;
         proto::parseResponseFrom(in, callId, controller, response);
-        std::shared_ptr<Handle> handle = handles_.erase(callId);
+        std::shared_ptr<Handle> handle = handles_.erase_get(callId);
         if (handle) {
           PBRpcController* c =
             dynamic_cast<PBRpcController*>(handle->controller);
@@ -94,8 +104,8 @@ void PBRpcChannel::process(const std::unique_ptr<IOBuf>& buf) {
             c->complete();
           }
         }
-      }
         break;
+      }
       default:
         RDDLOG(FATAL) << "unknown message type: " << type;
     }
@@ -104,6 +114,43 @@ void PBRpcChannel::process(const std::unique_ptr<IOBuf>& buf) {
   } catch (...) {
     RDDLOG(WARN) << "catch unknown exception";
   }
+}
+
+void PBSyncRpcChannel::open() {
+  socket_ = Socket::createSyncSocket();
+  socket_->setConnTimeout(timeout_.ctimeout);
+  socket_->setRecvTimeout(timeout_.rtimeout);
+  socket_->setSendTimeout(timeout_.wtimeout);
+  socket_->connect(peer_);
+}
+
+bool PBSyncRpcChannel::isOpen() {
+  return socket_->isConnected();
+}
+
+void PBSyncRpcChannel::close() {
+  socket_->close();
+}
+
+void PBSyncRpcChannel::send(
+    std::unique_ptr<IOBuf> buf,
+    std::function<void(bool, const std::string&)> resultCb) {
+  transport_.sendHeader(buf->computeChainDataLength());
+  transport_.sendBody(std::move(buf));
+  transport_.writeData(socket_.get());
+  resultCb(true, "");
+
+  transport_.readData(socket_.get());
+  process(transport_.body);
+}
+
+void PBAsyncRpcChannel::send(
+    std::unique_ptr<IOBuf> buf,
+    std::function<void(bool, const std::string&)> resultCb) {
+  auto transport = event_->transport<BinaryTransport>();
+  transport->sendHeader(buf->computeChainDataLength());
+  transport->sendBody(std::move(buf));
+  resultCb(true, "");
 }
 
 } // namespace rdd

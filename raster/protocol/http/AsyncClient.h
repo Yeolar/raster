@@ -1,93 +1,53 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
 
-#include <arpa/inet.h>
-
 #include "raster/net/AsyncClient.h"
-#include "raster/protocol/http/Protocol.h"
-#include "raster/protocol/http/Transport.h"
-#include "raster/util/Logging.h"
-#include "raster/util/ScopeGuard.h"
+#include "raster/protocol/http/HTTPHeaders.h"
+#include "raster/protocol/http/HTTPMessage.h"
 
 namespace rdd {
 
 class HTTPAsyncClient : public AsyncClient {
-public:
-  HTTPAsyncClient(const ClientOption& option)
-    : AsyncClient(option) {
-    channel_ = makeChannel();
-  }
-  HTTPAsyncClient(const std::string& host,
-               int port,
-               uint64_t ctimeout = 100000,
-               uint64_t rtimeout = 1000000,
-               uint64_t wtimeout = 300000)
-    : HTTPAsyncClient({Peer(host, port), {ctimeout, rtimeout, wtimeout}}) {
-  }
-  virtual ~HTTPAsyncClient() {}
+ public:
+  HTTPAsyncClient(const ClientOption& option);
 
-  void setHTTPVersionOverride(bool enabled) {
-    forceHTTP1xCodecTo1_1_ = enabled;
-  }
+  HTTPAsyncClient(const Peer& peer,
+                  const TimeoutOption& timeout);
 
-  virtual void onConnect() {
-    codec_ = make_unique<HTTP1xCodec>(TransportDirection::UPSTREAM,
-                                      forceHTTP1xCodecTo1_1_);
-  }
+  HTTPAsyncClient(const Peer& peer,
+                  uint64_t ctimeout = 100000,
+                  uint64_t rtimeout = 1000000,
+                  uint64_t wtimeout = 300000);
 
-  bool recv() {
-    if (!event_ || event_->type() == Event::FAIL) {
-      return false;
-    }
-    return true;
-  }
+  ~HTTPAsyncClient() override {}
 
-  bool send(const HTTPMessage& headers, std::unique_ptr<IOBuf> body) {
-    if (!event_) {
-      return false;
-    }
-    transport()->sendHeaders(headers, nullptr);
-    transport()->sendBody(std::move(body), false);
-    transport()->sendEOM();
-    event<HTTPEvent>()->pushWriteData();
-    return true;
-  }
+  bool recv();
 
-  bool fetch(const HTTPMessage& headers, std::unique_ptr<IOBuf> body) {
-    return (send(headers, std::move(body)) &&
-            FiberManager::yield() &&
-            recv());
-  }
+  bool send(const HTTPMessage& headers, std::unique_ptr<IOBuf> body);
 
-  bool fetchNoWait(const HTTPMessage& headers, std::unique_ptr<IOBuf> body) {
-    if (send(headers, std::move(body))) {
-      Singleton<Actor>::get()->execute((AsyncClient*)this);
-      return true;
-    }
-    return false;
-  }
+  bool fetch(const HTTPMessage& headers, std::unique_ptr<IOBuf> body);
 
-  HTTPMessage* message() const { return event<HTTPEvent>()->message(); }
-  IOBuf* body() const { return event<HTTPEvent>()->body(); }
-  HTTPHeaders* trailers() const { return event<HTTPEvent>()->trailers(); }
+  HTTPMessage* message() const;
+  IOBuf* body() const;
+  HTTPHeaders* trailers() const;
 
-protected:
-  virtual std::shared_ptr<Channel> makeChannel() {
-    std::shared_ptr<Protocol> protocol(new HTTPProtocol());
-    return std::make_shared<Channel>(
-        Channel::HTTP, peer_, timeoutOpt_, protocol);
-  }
-
-private:
-  HTTPTransport* transport() const {
-    return event<HTTPTransport>();
-  }
-
-  std::unique_ptr<HTTP1xCodec> codec_;
-  bool forceHTTP1xCodecTo1_1_;
+ protected:
+  std::shared_ptr<Channel> makeChannel() override;
 };
 
 } // namespace rdd

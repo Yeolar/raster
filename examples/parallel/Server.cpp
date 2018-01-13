@@ -3,11 +3,11 @@
  */
 
 #include <gflags/gflags.h>
-#include "raster/coroutine/GenericExecutor.h"
+
 #include "raster/framework/Config.h"
+#include "raster/framework/HubAdaptor.h"
 #include "raster/framework/Signal.h"
-#include "raster/net/Actor.h"
-#include "raster/parallel/Scheduler.h"
+#include "raster/parallel/ParallelScheduler.h"
 #include "raster/protocol/thrift/AsyncServer.h"
 #include "raster/util/Logging.h"
 #include "raster/util/ReflectObject.h"
@@ -15,40 +15,31 @@
 #include "raster/util/Uuid.h"
 #include "gen-cpp/Parallel.h"
 
-static const char* VERSION = "1.0.0";
+static const char* VERSION = "1.1.0";
 
 DEFINE_string(conf, "server.json", "Server config file");
 
-namespace rdd {
+using namespace rdd;
+using namespace rdd::parallel;
 
 void parallelFunc(int id) {
   RDDLOG(INFO) << "handle in parallelFunc " << id;
 }
 
-class ParallelJobExecutor
-  : public ReflectObject<JobExecutor, ParallelJobExecutor> {
-public:
-  struct MyContext : public Context {
-    parallel::Result* result;
-  };
+class ParallelJob
+  : public ReflectObject<JobBase, ParallelJob> {
+ public:
+  ~ParallelJob() override {}
 
-  virtual ~ParallelJobExecutor() {}
-
-  void handle() {
-    if (context_) {
-      RDDLOG(INFO) << "handle in " << name_ << ": code="
-        << std::dynamic_pointer_cast<MyContext>(context_)->result->code;
-    } else {
-      RDDLOG(INFO) << "handle in " << name_;
-    }
+  void run() override {
+    RDDLOG(INFO) << "handle in " << name_;
   }
 };
-RDD_RF_REG(JobExecutor, ParallelJobExecutor);
 
-namespace parallel {
+RDD_RF_REG(JobBase, ParallelJob);
 
 class ParallelHandler : virtual public ParallelIf {
-public:
+ public:
   ParallelHandler() {
     RDDLOG(DEBUG) << "ParallelHandler init";
   }
@@ -64,32 +55,29 @@ public:
     _return.__set_code(ResultCode::OK);
 
     // function style parallel executing
-    auto scheduler = make_unique<Scheduler>();
+    ParallelScheduler scheduler1(
+        Singleton<HubAdaptor>::get()->getSharedCPUThreadPoolExecutor(0));
     for (size_t i = 1; i <= 4; i++) {
-      scheduler->add(std::bind(parallelFunc, i));
+      scheduler1.add("", {}, std::bind(parallelFunc, i));
     }
-    scheduler->run();
+    scheduler1.run(true);
 
     // config job style parallel executing
-    auto jobctx = new ParallelJobExecutor::MyContext();
-    jobctx->result = &_return;
-    make_unique<Scheduler>("graph1", JobExecutor::ContextPtr(jobctx))->run();
+    ParallelScheduler scheduler2(
+        Singleton<HubAdaptor>::get()->getSharedCPUThreadPoolExecutor(0),
+        Singleton<GraphManager>::get()->graph("graph1"));
+    scheduler2.run(true);
 
     RDDTLOG(INFO, query.traceid) << "query: \"" << query.query << "\""
       << " code=" << _return.code;
     if (!checkOK(_return)) return;
   }
 
-private:
+ private:
   bool checkOK(const Result& result) {
     return result.code < 1000;
   }
 };
-
-}
-}
-
-using namespace rdd;
 
 int main(int argc, char* argv[]) {
   google::SetVersionString(VERSION);
@@ -100,23 +88,21 @@ int main(int argc, char* argv[]) {
   setupShutdownSignal(SIGINT);
   setupShutdownSignal(SIGTERM);
 
-  std::shared_ptr<Service> parallel(
-      new TAsyncServer<parallel::ParallelHandler,
-                       parallel::ParallelProcessor>());
-  Singleton<Actor>::get()->addService("Parallel", parallel);
+  Singleton<HubAdaptor>::get()->addService(
+      make_unique<
+        TAsyncServer<ParallelHandler, ParallelProcessor>>("Parallel"));
 
   config(FLAGS_conf.c_str(), {
          {configLogging, "logging"},
-         {configActor, "actor"},
          {configService, "service"},
          {configThreadPool, "thread"},
-         {configNetCopy, "net.copy"},
+         {configNet, "net"},
          {configMonitor, "monitor"},
          {configJobGraph, "job.graph"}
          });
 
   RDDLOG(INFO) << "rdd start ... ^_^";
-  Singleton<Actor>::get()->start();
+  Singleton<HubAdaptor>::get()->startService();
 
   google::ShutDownCommandLineFlags();
 

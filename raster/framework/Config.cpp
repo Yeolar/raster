@@ -1,23 +1,36 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
+#include "raster/framework/Config.h"
 
 #include <map>
 #include <set>
 #include <string>
 #include <typeinfo>
 
-#include "raster/framework/Config.h"
 #include "raster/framework/Degrader.h"
 #include "raster/framework/FalconSender.h"
+#include "raster/framework/HubAdaptor.h"
 #include "raster/framework/Monitor.h"
 #include "raster/framework/Sampler.h"
 #include "raster/io/FileUtil.h"
-#include "raster/net/Actor.h"
-#include "raster/parallel/Scheduler.h"
+#include "raster/parallel/ParallelScheduler.h"
+#include "raster/thread/ThreadUtil.h"
 #include "raster/util/Logging.h"
 #include "raster/util/ProcessUtil.h"
-#include "raster/util/ThreadUtil.h"
 
 namespace rdd {
 
@@ -32,6 +45,7 @@ static dynamic defaultLogging() {
 }
 
 void configLogging(const dynamic& j, bool reload) {
+  // reloadable
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config logging error: " << j;
     return;
@@ -60,35 +74,7 @@ void configProcess(const dynamic& j, bool reload) {
   }
   RDDLOG(INFO) << "config process";
   auto pidfile = json::get(j, "pidfile", "/tmp/rdd.pid");
-  ProcessUtil::writePid(pidfile.c_str(), localThreadId());
-}
-
-static dynamic defaultActor() {
-  return dynamic::object
-    ("actor", dynamic::object
-      ("stack_size", 64*1024)
-      ("conn_limit", 100000)
-      ("task_limit", 4000)
-      ("poll_size", 1024)
-      ("poll_timeout", 1000)
-      ("forwarding", false));
-}
-
-void configActor(const dynamic& j, bool reload) {
-  if (reload) return;
-  if (!j.isObject()) {
-    RDDLOG(FATAL) << "config actor error: " << j;
-    return;
-  }
-  RDDLOG(INFO) << "config actor";
-  Actor::Options opts;
-  opts.stackSize       = json::get(j, "stack_size", 64*1024);
-  opts.connectionLimit = json::get(j, "conn_limit", 100000);
-  opts.fiberLimit      = json::get(j, "task_limit", 4000);
-  opts.pollSize        = json::get(j, "poll_size", 1024);
-  opts.pollTimeout     = json::get(j, "poll_timeout", 1000);
-  opts.forwarding      = json::get(j, "forwarding", false);
-  Singleton<Actor>::get()->setOptions(opts);
+  writePid(pidfile.c_str(), osThreadId());
 }
 
 static dynamic defaultService() {
@@ -117,7 +103,7 @@ void configService(const dynamic& j, bool reload) {
     timeoutOpt.ctimeout = json::get(v, "conn_timeout", 100000);
     timeoutOpt.rtimeout = json::get(v, "recv_timeout", 300000);
     timeoutOpt.wtimeout = json::get(v, "send_timeout", 1000000);
-    Singleton<Actor>::get()->configService(service, port, timeoutOpt);
+    Singleton<HubAdaptor>::get()->configService(service, port, timeoutOpt);
   }
 }
 
@@ -125,11 +111,9 @@ static dynamic defaultThreadPool() {
   return dynamic::object
     ("thread", dynamic::object
       ("io", dynamic::object
-        ("thread_count", 4)
-        ("bindcpu", false))
+        ("thread_count", 4))
       ("0", dynamic::object
-        ("thread_count", 4)
-        ("bindcpu", false)));
+        ("thread_count", 4)));
 }
 
 void configThreadPool(const dynamic& j, bool reload) {
@@ -144,29 +128,32 @@ void configThreadPool(const dynamic& j, bool reload) {
     RDDLOG(INFO) << "config thread." << k;
     auto name = k.asString();
     int threadCount = json::get(v, "thread_count", 4);
-    bool bindCpu = json::get(v, "bind_cpu", false);
-    Singleton<Actor>::get()->configThreads(name, threadCount, bindCpu);
+    Singleton<HubAdaptor>::get()->configThreads(name, threadCount);
   }
 }
 
 static dynamic defaultNet() {
   return dynamic::object
     ("net", dynamic::object
+      ("forwarding", false)
       ("copy", dynamic::array()));
 }
 
-void configNetCopy(const dynamic& j, bool reload) {
-  if (!j.isArray()) {
-    RDDLOG(FATAL) << "config net.copy error: " << j;
+void configNet(const dynamic& j, bool reload) {
+  // reloadable
+  if (!j.isObject()) {
+    RDDLOG(FATAL) << "config net error: " << j;
     return;
   }
-  RDDLOG(INFO) << "config net.copy";
-  for (auto& i : j) {
-    Actor::ForwardTarget t;
+  RDDLOG(INFO) << "config net";
+  auto forwarding = json::get(j, "forwarding", false);
+  Singleton<HubAdaptor>::get()->setForwarding(forwarding);
+  for (auto& i : j.getDefault("copy", dynamic::array)) {
+    ForwardTarget t;
     t.port  = json::get(i, "port", 0);
-    t.fpeer = {json::get(i, "fhost", ""), json::get(i, "fport", 0)};
+    t.fpeer = Peer(json::get(i, "fhost", ""), json::get(i, "fport", 0));
     t.flow  = json::get(i, "flow", 100);
-    Singleton<Actor>::get()->addForwardTarget(t);
+    Singleton<HubAdaptor>::get()->addForwardTarget(std::move(t));
   }
 }
 
@@ -179,6 +166,7 @@ static dynamic defaultMonitor() {
 }
 
 void configMonitor(const dynamic& j, bool reload) {
+  // reloadable
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config monitor error: " << j;
     return;
@@ -212,6 +200,7 @@ static dynamic defaultDegrader() {
 }
 
 void configDegrader(const dynamic& j, bool reload) {
+  // reloadable
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config degrader error: " << j;
     return;
@@ -251,6 +240,7 @@ static dynamic defaultSampler() {
 }
 
 void configSampler(const dynamic& j, bool reload) {
+  // reloadable
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config sampler error: " << j;
     return;
@@ -279,6 +269,7 @@ static dynamic defaultJob() {
 }
 
 void configJobGraph(const dynamic& j, bool reload) {
+  // reloadable
   if (!j.isObject()) {
     RDDLOG(FATAL) << "config job.graph error: " << j;
     return;
@@ -288,11 +279,11 @@ void configJobGraph(const dynamic& j, bool reload) {
     const dynamic& k = kv.first;
     const dynamic& v = kv.second;
     RDDLOG(INFO) << "config job.graph." << k;
-    Graph& g = Singleton<GraphManager>::get()->getGraph(k.asString());
+    Graph& g = Singleton<GraphManager>::get()->graph(k.asString());
     for (auto& i : v) {
       auto name = json::get(i, "name", "");
       auto next = json::getArray<std::string>(i, "next");
-      g.add(name, next);
+      g.set(name, next);
     }
   }
 }
@@ -301,7 +292,6 @@ std::string generateDefault() {
   dynamic d = dynamic::object;
   d.update(defaultLogging());
   d.update(defaultProcess());
-  d.update(defaultActor());
   d.update(defaultService());
   d.update(defaultThreadPool());
   d.update(defaultNet());

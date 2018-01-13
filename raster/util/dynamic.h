@@ -1,6 +1,18 @@
 /*
  * Copyright 2017 Facebook, Inc.
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 /**
@@ -82,9 +94,9 @@ struct dynamic : private boost::operators<dynamic> {
    * Object value iterators dereference as the values in the object.
    * Object item iterators dereference as pairs of (key, value).
    */
-private:
+ private:
   typedef std::vector<dynamic> Array;
-public:
+ public:
   typedef Array::const_iterator const_iterator;
   typedef dynamic value_type;
   struct const_key_iterator;
@@ -110,11 +122,11 @@ public:
    *   d["key"] = 12;
    *   d["something_else"] = dynamic::array(1, 2, 3, nullptr);
    */
-private:
+ private:
   struct EmptyArrayTag {};
   struct ObjectMaker;
 
-public:
+ public:
   static void array(EmptyArrayTag);
   template <class... Args>
   static dynamic array(Args&& ...args);
@@ -307,13 +319,13 @@ public:
   const_iterator begin()  const;
   const_iterator end()    const;
 
-private:
+ private:
   /*
    * Helper object returned by keys(), values(), and items().
    */
   template <class T> struct IterableProxy;
 
-public:
+ public:
   /*
    * You can iterate over the keys, values, or items (std::pair of key and
    * value) in an object.  Calling these on non-objects will throw a TypeError.
@@ -499,7 +511,7 @@ public:
    */
   std::size_t hash() const;
 
-private:
+ private:
   friend struct TypeError;
   struct ObjectImpl;
   template<class T> struct TypeInfo;
@@ -524,7 +536,7 @@ private:
   void print(std::ostream&) const;
   void print_as_pseudo_json(std::ostream&) const; // see json.cpp
 
-private:
+ private:
   Type type_;
   union Data {
     explicit Data() : nul(nullptr) {}

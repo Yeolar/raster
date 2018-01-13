@@ -1,60 +1,54 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
 
 #include <map>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
 namespace rdd {
 
 struct Graph {
+  typedef std::vector<std::string> Outs;
 
-  struct Edge {
-    std::string node;
-    std::vector<std::string> next;
+  std::map<std::string, Outs> nodes;
 
-    Edge(const std::string& node_, const std::vector<std::string>& next_)
-      : node(node_), next(next_) {}
-  };
-
-  typedef typename std::vector<Edge>::iterator iterator;
-  typedef typename std::vector<Edge>::const_iterator const_iterator;
-
-  std::vector<Edge> graph;
-
-  iterator begin() { return graph.begin(); }
-  const_iterator begin() const { return graph.begin(); }
-
-  iterator end() { return graph.end(); }
-  const_iterator end() const { return graph.end(); }
-
-  void add(const std::string& node, const std::vector<std::string>& next) {
-    graph.emplace_back(node, next);
+  void set(const std::string& node, const Outs& outs) {
+    nodes[node] = outs;
   }
 
-  Edge get(const std::string& node) const {
-    for (auto& p : graph) {
-      if (p.node == node) {
-        return p;
-      }
-    }
-    throw std::overflow_error(node);
+  void add(const std::string& node, const std::string& next) {
+    nodes[node].push_back(next);
+  }
+
+  Outs get(const std::string& node) const {
+    return nodes.at(node);
   }
 };
 
 class GraphManager {
-public:
+ public:
   GraphManager() {}
 
-  Graph& getGraph(const std::string& key) {
+  Graph& graph(const std::string& key) {
     return graphs_[key];
   }
 
-private:
+ private:
   std::map<std::string, Graph> graphs_;
 };
 

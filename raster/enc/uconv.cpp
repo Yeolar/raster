@@ -1,10 +1,22 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-#include <string.h>
-
 #include "uconv.h"
+
+#include <cstring>
 
 namespace rdd {
 namespace uconv {
@@ -29,9 +41,9 @@ uint16_t gPsedoUtf8[MAX_PSEDO_UTF8] = {
 
 #define IS_PSEDOUTF8(x) (((x) < MAX_PSEDO_UTF8) && ((x) > 0) && gPsedoUtf8[(x)])
 
-inline uint16_t gbk_char_to_unicode(char a, char b) {
-  uint16_t idx =
-    ((uint8_t)a - FIRST_CHAR_OFFSET) * 0x00bf + (uint8_t)b - SECOND_CHAR_OFFSET;
+inline uint16_t gbkCharToUnicode(char a, char b) {
+  uint16_t idx = ((uint8_t)a - FIRST_CHAR_OFFSET) * 0x00bf
+                + (uint8_t)b - SECOND_CHAR_OFFSET;
   if (idx < MAX_GBK_LENGTH) {
     return gGBKToUnicodeTable[idx];
   } else {
@@ -47,25 +59,27 @@ inline uint16_t gbk_char_to_unicode(char a, char b) {
       *dst = UCS2_NO_MAPPING;               \
   } while (0)
 
-int gbk_to_unicode(const char *src, unsigned int src_length,
-                   uint16_t *dst, unsigned int dst_size,
-                   int flags) {
+int gbkToUnicode(const char *src,
+                 unsigned int srcLength,
+                 uint16_t *dst,
+                 unsigned int dstSize,
+                 int flags) {
   unsigned int i = 0;
   unsigned int dl = 0;
 
-  if (!src || !dst || !dst_size) {
+  if (!src || !dst || !dstSize) {
     return 0;
   }
-  for (i = 0; i < src_length && dl < dst_size; ++i) {
+  for (i = 0; i < srcLength && dl < dstSize; ++i) {
     // 第一个字节为汉字高字节
     if (LEGAL_GBK_FIRST_BYTE(*src)) {
       // 最后的半个汉字
-      if (i + 1 >= src_length) {
+      if (i + 1 >= srcLength) {
         break;
       }
       // 有效的GBK
       if (LEGAL_GBK_SECOND_BYTE(src[1])) {
-        *dst = gbk_char_to_unicode(src[0], src[1]);
+        *dst = gbkCharToUnicode(src[0], src[1]);
         // here *dst must be a valid unicode char
         src += 2;
         i++;
@@ -93,60 +107,63 @@ int gbk_to_unicode(const char *src, unsigned int src_length,
 
 static const char gHexArray[] = "0123456789ABCDEF";
 
-inline uint16_t unicode_char_to_gbk(uint16_t unicode,
-                                    char *first_char,
-                                    char *second_char) {
-  *first_char = gUnicodeToGBKTable[unicode] >> 8;
-  *second_char = gUnicodeToGBKTable[unicode] & 0xff;
+inline uint16_t unicodeCharToGBK(uint16_t unicode,
+                                 char *firstChar,
+                                 char *secondChar) {
+  *firstChar = gUnicodeToGBKTable[unicode] >> 8;
+  *secondChar = gUnicodeToGBKTable[unicode] & 0xff;
   return gUnicodeToGBKTable[unicode];
 }
 
-int unicode_to_gbk(const uint16_t *src, unsigned int src_len,
-                   char *dest, unsigned int dst_size,
-                   int flags, uint16_t replace_char) {
+int unicodeToGBK(const uint16_t *src,
+                 unsigned int srcLength,
+                 char *dst,
+                 unsigned int dstSize,
+                 int flags,
+                 uint16_t replaceChar) {
   unsigned int di = 0, i = 0;
-  char *dest_next = dest;
+  char *dstNext = dst;
 
-  if (!src || !dest || !dst_size) {
+  if (!src || !dst || !dstSize) {
     return 0;
   }
 
-  for (i = 0; i < src_len && di < dst_size - 1; ++i, ++src) {
+  for (i = 0; i < srcLength && di < dstSize - 1; ++i, ++src) {
     // ASCII码
     if (IS_ASCII(*src)) {
-      *dest_next = CAST_UNICHAR_TO_CHAR(*src);
+      *dstNext = CAST_UNICHAR_TO_CHAR(*src);
       ++di;
-      ++dest_next;
+      ++dstNext;
     }
     // 转换到最后一个字符，空间不够摆放一个汉字，则舍弃之
-    else if ((di + 2) >= dst_size) {
+    else if ((di + 2) >= dstSize) {
       break;
     }
     // 转换成功
-    else if (unicode_char_to_gbk(*src, dest_next, dest_next + 1)) {
+    else if (unicodeCharToGBK(*src, dstNext, dstNext + 1)) {
       di += 2;
-      dest_next += 2;
+      dstNext += 2;
     }
     // hack: for euro sign
     else if (IS_UCS2_EURO(*src)) {
-      *dest_next = GBK_EURO;
+      *dstNext = GBK_EURO;
       ++di;
-      ++dest_next;
+      ++dstNext;
     }
     // 转换失败
     else {
       switch (flags) {
       // 使用一个特定字符替换
       case UCONV_INVCHAR_REPLACE:
-        if (replace_char < 256) {
-          *dest_next = CAST_UNICHAR_TO_CHAR(replace_char);
-          ++dest_next;
+        if (replaceChar < 256) {
+          *dstNext = CAST_UNICHAR_TO_CHAR(replaceChar);
+          ++dstNext;
           ++di;
         } else {
-          *dest_next = replace_char >> 8;
-          *(dest_next + 1) = replace_char & 0xff;
+          *dstNext = replaceChar >> 8;
+          *(dstNext + 1) = replaceChar & 0xff;
           di += 2;
-          dest_next += 2;
+          dstNext += 2;
         }
         break;
       // 返回失败
@@ -154,17 +171,17 @@ int unicode_to_gbk(const uint16_t *src, unsigned int src_len,
         return -1;
       // 使用实体字符代替
       case UCONV_INVCHAR_ENTITES:
-        if ((di + 8) >= dst_size) {  // 实体字符 &#xXXXX; 8个字符
+        if ((di + 8) >= dstSize) {  // 实体字符 &#xXXXX; 8个字符
           break;
         }
-        *dest_next++ = '&';
-        *dest_next++ = '#';
-        *dest_next++ = 'x';
-        *dest_next++ = gHexArray[0x0f & (((*src) >> 8) >> 4)];
-        *dest_next++ = gHexArray[0x0f & ((*src) >> 8)];
-        *dest_next++ = gHexArray[0x0f & (((*src) & 0xff) >> 4)];
-        *dest_next++ = gHexArray[0x0f & ((*src) & 0xff)];
-        *dest_next++ = ';';
+        *dstNext++ = '&';
+        *dstNext++ = '#';
+        *dstNext++ = 'x';
+        *dstNext++ = gHexArray[0x0f & (((*src) >> 8) >> 4)];
+        *dstNext++ = gHexArray[0x0f & ((*src) >> 8)];
+        *dstNext++ = gHexArray[0x0f & (((*src) & 0xff) >> 4)];
+        *dstNext++ = gHexArray[0x0f & ((*src) & 0xff)];
+        *dstNext++ = ';';
         di += 8;
         break;
       // 缺省方式和忽略方式不做任何事情
@@ -175,19 +192,19 @@ int unicode_to_gbk(const uint16_t *src, unsigned int src_len,
     }
   }
   // 强制加\0字符。因为前面有判断，这里不会造成半个汉字的情况。
-  if (di >= dst_size) {
-    di = dst_size - 1;
+  if (di >= dstSize) {
+    di = dstSize - 1;
   }
-  dest[di] = 0;
+  dst[di] = 0;
   return di;
 }
 
-static inline unsigned int unicode_char_to_utf8(char *dst, uint16_t src) {
-  char utf8_word[5];
+static inline unsigned int unicodeCharToUtf8(char *dst, uint16_t src) {
+  char utf8Word[5];
   int len = 0, j;
   uint16_t val = 0;
 
-  utf8_word[4] = 0;
+  utf8Word[4] = 0;
 
   if (dst == NULL || src == 0) {
     return 0;
@@ -206,7 +223,7 @@ static inline unsigned int unicode_char_to_utf8(char *dst, uint16_t src) {
       val = src & 0x3f;
       if (src == 0)
         break;
-      utf8_word[j] = val | 0x80;
+      utf8Word[j] = val | 0x80;
       src = src >> 6;
     }
 
@@ -214,44 +231,46 @@ static inline unsigned int unicode_char_to_utf8(char *dst, uint16_t src) {
     len = 3 - j;
     switch (len) {
     case 2:
-      utf8_word[j + 1] |= 0xc0;
+      utf8Word[j + 1] |= 0xc0;
       break;
     case 3:
-      utf8_word[j + 1] |= 0xe0;
+      utf8Word[j + 1] |= 0xe0;
       break;
     default:
       return 0;
     }
-    strcpy(dst, &utf8_word[j + 1]);
+    std::strcpy(dst, &utf8Word[j + 1]);
     return len;
   }
 }
 
-int gbk_to_utf8(const char *src, unsigned int src_len,
-                char *dst, unsigned int dst_size,
-                int flags) {
-  char utf8_word[6];
+int gbkToUtf8(const char *src,
+              unsigned int srcLength,
+              char *dst,
+              unsigned int dstSize,
+              int flags) {
+  char utf8Word[6];
   unsigned int i = 0, dl = 0, len;
   uint16_t tmp = 0;
 
-  if (!src || !dst || !dst_size) {
+  if (!src || !dst || !dstSize) {
     return 0;
   }
 
-  if (dst_size < src_len / 2 * 3 + 1) {
+  if (dstSize < srcLength / 2 * 3 + 1) {
     return -1;
   }
 
-  for (i = 0; i < src_len && dl < dst_size; ++i) {
+  for (i = 0; i < srcLength && dl < dstSize; ++i) {
     // 第一个字节为汉字高字节
     if (LEGAL_GBK_FIRST_BYTE(*src)) {
       // 最后的半个汉字
-      if (i + 1 >= src_len) {
+      if (i + 1 >= srcLength) {
         break;
       }
       // 有效的GBK
       if (LEGAL_GBK_SECOND_BYTE(src[1])) {
-        tmp = gbk_char_to_unicode(src[0], src[1]);
+        tmp = gbkCharToUnicode(src[0], src[1]);
         src += 2;
         i++;
       } else {
@@ -284,53 +303,40 @@ int gbk_to_utf8(const char *src, unsigned int src_len,
       }
     }
 
-    len = unicode_char_to_utf8(utf8_word, tmp);
-    if (dl + len >= dst_size)
+    len = unicodeCharToUtf8(utf8Word, tmp);
+    if (dl + len >= dstSize)
       break;
 
-    strncpy(dst, utf8_word, len);
+    std::strncpy(dst, utf8Word, len);
     dst += len;
     dl += len;
   }
   return dl;
 }
 
-int utf8_to_gbk(const char *src, unsigned int src_len,
-                char *dst, unsigned int dst_size,
-                int flags, char rp_char) {
+int utf8ToGBK(const char *src,
+              unsigned int srcLength,
+              char *dst,
+              unsigned int dstSize,
+              int flags,
+              char replaceChar) {
   static const uint8_t BytesFromHeader[256] = {
-      1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1,  // 0x00
-      1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1,  // 0x10
-      1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1,  // 0x20
-      1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1,  // 0x30
-      1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1,  // 0x40
-      1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1,  // 0x50
-      1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1,  // 0x60
-      1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1,  // 0x70
-      0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0,  // 0x80
-      0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0,  // 0x90
-      0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0,  // 0xA0
-      0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0,  // 0xB0
-      2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2,  // 0xC0
-      2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2,  // 0xD0
-      3, 3, 3, 3, 3, 3, 3, 3, 3,
-      3, 3, 3, 3, 3, 3, 3,  // 0xE0
-      4, 4, 4, 4, 4, 4, 4, 4, 5,
-      5, 5, 5, 6, 6, 0, 0  // 0xF0
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 0x00
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 0x10
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 0x20
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 0x30
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 0x40
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 0x50
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 0x60
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 0x70
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 0x80
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 0x90
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 0xA0
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 0xB0
+      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,  // 0xC0
+      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,  // 0xD0
+      3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,  // 0xE0
+      4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 0, 0   // 0xF0
   };
 
   static const uint8_t UTF8_HEADER[] = {
@@ -346,17 +352,17 @@ int utf8_to_gbk(const char *src, unsigned int src_len,
   unsigned int i = 0, dl = 0, len;
   uint8_t cur = 0;
   uint16_t tmp;
-  char *dst_orig = dst;
+  char *dstOrig = dst;
 
-  if (!src || !dst || !dst_size) {
+  if (!src || !dst || !dstSize) {
     return 0;
   }
 
-  if (dst_size < src_len) {
+  if (dstSize < srcLength) {
     return -1;
   }
 
-  for (i = 0; i < src_len && dl < dst_size - 1;) {
+  for (i = 0; i < srcLength && dl < dstSize - 1;) {
     cur = src[i++];
     len = BytesFromHeader[cur];
 
@@ -366,7 +372,7 @@ int utf8_to_gbk(const char *src, unsigned int src_len,
       continue;
 
     // ignore the last uncomplete utf-8 word
-    if (i + len - 1 > src_len)
+    if (i + len - 1 > srcLength)
       break;
 
     // translate the next word to unicode
@@ -379,9 +385,9 @@ int utf8_to_gbk(const char *src, unsigned int src_len,
     if (IS_ASCII(tmp)) {
       *dst++ = CAST_UNICHAR_TO_CHAR(tmp);
       dl++;
-    } else if (dl + 2 >= dst_size) {
+    } else if (dl + 2 >= dstSize) {
       break;
-    } else if (unicode_char_to_gbk(tmp, dst, dst + 1)) {
+    } else if (unicodeCharToGBK(tmp, dst, dst + 1)) {
       dl += 2;
       dst += 2;
     } else if (IS_UCS2_EURO(tmp)) {
@@ -389,7 +395,7 @@ int utf8_to_gbk(const char *src, unsigned int src_len,
       dl++;
     } else {
       if (flags & UCONV_INVCHAR_ENTITES) {
-        if ((dl + 8) >= dst_size) {  // 实体字符 &#xXXXX; 8个字符
+        if ((dl + 8) >= dstSize) {  // 实体字符 &#xXXXX; 8个字符
           break;
         }
         *dst++ = '&';
@@ -405,35 +411,35 @@ int utf8_to_gbk(const char *src, unsigned int src_len,
         if (flags & UCONV_INVCHAR_ERROR) {
           return -1;
         } else {
-          *dst++ = rp_char;
+          *dst++ = replaceChar;
           dl++;
         }
       }
     }
   }
-  if (dl >= dst_size) {
-    dl = dst_size - 1;
+  if (dl >= dstSize) {
+    dl = dstSize - 1;
   }
-  dst_orig[dl] = 0;
+  dstOrig[dl] = 0;
   return dl;
 }
 
-int is_utf8(const char *src, unsigned int len, bool check_last_char) {
+int isUtf8(const char *src, unsigned int len, bool checkLastChar) {
   int flag = 0;
-  uint16_t gbk_or_utf8 = 0, idx = 0;
+  uint16_t gbkOrUtf8 = 0, idx = 0;
   const uint8_t *str = (const uint8_t *)src;
-  unsigned int ascii_len = 0;
+  unsigned int asciiLen = 0;
 
   if (src == NULL || *src == '\0')
     return 0;
 
   // XXX: 对于全是英文字符的字符串，认为不是UTF-8
 
-  if (check_last_char) {
+  if (checkLastChar) {
     while (*str) {
       if (IS_UTF8_1ST_OF_1(*str)) {
         str++;
-        ascii_len++;
+        asciiLen++;
       } else if (IS_UTF8_1ST_OF_2(*str)) {
         str++;
         if (!IS_UTF8_2ND_THRU_6TH(*str)) {
@@ -452,7 +458,7 @@ int is_utf8(const char *src, unsigned int len, bool check_last_char) {
           /* 0xC0 - 0x80 = 64 */
           idx = (*(str - 2) - 0xC2) * 64 + (*(str - 1) - 0x80);
           if (IS_PSEDOUTF8(idx)) {
-            gbk_or_utf8++;
+            gbkOrUtf8++;
           }
         }
       } else if (IS_UTF8_1ST_OF_3(*str)) {
@@ -502,7 +508,7 @@ int is_utf8(const char *src, unsigned int len, bool check_last_char) {
     while (*str) {
       if (IS_UTF8_1ST_OF_1(*str)) {
         str++;
-        ascii_len++;
+        asciiLen++;
       } else if (IS_UTF8_1ST_OF_2(*str)) {
         str++;
         if (!IS_UTF8_2ND_THRU_6TH(*str))
@@ -518,7 +524,7 @@ int is_utf8(const char *src, unsigned int len, bool check_last_char) {
           /* 0xC0 - 0x80 = 64 */
           idx = (*(str - 2) - 0xC2) * 64 + (*(str - 1) - 0x80);
           if (IS_PSEDOUTF8(idx)) {
-            gbk_or_utf8++;
+            gbkOrUtf8++;
           }
         }
       } else if (IS_UTF8_1ST_OF_3(*str)) {
@@ -541,11 +547,11 @@ int is_utf8(const char *src, unsigned int len, bool check_last_char) {
     }
   }
 
-  if (gbk_or_utf8 && ((unsigned int)gbk_or_utf8 << 1) == (len - ascii_len)) {
+  if (gbkOrUtf8 && ((unsigned int)gbkOrUtf8 << 1) == (len - asciiLen)) {
     return 0;
   }
 
-  if ((flag == 2) && ((len - ascii_len) > 4) && check_last_char) {
+  if ((flag == 2) && ((len - asciiLen) > 4) && checkLastChar) {
     if (str > (const uint8_t *)src)
       str--;
     if ((unsigned int)((str - (const uint8_t *)src) + 4) >= len) {
@@ -559,7 +565,7 @@ int is_utf8(const char *src, unsigned int len, bool check_last_char) {
     return 0;
 }
 
-bool is_gbk(const char *src) {
+bool isGBK(const char *src) {
   if (src == NULL || *src == '\0')
     return false;
 
@@ -583,7 +589,7 @@ bool is_gbk(const char *src) {
   return true;
 }
 
-bool is_gbk_n(const char *src, int length) {
+bool isGBK(const char *src, int length) {
   if (src == NULL || *src == '\0') {
     return false;
   }

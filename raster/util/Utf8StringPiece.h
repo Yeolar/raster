@@ -1,5 +1,17 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
@@ -24,7 +36,7 @@ inline const char32_t& value_before(Utf8CharIterator i) {
  * wouldn't.)
  */
 class Utf8StringPiece : private boost::totally_ordered<Utf8StringPiece> {
-public:
+ public:
   typedef size_t size_type;
   typedef Utf8CharIterator iterator;
   typedef Utf8CharIterator const_iterator;
@@ -37,7 +49,7 @@ public:
   Utf8StringPiece() : b_(), e_() {
   }
 
-public:
+ public:
   Utf8StringPiece(Utf8CharIterator start, Utf8CharIterator end)
   : b_(start), e_(end) { }
 
@@ -186,7 +198,7 @@ public:
     std::swap(e_, rhs.e_);
   }
 
-private:
+ private:
   iterator b_, e_;
 };
 

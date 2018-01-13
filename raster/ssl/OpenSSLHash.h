@@ -1,6 +1,18 @@
 /*
  * Copyright 2017 Facebook, Inc.
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
@@ -15,10 +27,10 @@
 namespace rdd {
 
 class OpenSSLHash {
-public:
+ public:
 
   class Digest {
-  public:
+   public:
     Digest() : ctx_(EVP_MD_CTX_new()) {}
 
     Digest(const Digest& other) {
@@ -57,7 +69,7 @@ public:
       md_ = nullptr;
     }
 
-  private:
+   private:
     const EVP_MD* md_ = nullptr;
     EvpMdCtxUniquePtr ctx_{nullptr};
   };
@@ -94,7 +106,7 @@ public:
   }
 
   class Hmac {
-  public:
+   public:
     Hmac() : ctx_(HMAC_CTX_new()) {}
 
     void hash_init(const EVP_MD* md, ByteRange key) {
@@ -119,7 +131,7 @@ public:
       check_libssl_result(size, int(len));
       md_ = nullptr;
     }
-  private:
+   private:
     const EVP_MD* md_ = nullptr;
     HmacCtxUniquePtr ctx_{nullptr};
   };
@@ -161,7 +173,7 @@ public:
     hmac(out, EVP_sha256(), key, data);
   }
 
-private:
+ private:
   static inline void check_out_size(size_t size, MutableByteRange out) {
     if (LIKELY(size == out.size())) {
       return;

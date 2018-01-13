@@ -1,5 +1,17 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
@@ -9,84 +21,47 @@
 #include "raster/net/NetUtil.h"
 #include "raster/protocol/proto/RpcChannel.h"
 #include "raster/protocol/proto/RpcController.h"
-#include "raster/util/Logging.h"
 
 namespace rdd {
 
 template <class C>
 class PBSyncClient {
-public:
-  PBSyncClient(const std::string& host,
-               int port,
+ public:
+  PBSyncClient(const ClientOption& option);
+
+  PBSyncClient(const Peer& peer,
+               const TimeoutOption& timeout);
+
+  PBSyncClient(const Peer& peer,
                uint64_t ctimeout = 100000,
                uint64_t rtimeout = 1000000,
-               uint64_t wtimeout = 300000)
-    : peer_(host, port) {
-    timeout_ = {ctimeout, rtimeout, wtimeout};
-    init();
-  }
-  PBSyncClient(const ClientOption& option)
-    : peer_(option.peer)
-    , timeout_(option.timeout) {
-    init();
-  }
-  virtual ~PBSyncClient() {
-    close();
-  }
+               uint64_t wtimeout = 300000);
 
-  void close() {
-    if (rpcChannel_->isOpen()) {
-      rpcChannel_->close();
-    }
-  }
+  virtual ~PBSyncClient();
 
-  bool connect() {
-    try {
-      rpcChannel_->open();
-    }
-    catch (std::exception& e) {
-      RDDLOG(ERROR) << "PBSyncClient: connect " << peer_.str()
-        << " failed, " << e.what();
-      return false;
-    }
-    RDDLOG(DEBUG) << "connect peer[" << peer_.str() << "]";
-    return true;
-  }
+  void close();
 
-  bool connected() const { return rpcChannel_->isOpen(); }
+  bool connect();
+
+  bool connected() const;
 
   template <class Res, class Req>
   bool fetch(void (C::*func)(google::protobuf::RpcController*,
                              const Req*, Res*,
                              google::protobuf::Closure*),
              Res& _return,
-             const Req& request) {
-    try {
-      (service_.get()->*func)(controller_.get(), &request, &_return, nullptr);
-    }
-    catch (std::exception& e) {
-      RDDLOG(ERROR) << "PBSyncClient: fetch " << peer_.str()
-        << " failed, " << e.what();
-      return false;
-    }
-    return true;
-  }
+             const Req& request);
 
-private:
-  void init() {
-    rpcChannel_.reset(new PBSyncRpcChannel(peer_));
-    rpcChannel_->setTimeout(timeout_);
-    controller_.reset(new PBRpcController());
-    service_.reset(new C(rpcChannel_.get()));
-    RDDLOG(DEBUG) << "SyncClient: " << peer_.str()
-      << ", timeout=" << timeout_;
-  }
+ private:
+  void init();
 
   Peer peer_;
   TimeoutOption timeout_;
-  std::shared_ptr<PBSyncRpcChannel> rpcChannel_;
-  std::shared_ptr<google::protobuf::RpcController> controller_;
-  std::shared_ptr<C> service_;
+  std::unique_ptr<PBSyncRpcChannel> rpcChannel_;
+  std::unique_ptr<google::protobuf::RpcController> controller_;
+  std::unique_ptr<C> service_;
 };
 
 } // namespace rdd
+
+#include "raster/protocol/proto/SyncClient-inl.h"

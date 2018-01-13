@@ -1,72 +1,54 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
 
 #include "raster/net/NetUtil.h"
-#include "raster/protocol/binary/Transport.h"
-#include "raster/util/Logging.h"
+#include "raster/protocol/binary/SyncTransport.h"
 
 namespace rdd {
 
 class BinarySyncClient {
-public:
-  BinarySyncClient(const std::string& host, int port)
-    : peer_(host, port) {
-    init();
-  }
-  BinarySyncClient(const ClientOption& option)
-    : peer_(option.peer) {
-    init();
-  }
-  virtual ~BinarySyncClient() {
-    close();
-  }
+ public:
+  BinarySyncClient(const ClientOption& option);
 
-  void close() {
-    if (transport_->isOpen()) {
-      transport_->close();
-    }
-  }
+  BinarySyncClient(const Peer& peer,
+                   const TimeoutOption& timeout);
 
-  bool connect() {
-    try {
-      transport_->open();
-    }
-    catch (std::exception& e) {
-      RDDLOG(ERROR) << "BinarySyncClient: connect " << peer_.str()
-        << " failed, " << e.what();
-      return false;
-    }
-    RDDLOG(DEBUG) << "connect peer[" << peer_.str() << "]";
-    return true;
-  }
+  BinarySyncClient(const Peer& peer,
+                   uint64_t ctimeout = 100000,
+                   uint64_t rtimeout = 1000000,
+                   uint64_t wtimeout = 300000);
 
-  bool connected() const { return transport_->isOpen(); }
+  virtual ~BinarySyncClient();
 
-  template <class Req = ByteRange, class Res = ByteRange>
-  bool fetch(Res& _return, const Req& request) {
-    try {
-      transport_->send(request);
-      transport_->recv(_return);
-    }
-    catch (std::exception& e) {
-      RDDLOG(ERROR) << "BinarySyncClient: fetch " << peer_.str()
-        << " failed, " << e.what();
-      return false;
-    }
-    return true;
-  }
+  void close();
 
-private:
-  void init() {
-    transport_.reset(new BinaryTransport(peer_));
-    RDDLOG(DEBUG) << "SyncClient: " << peer_.str();
-  }
+  bool connect();
+
+  bool connected() const;
+
+  bool fetch(ByteRange& response, const ByteRange& request);
+
+ private:
+  void init();
 
   Peer peer_;
-  std::shared_ptr<BinaryTransport> transport_;
+  TimeoutOption timeout_;
+  std::unique_ptr<BinarySyncTransport> transport_;
 };
 
 } // namespace rdd

@@ -1,15 +1,27 @@
 /*
  * Copyright (c) 2015, Facebook, Inc.
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-#include <array>
-#include <string>
+#include "raster/protocol/http/HTTPMessage.h"
+
 #include <utility>
 #include <vector>
 
-#include "raster/protocol/http/HTTPMessage.h"
 #include "raster/util/String.h"
+#include "raster/util/Time.h"
 
 namespace rdd {
 
@@ -189,7 +201,7 @@ std::string HTTPMessage::formatDateHeader() {
 
 void HTTPMessage::ensureHostHeader() {
   if (!headers_.exists(HTTP_HEADER_HOST)) {
-    headers_.add(HTTP_HEADER_HOST, getDstIP());
+    headers_.add(HTTP_HEADER_HOST, getDstAddress().getHostStr());
   }
 }
 
@@ -475,23 +487,21 @@ void HTTPMessage::dumpMessage(int vlogLevel) const {
     << ", chunked: " << chunked_
     << ", Fields for message:";
 
-  std::string dstPort = to<std::string>(dstAddr_.port);
-  std::string clientPort;
+  std::string dst = dstAddr_.describe();
+  std::string client;
 
   // Common fields to both requests and responses.
   std::vector<std::pair<const char*, const std::string*>> fields {{
     {"local_ip", &localIP_},
     {"version", &versionStr_},
-    {"dst_ip", &dstAddr_.host},
-    {"dst_port", &dstPort},
+    {"dst", &dst},
   }};
 
   if (fields_.type() == typeid(Request)) {
     // Request fields.
     const Request& req = request();
-    clientPort = to<std::string>(req.clientAddr_.port);
-    fields.push_back(make_pair("client_ip", &req.clientAddr_.host));
-    fields.push_back(make_pair("client_port", &clientPort));
+    client = req.clientAddr_.describe();
+    fields.push_back(make_pair("client", &client));
     fields.push_back(make_pair("method", &getMethodString()));
     fields.push_back(make_pair("path", &req.path_));
     fields.push_back(make_pair("query", &req.query_));

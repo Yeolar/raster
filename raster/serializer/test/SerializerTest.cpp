@@ -1,7 +1,20 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
+#include "raster/io/Cursor.h"
 #include "raster/serializer/Serializer.h"
 #include <map>
 #include <string>
@@ -10,6 +23,31 @@
 
 namespace rdd {
 
+/*
+ * Outer base on IOBuf, support string-like interface.
+ */
+class IOBufOuter {
+public:
+  IOBufOuter(IOBuf* buf, uint64_t growth)
+    : appender_(buf, growth) {}
+
+  void append(const char* p, size_t n) {
+    appender_.pushAtMost((uint8_t*)p, n);
+  }
+
+  void append(const std::string& s) {
+    append(s.data(), s.size());
+  }
+
+private:
+  io::Appender appender_;
+};
+
+template <class T, class Out>
+inline typename std::enable_if<std::is_arithmetic<T>::value>::type
+serialize(const T& value, Out& out) {
+  out.append((char*)&value, sizeof(T));
+}
 struct BasicTypeObject {
   bool b{false};
   int i{0};

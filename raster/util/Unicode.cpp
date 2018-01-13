@@ -1,16 +1,29 @@
 /*
  * Copyright 2017 Facebook, Inc.
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 //#define U_HIDE_DRAFT_API 1
+
+#include "raster/util/Unicode.h"
 
 #include <unicode/uchar.h>
 #include <unicode/unistr.h>
 #include <unicode/normlzr.h>
 #include <unicode/translit.h>
 
-#include "raster/util/Unicode.h"
 #include "raster/util/Utf8StringPiece.h"
 
 namespace rdd {
@@ -627,8 +640,7 @@ std::string normalize(const rdd::StringPiece& sp, NormalizationMode mode) {
   icu::UnicodeString us = icu::UnicodeString::fromUTF8(usp);
   icu::UnicodeString out;
   UErrorCode err = U_ZERO_ERROR;
-  icu::Normalizer::normalize(
-      us, (UNormalizationMode)mode, 0, out, err);
+  icu::Normalizer::normalize(us, (UNormalizationMode)mode, 0, out, err);
   if (err != U_ZERO_ERROR) {
     RDDLOG(WARN) << "normalize error: " << err;
   }
@@ -677,7 +689,9 @@ std::string cutText(const std::string& text,
     if (i >= len && !isContiGraph('_', *q)) break;
     if (unicode::isWide(*q)) i++; i++; q++;
   }
-  return ((p != b ? "..." : "") + utf8Piece(p, q).str() + (q != e ? "..." : ""));
+  return to<std::string>((p != b ? "..." : ""),
+                         utf8Piece(p, q).str(),
+                         (q != e ? "..." : ""));
 }
 
 } // namespace rdd

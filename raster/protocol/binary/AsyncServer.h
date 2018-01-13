@@ -1,26 +1,40 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
 
 #include "raster/net/Service.h"
 #include "raster/protocol/binary/Processor.h"
-#include "raster/protocol/binary/Protocol.h"
 
 namespace rdd {
 
 template <class P>
 class BinaryAsyncServer : public Service {
-public:
-  virtual void makeChannel(int port, const TimeoutOption& timeoutOpt) {
-    std::shared_ptr<Protocol> protocol(
-      new BinaryProtocol());
-    std::shared_ptr<ProcessorFactory> processorFactory(
-      new BinaryProcessorFactory<P>());
-    Peer peer = {"", port};
+ public:
+  BinaryAsyncServer(StringPiece name) : Service(name) {}
+  ~BinaryAsyncServer() override {}
+
+  void makeChannel(int port, const TimeoutOption& timeout) override {
+    Peer peer;
+    peer.setFromLocalPort(port);
     channel_ = std::make_shared<Channel>(
-      Channel::DEFAULT, peer, timeoutOpt, protocol, processorFactory);
+        peer,
+        timeout,
+        make_unique<BinaryTransportFactory>(),
+        make_unique<BinaryProcessorFactory<P>>());
   }
 };
 

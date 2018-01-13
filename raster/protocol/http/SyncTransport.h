@@ -1,67 +1,48 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
 
-#include "raster/io/Cursor.h"
-#include "raster/net/Protocol.h"
 #include "raster/protocol/http/Transport.h"
 
 namespace rdd {
 
 class HTTPSyncTransport : public HTTPTransport {
-public:
-  HTTPSyncTransport(const Peer& peer)
+ public:
+  HTTPSyncTransport(const Peer& peer, const TimeoutOption& timeout)
     : HTTPTransport(TransportDirection::UPSTREAM),
       peer_(peer),
-      socket_(0) {
-    rbuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
-    wbuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
-  }
+      timeout_(timeout) {}
 
-  virtual ~HTTPSyncTransport() {}
+  ~HTTPSyncTransport() override {}
 
-  void open() {
-    socket_.setReuseAddr();
-    socket_.setTCPNoDelay();
-    socket_.connect(peer_);
-  }
+  void open();
 
-  bool isOpen() {
-    return socket_.isConnected();
-  }
+  bool isOpen();
 
-  void close() {
-    socket_.close();
-  }
+  void close();
 
-  void send() {
-    pushWriteData(wbuf_.get());
-    io::Cursor cursor(wbuf_.get());
-    auto p = cursor.peek();
-    socket_.send((uint8_t*)p.first, p.second);
-  }
+  void send();
 
-  void recv() {
-    /* TODO
-    io::Appender appender(rbuf_.get(), Protocol::CHUNK_SIZE);
-    uint32_t n = sizeof(uint32_t);
-    appender.ensure(n);
-    appender.append(socket_.recv(appender.writableData(), n));
-    n = ntohl(*TypedIOBuf<uint32_t>(rbuf_.get()).data());
-    appender.ensure(n);
-    appender.append(socket_.recv(appender.writableData(), n));
-  */
-    parseReadData(rbuf_.get());
-  }
+  void recv();
 
-private:
+ private:
   Peer peer_;
-  Socket socket_;
-
-  std::unique_ptr<IOBuf> rbuf_;
-  std::unique_ptr<IOBuf> wbuf_;
+  TimeoutOption timeout_;
+  std::unique_ptr<Socket> socket_;
 };
 
 } // namespace rdd

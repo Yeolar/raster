@@ -1,5 +1,17 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
@@ -14,7 +26,7 @@ namespace rdd {
 namespace logging {
 
 class RDDLogger : public BaseLogger {
-public:
+ public:
   RDDLogger() : BaseLogger("rdd") {}
 };
 
@@ -43,7 +55,6 @@ public:
         severity, __FILENAME__, __LINE__, traceid).stream()
 #endif
 
-
 #ifndef RDDLOG_STREAM_RAW
 #define RDDLOG_STREAM_RAW(severity)                                         \
   (::rdd::Singleton< ::rdd::logging::RDDLogger>::get()->level() > severity) \
@@ -53,17 +64,29 @@ public:
         ::rdd::Singleton< ::rdd::logging::RDDLogger>::get()).stream()
 #endif
 
+#ifndef RDDLOG_COST_IMPL
+#define RDDLOG_COST_IMPL(severity, threshold)                               \
+  (::rdd::Singleton< ::rdd::logging::RDDLogger>::get()->level() > severity) \
+    ? (bool)0                                                               \
+    : ::rdd::logging::detail::LogScopeParam{                                \
+        ::rdd::Singleton< ::rdd::logging::RDDLogger>::get(),                \
+        severity, __FILENAME__, __LINE__, threshold} + [&]() noexcept
+#endif
+
 ///////////////////////////////////////////////////////////////////////////
 // rdd framework
 //
 #define RDDLOG(severity) \
   RDDLOG_STREAM(::rdd::logging::LOG_##severity)
-#define RDDRLOG(severity) \
-  RDDLOG_STREAM_RAW(::rdd::logging::LOG_##severity)
+
 #define RDDTLOG(severity, traceid) \
   RDDLOG_STREAM_TRACE(::rdd::logging::LOG_##severity, traceid)
+
 #define RDDPLOG(severity) \
   RDDLOG(severity) << ::rdd::errnoStr(errno) << ", "
+
+#define RDDRLOG(severity) \
+  RDDLOG_STREAM_RAW(::rdd::logging::LOG_##severity)
 
 #define RDDLOG_ON(severity) \
   if (::rdd::Singleton< ::rdd::logging::RDDLogger>::get()->level() \
@@ -104,26 +127,6 @@ public:
 #define DCHECK_NE(a, b)   while (false) RDDCHECK_NE(a, b)
 #endif
 
-namespace rdd {
+#define RDDCOST_SCOPE(severity, threshold) \
+  RDDLOG_COST_IMPL(::rdd::logging::LOG_##severity, threshold)
 
-class CostLogger {
-public:
-  CostLogger(const char* name, const char* msg, uint64_t threshold = 0)
-    : threshold_(threshold), name_(name), msg_(msg) {
-    start_ = timestampNow();
-  }
-  ~CostLogger() {
-    uint64_t cost = timePassed(start_);
-    if (cost >= threshold_) {
-      RDDLOG(INFO) << "cost[" << name_ << "]: " << cost << "us, " << msg_;
-    }
-  }
-
-private:
-  uint64_t start_;
-  uint64_t threshold_;
-  const char* name_;
-  const char* msg_;
-};
-
-} // namespace rdd

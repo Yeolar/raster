@@ -1,6 +1,18 @@
 /*
  * Copyright 2017 Facebook, Inc.
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 // @author Mark Rabkin (mrabkin@fb.com)
@@ -136,7 +148,7 @@ struct IsCharPointer<const char*> {
  */
 template <class Iter>
 class Range : private boost::totally_ordered<Range<Iter> > {
-public:
+ public:
   typedef std::size_t size_type;
   typedef Iter iterator;
   typedef Iter const_iterator;
@@ -169,7 +181,7 @@ public:
   constexpr Range(const Range&) = default;
   constexpr Range(Range&&) = default;
 
-public:
+ public:
   // Works for all iterators
   constexpr Range(Iter start, Iter end) : b_(start), e_(end) {
   }
@@ -711,7 +723,7 @@ public:
    *      s.split_step(' ', kludge, foo);
    *    }
    *
-   *  private:
+   *   private:
    *    int bar;
    *    int baz;
    *    int gaz;
@@ -738,7 +750,7 @@ public:
     -> decltype(process(std::declval<Range>(), std::forward<Args>(args)...))
   { return process(split_step(delimiter), std::forward<Args>(args)...); }
 
-private:
+ private:
   Iter b_, e_;
 };
 

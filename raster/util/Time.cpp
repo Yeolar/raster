@@ -1,21 +1,34 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
+#include "raster/util/Time.h"
 
 #include <cmath>
 #include <cstring>
-#include <ctime>
 #include <stdexcept>
 
 #include "raster/util/Logging.h"
-#include "raster/util/Time.h"
 
 namespace rdd {
 
 std::string timePrintf(time_t t, const char *format) {
   std::string output;
+  struct tm tm;
 
-  const struct tm *tm = std::localtime(&t);
+  ::localtime_r(&t, &tm);
 
   size_t formatLen = strlen(format);
   size_t remaining = std::max(32UL, formatLen * 2);
@@ -23,7 +36,7 @@ std::string timePrintf(time_t t, const char *format) {
   size_t bytesUsed = 0;
 
   do {
-    bytesUsed = strftime(&output[0], remaining, format, tm);
+    bytesUsed = strftime(&output[0], remaining, format, &tm);
     if (bytesUsed == 0) {
       remaining *= 2;
       if (remaining > formatLen * 16) {
@@ -41,25 +54,17 @@ std::string timePrintf(time_t t, const char *format) {
 }
 
 bool isSameDay(time_t t1, time_t t2) {
-  struct tm* tm;
-  tm = localtime(&t1);
-  int y1 = tm->tm_year;
-  int d1 = tm->tm_yday;
-  tm = localtime(&t2);
-  int y2 = tm->tm_year;
-  int d2 = tm->tm_yday;
-  return (y1 == y2 && d1 == d2);
-}
+  struct tm tm;
 
-uint64_t AutoTimer::logImpl(uint64_t now, StringPiece msg) {
-  auto duration = now - start_;
-  if (duration >= minTimeToLog_) {
-    if (!msg.empty()) {
-      RDDLOG(INFO) << msg << " in " << double(duration)/1000000000 << " sec";
-    }
-  }
-  start_ = nanoTimestampNow() - duration;
-  return duration;
+  ::localtime_r(&t1, &tm);
+  int y1 = tm.tm_year;
+  int d1 = tm.tm_yday;
+
+  ::localtime_r(&t2, &tm);
+  int y2 = tm.tm_year;
+  int d2 = tm.tm_yday;
+
+  return (y1 == y2 && d1 == d2);
 }
 
 } // namespace rdd

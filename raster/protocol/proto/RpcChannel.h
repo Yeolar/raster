@@ -1,42 +1,52 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
 
 #include <memory>
 #include <string>
-#include <arpa/inet.h>
 #include <google/protobuf/service.h>
 
 #include "raster/io/event/Event.h"
 #include "raster/net/NetUtil.h"
 #include "raster/net/Socket.h"
-#include "raster/protocol/proto/Encoding.h"
-#include "raster/util/LockedMap.h"
+#include "raster/protocol/binary/Transport.h"
+#include "raster/thread/LockedMap.h"
 
 namespace rdd {
 
 class PBRpcChannel : public google::protobuf::RpcChannel {
-public:
-  PBRpcChannel() {}
-  virtual ~PBRpcChannel() {}
+ public:
+  ~PBRpcChannel() override {}
 
-  virtual void CallMethod(
+  void CallMethod(
       const google::protobuf::MethodDescriptor* method,
       google::protobuf::RpcController* controller,
       const google::protobuf::Message* request,
       google::protobuf::Message* response,
-      google::protobuf::Closure* done);
+      google::protobuf::Closure* done) override;
 
   void process(const std::unique_ptr<IOBuf>& buf);
 
-protected:
+ protected:
   virtual void send(
-      std::unique_ptr<IOBuf>& buf,
+      std::unique_ptr<IOBuf> buf,
       std::function<void(bool, const std::string&)> resultCb) = 0;
 
-private:
+ private:
   struct Handle {
     Handle(google::protobuf::RpcController* controller_,
            google::protobuf::Message* response_,
@@ -58,72 +68,38 @@ private:
 };
 
 class PBSyncRpcChannel : public PBRpcChannel {
-public:
-  PBSyncRpcChannel(const Peer& peer) : peer_(peer), socket_(0) {}
+ public:
+  PBSyncRpcChannel(const Peer& peer, const TimeoutOption& timeout)
+    : peer_(peer), timeout_(timeout) {}
 
-  virtual ~PBSyncRpcChannel() {}
+  ~PBSyncRpcChannel() override {}
 
-  void setTimeout(const TimeoutOption& opt) {
-    socket_.setConnTimeout(opt.ctimeout);
-    socket_.setRecvTimeout(opt.rtimeout);
-    socket_.setSendTimeout(opt.wtimeout);
-  }
+  void open();
 
-  void open() {
-    socket_.setReuseAddr();
-    socket_.setTCPNoDelay();
-    socket_.connect(peer_);
-  }
+  bool isOpen();
 
-  bool isOpen() {
-    return socket_.isConnected();
-  }
+  void close();
 
-  void close() {
-    socket_.close();
-  }
-
-private:
-  virtual void send(
-      std::unique_ptr<IOBuf>& buf,
-      std::function<void(bool, const std::string&)> resultCb) {
-    uint32_t n = buf->computeChainDataLength();
-    n = htonl(n);
-    socket_.send(&n, sizeof(uint32_t));
-    io::Cursor cursor(buf.get());
-    while (!cursor.isAtEnd()) {
-      auto p = cursor.peek();
-      cursor += socket_.send((uint8_t*)p.first, p.second);
-    }
-    resultCb(true, "");
-
-    socket_.recv(&n, sizeof(uint32_t));
-    n = ntohl(n);
-    std::unique_ptr<IOBuf> data(IOBuf::create(Protocol::CHUNK_SIZE));
-    io::Appender appender(data.get(), Protocol::CHUNK_SIZE);
-    appender.ensure(n);
-    socket_.recv(appender.writableData(), n);
-    appender.append(n);
-    process(data);
-  }
+ private:
+  void send(
+      std::unique_ptr<IOBuf> buf,
+      std::function<void(bool, const std::string&)> resultCb) override;
 
   Peer peer_;
-  Socket socket_;
+  TimeoutOption timeout_;
+  std::unique_ptr<Socket> socket_;
+  BinaryTransport transport_;
 };
 
 class PBAsyncRpcChannel : public PBRpcChannel {
-public:
+ public:
   PBAsyncRpcChannel(Event* event) : event_(event) {}
+  ~PBAsyncRpcChannel() override {}
 
-  virtual ~PBAsyncRpcChannel() {}
-
-private:
-  virtual void send(
-      std::unique_ptr<IOBuf>& buf,
-      std::function<void(bool, const std::string&)> resultCb) {
-    proto::encodeData(event_->wbuf, buf);
-    resultCb(true, "");
-  }
+ private:
+  void send(
+      std::unique_ptr<IOBuf> buf,
+      std::function<void(bool, const std::string&)> resultCb) override;
 
   Event* event_;
 };

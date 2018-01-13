@@ -1,10 +1,24 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-#include "raster/framework/Monitor.h"
 #include "raster/io/event/EventLoop.h"
+
+#include "raster/framework/Monitor.h"
 #include "raster/net/Channel.h"
+#include "raster/util/ScopeGuard.h"
 
 namespace rdd {
 
@@ -14,68 +28,77 @@ EventLoop::EventLoop(int pollSize, int pollTimeout)
     stop_(false),
     loopThread_(),
     handler_(this) {
-  poll_.add(waker_.fd(), EPOLLIN, new Event(&waker_));
+  poll_.add(waker_.fd(), EPoll::kRead);
 }
 
-void EventLoop::listen(const std::shared_ptr<Channel>& channel, int backlog) {
-  int port = channel->peer().port;
-  auto socket = std::make_shared<Socket>(0);
-  if (!(*socket) ||
-      !(socket->setReuseAddr()) ||
-      // !(socket->setLinger(0)) ||
-      !(socket->setTCPNoDelay()) ||
-      !(socket->setNonBlocking()) ||
-      !(socket->bind(port)) ||
-      !(socket->listen(backlog))) {
-    throw std::runtime_error("socket listen failed");
-  }
-  Event *event = createEvent(channel, socket);
-  if (!event) {
-    throw std::runtime_error("create listening event failed");
-  }
-  listenFds_.emplace_back(socket->fd());
-  event->setType(Event::LISTEN);
-  dispatchEvent(event);
-  RDDLOG(INFO) << *event << " listen on port=" << port;
+void EventLoop::loop() {
+  return loopBody();
+}
+
+void EventLoop::loopOnce() {
+  return loopBody(true);
 }
 
 void EventLoop::loopBody(bool once) {
-  loopThread_ = pthread_self();
+  RDDLOG(V5) << "EventLoop(): Starting loop.";
 
-  while (!stop_) {
+  loopThread_.store(std::this_thread::get_id(), std::memory_order_release);
+
+  while (!stop_.load(std::memory_order_acquire)) {
     uint64_t t0 = timestampNow();
 
     std::vector<Event*> events;
-    std::vector<VoidFunc> callbacks;
     {
       std::lock_guard<std::mutex> guard(eventsLock_);
       events.swap(events_);
     }
-    for (auto& e : events) {
-      dispatchEvent(e);
+    for (auto& ev : events) {
+      RDDLOG(V2) << *ev << " add event";
+      pushEvent(ev);
+      dispatchEvent(ev);
     }
+
+    std::vector<VoidFunc> callbacks;
     {
       std::lock_guard<std::mutex> guard(callbacksLock_);
       callbacks.swap(callbacks_);
     }
-    for (auto& callback : callbacks) {
-      callback();
+    for (auto& cb : callbacks) {
+      cb();
     }
 
-    checkTimeoutEvent();
+    checkTimeoutEvents();
 
-    if (!once) {
-      int n = poll_.poll(timeout_);
-      if (n >= 0) {
-        for (int i = 0; i < n; ++i) {
-          epoll_data_t edata;
-          uint32_t etype = poll_.getData(i, edata);
-          Event* event = (Event*) edata.ptr;
+    int n = poll_.wait(timeout_);
+    if (n > 0) {
+      for (int i = 0; i < n; ++i) {
+        struct epoll_event p = poll_.get(i);
+        int fd = p.data.fd;
+        if (fd == waker_.fd()) {
+          waker_.consume();
+        } else {
+          Event* event = fdEvents_[fd];
           if (event) {
-            if (event->type() == Event::WAKER) {
-              waker_.consume();
-            } else {
-              handler_.handle(event, etype);
+            RDDLOG(V2) << *event << " on event, type=" << p.events;
+            switch (event->state()) {
+              case Event::kListen:
+                handler_.onListen(event); break;
+              case Event::kConnect:
+                handler_.onConnect(event); break;
+              case Event::kNext:
+                restartEvent(event);
+              case Event::kToRead:
+              case Event::kReading:
+                handler_.onRead(event); break;
+              case Event::kToWrite:
+              case Event::kWriting:
+                handler_.onWrite(event); break;
+              case Event::kTimeout:
+                handler_.onTimeout(event); break;
+              default:
+                RDDLOG(ERROR) << *event << " error event, type=" << p.events;
+                handler_.closePeer(event);
+                break;
             }
           }
         }
@@ -88,14 +111,14 @@ void EventLoop::loopBody(bool once) {
     RDDMON_AVG("loopcost", cost);
     RDDMON_MAX("loopcost.max", cost);
 
-    // Singleton<Actor>::get()->monitoring();
-
     if (once) {
       break;
     }
   }
+
   stop_ = false;
-  loopThread_ = 0;
+
+  loopThread_.store({}, std::memory_order_release);
 }
 
 void EventLoop::stop() {
@@ -109,78 +132,80 @@ void EventLoop::stop() {
 void EventLoop::addEvent(Event* event) {
   {
     std::lock_guard<std::mutex> guard(eventsLock_);
-    events_.emplace_back(event);
+    events_.push_back(event);
   }
   waker_.wake();
 }
 
-void EventLoop::addCallback(const VoidFunc& callback) {
+void EventLoop::addCallback(VoidFunc&& callback) {
   {
     std::lock_guard<std::mutex> guard(callbacksLock_);
-    callbacks_.emplace_back(callback);
+    callbacks_.push_back(std::move(callback));
   }
   waker_.wake();
 }
 
-void EventLoop::dispatchEvent(Event *event) {
-  RDDLOG(V2) << *event
-    << " add event with executor(" << (void*)event->executor() << ")";
-  switch (event->type()) {
-    case Event::LISTEN:
-      addListenEvent(event); break;
-    case Event::NEXT:
-    case Event::TOREAD:
-      addReadEvent(event); break;
-    case Event::CONNECT:
-    case Event::TOWRITE:
-      addWriteEvent(event); break;
+void EventLoop::dispatchEvent(Event* event) {
+  switch (event->state()) {
+    case Event::kListen: {
+      listenFds_.push_back(event->fd());
+      poll_.add(event->fd(), EPoll::kRead);
+      break;
+    }
+    case Event::kNext:
+    case Event::kToRead: {
+      RDDLOG(V2) << *event << " add e/rdeadline";
+      deadlineHeap_.push(event->state() == Event::kNext ?
+                         event->edeadline() : event->rdeadline());
+      // already update epoll
+      break;
+    }
+    case Event::kConnect:
+    case Event::kToWrite: {
+      RDDLOG(V2) << *event << " add c/wdeadline";
+      deadlineHeap_.push(event->state() == Event::kConnect ?
+                         event->cdeadline() : event->wdeadline());
+      poll_.add(event->fd(), EPoll::kWrite);
+      break;
+    }
     default:
       RDDLOG(ERROR) << *event << " cannot add event";
-      break;
+      return;
   }
 }
 
-void EventLoop::addListenEvent(Event *event) {
-  assert(event->type() == Event::LISTEN);
-  poll_.add(event->fd(), EPOLLIN, event);
-}
-
-void EventLoop::addReadEvent(Event *event) {
-  assert(event->type() == Event::NEXT ||
-         event->type() == Event::TOREAD);
-  RDDLOG(V2) << *event << " add e/rdeadline";
-  deadlineHeap_.push(event->type() == Event::NEXT ?
-                     event->edeadline() : event->rdeadline());
-  poll_.add(event->fd(), EPOLLIN, event);
-}
-
-void EventLoop::addWriteEvent(Event *event) {
-  assert(event->type() == Event::CONNECT ||
-         event->type() == Event::TOWRITE);
-  RDDLOG(V2) << *event << " add wdeadline";
-  // TODO epoll_wait interval
-  //deadlineHeap_.push(event->type() == Event::CONNECT ?
-  //                    event->cdeadline() : event->wdeadline());
-  deadlineHeap_.push(event->wdeadline());
-  poll_.add(event->fd(), EPOLLOUT, event);
-}
-
-void EventLoop::removeEvent(Event *event) {
+void EventLoop::updateEvent(Event *event, uint32_t events) {
   RDDLOG(V2) << *event << " remove deadline";
   deadlineHeap_.erase(event);
-  RDDLOG(V2) << *event << " remove event";
-  poll_.remove(event->fd());
+
+  RDDLOG(V2) << *event << " update event";
+  poll_.modify(event->fd(), events);
 }
 
 void EventLoop::restartEvent(Event* event) {
   RDDLOG(V2) << *event << " remove deadline";
   deadlineHeap_.erase(event);
+
   event->restart();  // the next request
+
   RDDLOG(V2) << *event << " add rdeadline";
   deadlineHeap_.push(event->rdeadline());
 }
 
-void EventLoop::checkTimeoutEvent() {
+void EventLoop::pushEvent(Event* event) {
+  fdEvents_[event->fd()] = event;
+}
+
+void EventLoop::popEvent(Event* event) {
+  RDDLOG(V2) << *event << " remove deadline";
+  deadlineHeap_.erase(event);
+
+  RDDLOG(V2) << *event << " remove event";
+  poll_.remove(event->fd());
+  fdEvents_[event->fd()] = nullptr;
+}
+
+void EventLoop::checkTimeoutEvents() {
   uint64_t now = timestampNow();
 
   while (true) {
@@ -189,13 +214,13 @@ void EventLoop::checkTimeoutEvent() {
     if (!event) {
       break;
     }
-    if (timeout.repeat && Socket::count() < Socket::LCOUNT) {
-      timeout.deadline += Socket::LTIMEOUT;
+    if (timeout.repeat && Socket::count() < FLAGS_net_conn_limit) {
+      timeout.deadline += FLAGS_net_conn_timeout;
       deadlineHeap_.push(timeout);
     }
     else {
       RDDLOG(V2) << *event << " pop deadline";
-      event->setType(Event::TIMEOUT);
+      event->setState(Event::kTimeout);
       RDDLOG(WARN) << *event << " remove timeout event: >"
         << timeout.deadline - event->starttime();
       handler_.onTimeout(event);

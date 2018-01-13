@@ -1,7 +1,19 @@
 /*
  * Copyright 2017 Facebook, Inc.
  * Copyright ICU
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 // Some utility routines relating to unicode.
@@ -467,14 +479,15 @@ std::string asciify(const String& str) {
  */
 template <class Iter>
 class Utf8Iterator
-: public std::iterator<std::bidirectional_iterator_tag, char32_t>
-, private boost::totally_ordered<Utf8Iterator<Iter>> {
-public:
+  : public std::iterator<std::bidirectional_iterator_tag, char32_t>
+  , private boost::totally_ordered<Utf8Iterator<Iter>> {
+ public:
   Utf8Iterator() : p_() { }
   Utf8Iterator(const Iter& p) : p_(p) { }
-  Utf8Iterator(const Utf8Iterator& iter) : p_(iter.p_) { }
 
+  Utf8Iterator(const Utf8Iterator&) = default;
   Utf8Iterator& operator=(const Utf8Iterator&) = default;
+  Utf8Iterator(Utf8Iterator&&) = default;
   Utf8Iterator& operator=(Utf8Iterator&&) = default;
 
   Utf8Iterator& operator++() {
@@ -505,6 +518,7 @@ public:
       --it;
     return it;
   }
+
   Utf8Iterator operator-(ssize_t n) const {
     return *this + -n;
   }
@@ -526,15 +540,19 @@ public:
     return cp_;
   }
 
-  Iter operator&() const { return p_; }
+  Iter operator&() const {
+    return p_;
+  }
 
-  size_t length() const { return utf8CodePointLength(p_); }
+  size_t length() const {
+    return utf8CodePointLength(p_);
+  }
 
   StringPiece piece() const {
     return StringPiece(p_, utf8CodePointLength(p_));
   }
 
-private:
+ private:
   Iter p_;
   mutable char32_t cp_;
 };

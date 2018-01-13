@@ -1,14 +1,26 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
 
-#include <limits.h>
-#include <stdint.h>
 #include <chrono>
+#include <climits>
+#include <cstdint>
+#include <ctime>
 #include <string>
-#include <time.h>
 #include <boost/operators.hpp>
 
 #include "raster/util/Conv.h"
@@ -90,41 +102,8 @@ inline bool operator<(const Timeout<T>& lhs, const Timeout<T>& rhs) {
 
 bool isSameDay(time_t t1, time_t t2);
 
-class AutoTimer {
-public:
-  explicit AutoTimer(std::string&& msg = "", uint64_t minTimetoLog = 0)
-    : msg_(std::move(msg)),
-      start_(nanoTimestampNow()),
-      minTimeToLog_(minTimetoLog) {}
-
-  NOCOPY(AutoTimer);
-
-  ~AutoTimer() {
-    if (!msg_.empty()) {
-      log(msg_);
-    }
-  }
-
-  uint64_t log(StringPiece msg = "") {
-    return logImpl(nanoTimestampNow(), msg);
-  }
-
-  template <typename... Args>
-  uint64_t log(Args&&... args) {
-    auto now = nanoTimestampNow();
-    return logImpl(now, to<std::string>(std::forward<Args>(args)...));
-  }
-
-private:
-  uint64_t logImpl(uint64_t now, StringPiece msg);
-
-  std::string msg_;
-  uint64_t start_;
-  uint64_t minTimeToLog_;
-};
-
 class CycleTimer {
-public:
+ public:
   explicit CycleTimer(uint64_t cycle = 0)
     : start_(timestampNow()),
       cycle_(cycle) {}
@@ -134,14 +113,14 @@ public:
   }
 
   bool isExpired() {
-    if (cycle_ > 0 && timePassed(start_) > cycle_) {
+    if (cycle_ == 0 || timePassed(start_) > cycle_) {
       start_ = timestampNow();
       return true;
     }
     return false;
   }
 
-private:
+ private:
   uint64_t start_;
   uint64_t cycle_;
 };

@@ -1,5 +1,17 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 /*
@@ -8,7 +20,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 #define UCS2_NO_MAPPING         ((uint16_t)0xfffd)
 #define IS_ASCII(a)             (0 == (0xff80 & (a)))
@@ -86,9 +98,11 @@ enum {
  *  - UCONV_INVCHAR_REPLACE, replace with UCS2_NO_MAPPING
  *  - UCONV_INVCHAR_ERROR, return -1
  */
-int gbk_to_unicode(const char *src, unsigned int src_len,
-                   uint16_t *dst, unsigned int dst_size,
-                   int flags);
+int gbkToUnicode(const char *src,
+                 unsigned int srcLength,
+                 uint16_t *dst,
+                 unsigned int dstSize,
+                 int flags);
 
 /**
  * Convert unicode string to GBK encoding string,
@@ -97,13 +111,16 @@ int gbk_to_unicode(const char *src, unsigned int src_len,
  *
  * flags define behavior when meet invalid chars:
  *  - UCONV_INVCHAR_IGNORE, ignore
- *  - UCONV_INVCHAR_REPLACE, replace with replace_char
+ *  - UCONV_INVCHAR_REPLACE, replace with replaceChar
  *  - UCONV_INVCHAR_ERROR, return -1
  *  - UCONV_INVCHAR_ENTITES, replace with HTML entities
  */
-int unicode_to_gbk(const uint16_t *src, unsigned int src_len,
-                   char *dest, unsigned int dst_size,
-                   int flags, unsigned short replace_char);
+int unicodeToGBK(const uint16_t *src,
+                 unsigned int srcLength,
+                 char *dst,
+                 unsigned int dstSize,
+                 int flags,
+                 unsigned short replaceChar);
 
 /**
  * Convert GBK encoding string to UTF-8 encoding string.
@@ -113,40 +130,45 @@ int unicode_to_gbk(const uint16_t *src, unsigned int src_len,
  *  - UCONV_INVCHAR_IGNORE, ignore
  *  - UCONV_INVCHAR_ERROR, return -1
  */
-int gbk_to_utf8(const char *src, unsigned int src_len,
-                char *dst, unsigned int dst_size,
-                int flags);
+int gbkToUtf8(const char *src,
+              unsigned int srcLength,
+              char *dst,
+              unsigned int dstSize,
+              int flags);
 
 /**
  * Convert UTF-8 encoding string to GBK encoding string.
  * Return converted GBK encoding byte length, -1 on error.
  *
  * flags define behavior when meet invalid chars:
- *  - UCONV_INVCHAR_REPLACE, replace with rp_char
+ *  - UCONV_INVCHAR_REPLACE, replace with replaceChar
  *  - UCONV_INVCHAR_ERROR, return -1
  *  - UCONV_INVCHAR_ENTITES, replace with HTML entities
  */
-int utf8_to_gbk(const char *src, unsigned int src_len,
-                char *dst, unsigned int dst_size,
-                int flags, char rp_char);
+int utf8ToGBK(const char *src,
+              unsigned int srcLength,
+              char *dst,
+              unsigned int dstSize,
+              int flags,
+              char replaceChar);
 
 /**
  * If string is UTF-8 encoding, return valid UTF-8 chars byte length
  * checked (maybe less than len), else return 0.
  *
- * check_last_char = true allow the last char not match UTF8,
+ * checkLastChar = true allow the last char not match UTF8,
  * used for cutted string such as too long URL (cut by browser),
  * suggest false for other situations.
  *
  * NOTE: full alpha-char string is not considered as UTF-8 encoding.
  */
-int is_utf8(const char *str, unsigned int len, bool check_last_char);
+int isUtf8(const char *str, unsigned int len, bool checkLastChar);
 
 /**
  * If string is GBK encoding.
  */
-bool is_gbk(const char *src);
-bool is_gbk_n(const char *src, int length);
+bool isGBK(const char *src);
+bool isGBK(const char *src, int length);
 
 } // namespace uconv
 } // namespace rdd

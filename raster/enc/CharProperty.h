@@ -1,44 +1,66 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
 
-#include <stdint.h>
-#include <string.h>
+#include <cstdint>
+#include <cstring>
 #include <string>
 #include <vector>
+
+#include "raster/util/Range.h"
 
 namespace rdd {
 
 class CharInfo {
-public:
-  CharInfo() {}
-  CharInfo(size_t pos) { set(pos); }
-
-  void set(size_t pos) {
-    type |= ((uint32_t)1 << pos);
+ public:
+  explicit CharInfo(size_t pos = none) {
+    if (pos != none) {
+      type_ |= (1u << pos);
+    }
   }
 
-  void reset(size_t pos) {
-    type &= ~((uint32_t)1 << pos);
+  bool isKindOf(const CharInfo& ci) const {
+    return (type_ & ci.type_) != 0;
   }
 
-  bool isKindOf(const CharInfo ci) const {
-    return (type & ci.type) != 0;
+  CharInfo& operator+=(const CharInfo& other) {
+    type_ += other.type_;
+    return *this;
   }
 
-  uint32_t type{0};
+  CharInfo& operator|=(const CharInfo& other) {
+    type_ |= other.type_;
+    return *this;
+  }
+
+  static constexpr size_t none = std::numeric_limits<size_t>::max();
+
+ private:
+  uint32_t type_{0};
 };
 
-inline CharInfo operator|(const CharInfo lhs, const CharInfo rhs) {
-  CharInfo ci;
-  ci.type = lhs.type | rhs.type;
+inline CharInfo operator|(const CharInfo& lhs, const CharInfo& rhs) {
+  CharInfo ci = lhs;
+  ci |= rhs;
   return ci;
 }
 
 class CharProperty {
-public:
+ public:
   // available charset: ucs2, gbk
   static bool compile(const std::string& cfile,
                       const std::string& ofile,
@@ -48,53 +70,27 @@ public:
 
   virtual bool open(const std::string& filename);
 
-  size_t size() const { return categories_.size(); }
+  size_t size() const;
 
-  const char* name(size_t i) const { return categories_[i]; }
+  std::string name(size_t i) const;
 
-  size_t id(const char* key) const {
-    for (size_t i = 0; i < categories_.size(); ++i) {
-      if (strcmp(key, categories_[i]) == 0)
-        return i;
-    }
-    return SIZE_MAX;
-  }
+  size_t id(StringPiece key) const;
 
-  CharInfo getCharInfo(const char* key) const {
-    size_t i = id(key);
-    return i != SIZE_MAX ? CharInfo(i) : CharInfo();
-  }
+  CharInfo getCharInfo(char16_t cp) const;
 
-  CharInfo getCharInfo(char16_t cp) const { return map_[cp]; }
+  CharInfo getCharInfo(StringPiece key) const;
 
-protected:
-  std::string data_;
-  std::vector<const char*> categories_;
+ protected:
+  std::vector<char> data_;
+  std::vector<StringPiece> categories_;
   const CharInfo* map_{nullptr};
 };
 
 class PeckerCharProperty : public CharProperty {
-public:
+ public:
   PeckerCharProperty() : CharProperty() {}
 
-  virtual bool open(const std::string& filename) {
-    if (!CharProperty::open(filename)) {
-      return false;
-    }
-    space_      = getCharInfo("SPACE");
-    alphaLower_ = getCharInfo("ALPHA_LOWER");
-    alphaUpper_ = getCharInfo("ALPHA_UPPER");
-    asciiDigit_ = getCharInfo("ASCII_DIGIT");
-    asciiPunc_  = getCharInfo("ASCII_PUNC");
-    hanziChar_  = getCharInfo("HANZI_CHAR");
-    hanziDigit_ = getCharInfo("HANZI_DIGIT");
-    hanziTime_  = getCharInfo("HANZI_TIME");
-    fullWidth_  = getCharInfo("FULL_WIDTH");
-    stopPunc_   = getCharInfo("STOP_PUNC");
-    alpha_      = alphaLower_ | alphaUpper_;
-    alnum_      = alpha_ | asciiDigit_;
-    return true;
-  }
+  bool open(const std::string& filename) override;
 
   bool isSpace     (char16_t c) const { return map_[c].isKindOf(space_); }
   bool isAlphaLower(char16_t c) const { return map_[c].isKindOf(alphaLower_); }
@@ -109,7 +105,7 @@ public:
   bool isAlpha     (char16_t c) const { return map_[c].isKindOf(alpha_); }
   bool isAlnum     (char16_t c) const { return map_[c].isKindOf(alnum_); }
 
-private:
+ private:
   // single
   CharInfo space_;        // 空格
   CharInfo alphaLower_;   // 小写英文字母

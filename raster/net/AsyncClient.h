@@ -1,5 +1,17 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
@@ -8,83 +20,90 @@
 
 #include "raster/coroutine/FiberManager.h"
 #include "raster/io/event/Event.h"
-#include "raster/net/Actor.h"
+#include "raster/net/NetHub.h"
 #include "raster/net/NetUtil.h"
 #include "raster/net/Socket.h"
 
 /*
- * AsyncClient and its inherit classes have 3 ways of usage:
+ * AsyncClient and its inherit classes have 2 ways of usage:
  *  1. single async client
  *  2. multiple async client
- *  3. single async client by callback mode
  */
 namespace rdd {
 
 class AsyncClient {
-public:
-  AsyncClient(const ClientOption& option);
+ public:
+  AsyncClient(std::shared_ptr<NetHub> hub,
+              const ClientOption& option);
+
+  AsyncClient(std::shared_ptr<NetHub> hub,
+              const Peer& peer,
+              const TimeoutOption& timeout);
+
+  AsyncClient(std::shared_ptr<NetHub> hub,
+              const Peer& peer,
+              uint64_t ctimeout = 100000,
+              uint64_t rtimeout = 1000000,
+              uint64_t wtimeout = 300000);
 
   virtual ~AsyncClient() {
     close();
   }
 
-  void setKeepAlive() { keepalive_ = true; }
-  bool keepAlive() const { return keepalive_; }
-
-  // if use callback mode, you should new the client
-  void setCallbackMode() { callbackMode_ = true; }
-  bool callbackMode() const { return callbackMode_; }
-
   virtual bool connect();
-  virtual void callback();
-  virtual void close();
 
   virtual bool connected() const {
     return event_ != nullptr;
   }
 
-  template <class T = Event>
-  T* event() const {
-    return reinterpret_cast<T*>(event_.get());
+  virtual void close();
+
+  NetHub* hub() const {
+    return hub_.get();
   }
 
-protected:
+  Event* event() const {
+    return event_.get();
+  }
+
+  void setKeepAlive() {
+    keepalive_ = true;
+  }
+
+  bool keepAlive() const {
+    return keepalive_;
+  }
+
+ protected:
   virtual std::shared_ptr<Channel> makeChannel() = 0;
 
   bool initConnection();
   void freeConnection();
 
+  std::shared_ptr<NetHub> hub_;
   Peer peer_;
-  TimeoutOption timeoutOpt_;
+  TimeoutOption timeout_;
   bool keepalive_{false};
-  bool callbackMode_{false};
-  std::shared_ptr<Event> event_;
+  std::unique_ptr<Event> event_;
   std::shared_ptr<Channel> channel_;
 };
 
 template <class C>
 class MultiAsyncClient {
-public:
-  MultiAsyncClient(size_t count,
-                   const std::string& host,
-                   int port,
-                   uint64_t ctimeout = 100000,
-                   uint64_t rtimeout = 1000000,
-                   uint64_t wtimeout = 300000) {
+ public:
+  MultiAsyncClient(std::shared_ptr<NetHub> hub,
+                   size_t count,
+                   const ClientOption& option)
+    : hub_(hub) {
     for (size_t i = 0; i < count; ++i) {
-      clients_.push_back(
-          std::make_shared<C>(
-              host, port, ctimeout, rtimeout, wtimeout));
+      clients_.push_back(make_unique<C>(hub_, option));
     }
   }
-  MultiAsyncClient(size_t count, const ClientOption& option) {
-    for (size_t i = 0; i < count; ++i) {
-      clients_.push_back(std::make_shared<C>(option));
-    }
-  }
-  MultiAsyncClient(const std::vector<ClientOption>& options) {
+  MultiAsyncClient(std::shared_ptr<NetHub> hub,
+                   const std::vector<ClientOption>& options)
+    : hub_(hub) {
     for (auto& i : options) {
-      clients_.push_back(std::make_shared<C>(i));
+      clients_.push_back(make_unique<C>(hub_, i));
     }
   }
 
@@ -151,7 +170,7 @@ public:
           events.push_back(i->event());
         }
       }
-      if (!Singleton<Actor>::get()->waitGroup(events)) {
+      if (!hub_->waitGroup(events)) {
         return false;
       }
       return FiberManager::yield();
@@ -159,28 +178,14 @@ public:
     return false;
   }
 
-  std::shared_ptr<C> operator[](size_t i) { return clients_[i]; }
+  C* operator[](size_t i) { return clients_[i].get(); }
 
-private:
-  std::vector<std::shared_ptr<C>> clients_;
+ private:
+  std::shared_ptr<NetHub> hub_;
+  std::vector<std::unique_ptr<C>> clients_;
 };
 
 // yield task for multiple clients with different types
-//
-inline bool yieldMultiTask(std::initializer_list<AsyncClient*> clients) {
-  if (clients.size() != 0) {
-    std::vector<Event*> events;
-    for (auto& i : clients) {
-      if (i->connected()) {
-        events.push_back(i->event());
-      }
-    }
-    if (!Singleton<Actor>::get()->waitGroup(events)) {
-      return false;
-    }
-    return FiberManager::yield();
-  }
-  return false;
-}
+bool yieldMultiTask(std::initializer_list<AsyncClient*> clients);
 
 } // namespace rdd

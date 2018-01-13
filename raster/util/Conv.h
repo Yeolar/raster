@@ -1,6 +1,18 @@
 /*
  * Copyright 2017 Facebook, Inc.
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 // @author Andrei Alexandrescu (andrei.alexandrescu@fb.com)
@@ -13,13 +25,13 @@
 #pragma once
 
 #include <algorithm>
-#include <type_traits>
+#include <climits>
+#include <cmath>
 #include <limits>
+#include <stdexcept>
 #include <string>
 #include <tuple>
-#include <stdexcept>
-#include <cmath>
-#include <limits.h>
+#include <type_traits>
 #include <boost/implicit_cast.hpp>
 
 #include "raster/util/Macro.h"

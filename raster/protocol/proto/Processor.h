@@ -1,134 +1,65 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
 
-#include <sstream>
 #include <google/protobuf/service.h>
 
-#include "raster/io/event/Event.h"
 #include "raster/net/Processor.h"
 #include "raster/protocol/proto/AsyncServer.h"
-#include "raster/protocol/proto/Encoding.h"
-#include "raster/protocol/proto/Message.h"
 
 namespace rdd {
 
 class PBProcessor : public Processor {
-public:
+ public:
   PBProcessor(Event* event, PBAsyncServer* server)
     : Processor(event), server_(server) {}
 
-  virtual ~PBProcessor() {}
+  ~PBProcessor() override {}
 
-  virtual bool decodeData() {
-    return rdd::proto::decodeData(event_->rbuf, ibuf_);
-  }
+  void run() override;
 
-  virtual bool encodeData() {
-    return rdd::proto::encodeData(event_->wbuf, obuf_);
-  }
+ private:
+  void process(
+      const std::string& callId,
+      const google::protobuf::MethodDescriptor* method,
+      const std::shared_ptr<google::protobuf::Message>& request);
 
-  virtual bool run() {
-    try {
-      io::RWPrivateCursor in(ibuf_.get());
-      int type = proto::readInt(in);
-      switch (type) {
-        case proto::REQUEST_MSG:
-        {
-          std::string callId;
-          std::shared_ptr<google::protobuf::Message> request;
-          const google::protobuf::MethodDescriptor* descriptor = nullptr;
-          proto::parseRequestFrom(in, callId, descriptor, request);
-          process(callId, descriptor, request);
-        }
-          break;
-        case proto::CANCEL_MSG:
-        {
-          std::string callId;
-          proto::parseCancelFrom(in, callId);
-          cancel(callId);
-        }
-          break;
-        default:
-          RDDLOG(FATAL) << "unknown message type: " << type;
-      }
-      return true;
-    } catch (std::exception& e) {
-      RDDLOG(WARN) << "catch exception: " << e.what();
-    } catch (...) {
-      RDDLOG(WARN) << "catch unknown exception";
-    }
-    return false;
-  }
+  void cancel(const std::string& callId);
 
-private:
-  void process(const std::string& callId,
-               const google::protobuf::MethodDescriptor* method,
-               const std::shared_ptr<google::protobuf::Message>& request) {
-    google::protobuf::Service* service = server_->getService(method);
-    if (service) {
-      std::shared_ptr<PBRpcController> controller(new PBRpcController());
-      std::shared_ptr<google::protobuf::Message>
-        response(service->GetResponsePrototype(method).New());
-      std::shared_ptr<PBAsyncServer::Handle>
-        handle(new PBAsyncServer::Handle(
-                callId, controller, request, response));
-      server_->addHandle(handle);
-      service->CallMethod(method,
-                          controller.get(),
-                          request.get(),
-                          response.get(),
-                          google::protobuf::NewCallback(
-                              this, &PBProcessor::finish, handle));
-    } else {
-      PBRpcController controller;
-      controller.SetFailed("failed to find service");
-      sendResponse(callId, &controller, nullptr);
-    }
-  }
+  void finish(std::shared_ptr<PBAsyncServer::Handle> handle);
 
-  void cancel(const std::string& callId) {
-    std::shared_ptr<PBAsyncServer::Handle> handle =
-      server_->removeHandle(callId);
-    RDDCHECK(handle) << "proto handle not available";
-    PBRpcController controller;
-    controller.setCanceled();
-    sendResponse(callId, &controller, nullptr);
-  }
-
-  void finish(std::shared_ptr<PBAsyncServer::Handle> handle) {
-    RDDCHECK_EQ(handle, server_->removeHandle(handle->callId))
-      << "proto handle not available";
-    sendResponse(handle->callId,
-                 handle->controller.get(),
-                 handle->response.get());
-  }
-
-  void sendResponse(const std::string& callId,
-                    PBRpcController* controller,
-                    google::protobuf::Message* response) {
-    obuf_ = IOBuf::create(Protocol::CHUNK_SIZE);
-    io::Appender out(obuf_.get(), Protocol::CHUNK_SIZE);
-    proto::serializeResponse(callId, *controller, response, out);
-  }
+  void sendResponse(
+      const std::string& callId,
+      PBRpcController* controller,
+      google::protobuf::Message* response);
 
   PBAsyncServer* server_;
-  std::unique_ptr<IOBuf> ibuf_;
-  std::unique_ptr<IOBuf> obuf_;
 };
 
 class PBProcessorFactory : public ProcessorFactory {
-public:
+ public:
   PBProcessorFactory(PBAsyncServer* server) : server_(server) {}
-  virtual ~PBProcessorFactory() {}
+  ~PBProcessorFactory() override {}
 
-  virtual std::shared_ptr<Processor> create(Event* event) {
-    return std::shared_ptr<Processor>(new PBProcessor(event, server_));
+  std::unique_ptr<Processor> create(Event* event) override {
+    return make_unique<PBProcessor>(event, server_);
   }
 
-private:
+ private:
   PBAsyncServer* server_;
 };
 

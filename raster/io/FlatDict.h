@@ -1,5 +1,17 @@
 /*
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
@@ -7,8 +19,9 @@
 #include "raster/io/Cursor.h"
 #include "raster/io/RecordIO.h"
 #include "raster/io/TypedIOBuf.h"
-#include "raster/util/AtomicUnorderedMap.h"
-#include "raster/util/RWSpinLock.h"
+#include "raster/thread/AtomicUnorderedMap.h"
+#include "raster/thread/SharedMutex.h"
+#include "raster/util/Time.h"
 
 namespace rdd {
 
@@ -19,18 +32,18 @@ struct MutableLockedIOBuf {
     : buf_(std::move(init)) {}
 
   std::unique_ptr<IOBuf> clone() const {
-    RWSpinLock::ReadHolder guard(lock_);
+    SharedMutex::ReadHolder guard(lock_);
     return buf_ ? buf_->cloneOne() : nullptr;
   }
 
   void reset(std::unique_ptr<IOBuf>&& other) const {
-    RWSpinLock::WriteHolder guard(lock_);
+    SharedMutex::WriteHolder guard(lock_);
     buf_ = std::move(other);
   }
 
-private:
+ private:
   mutable std::unique_ptr<IOBuf> buf_;
-  mutable RWSpinLock lock_;
+  mutable SharedMutex lock_;
 };
 
 } // namespace detail
@@ -45,7 +58,7 @@ template <
   typename IndexType = uint32_t,
   typename Allocator = MMapAlloc>
 class FlatDict {
-public:
+ public:
   struct Block {
     Block(std::unique_ptr<IOBuf>&& buf) : buf_(std::move(buf)) {
       if (buf_) {
@@ -66,11 +79,11 @@ public:
 
     static constexpr size_t kHeadSize = sizeof(Key) + sizeof(uint64_t);
 
-  private:
+   private:
     std::unique_ptr<IOBuf> buf_;
   };
 
-public:
+ public:
   explicit FlatDict(size_t maxSize, const std::string& path = "")
     : map_(maxSize),
       path_(path),
@@ -152,7 +165,7 @@ public:
     return n;
   }
 
-private:
+ private:
   void update(Key key, std::unique_ptr<IOBuf>&& buf) {
     auto p = map_.emplace(key, std::move(buf));
     if (!p.second) {

@@ -1,6 +1,18 @@
 /*
  * Copyright 2017 Facebook, Inc.
- * Copyright (C) 2017, Yeolar
+ * Copyright 2017 Yeolar
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #pragma once
@@ -38,9 +50,8 @@ class TemporaryFile {
                          bool closeOnDestruction = true);
   ~TemporaryFile();
 
-  // Movable, but not copiable
-  TemporaryFile(TemporaryFile&&) = default;
-  TemporaryFile& operator=(TemporaryFile&&) = default;
+  TemporaryFile(const TemporaryFile&) = delete;
+  TemporaryFile& operator=(const TemporaryFile&) = delete;
 
   int fd() const { return fd_; }
   const Path& path() const;
@@ -75,9 +86,8 @@ class TemporaryDirectory {
                               Scope scope = Scope::DELETE_ON_DESTRUCTION);
   ~TemporaryDirectory();
 
-  // Movable, but not copiable
-  TemporaryDirectory(TemporaryDirectory&&) = default;
-  TemporaryDirectory& operator=(TemporaryDirectory&&) = default;
+  TemporaryDirectory(const TemporaryDirectory&) = delete;
+  TemporaryDirectory& operator=(const TemporaryDirectory&) = delete;
 
   const Path& path() const { return path_; }
 
@@ -91,17 +101,16 @@ class TemporaryDirectory {
  * upon destruction, also changing back to the original working directory.
  */
 class ChangeToTempDir {
-public:
+ public:
   ChangeToTempDir();
   ~ChangeToTempDir();
 
-  // Movable, but not copiable
-  ChangeToTempDir(ChangeToTempDir&&) = default;
-  ChangeToTempDir& operator=(ChangeToTempDir&&) = default;
+  ChangeToTempDir(const ChangeToTempDir&) = delete;
+  ChangeToTempDir& operator=(const ChangeToTempDir&) = delete;
 
   const Path& path() const { return dir_.path(); }
 
-private:
+ private:
   Path initialPath_;
   TemporaryDirectory dir_;
 };
