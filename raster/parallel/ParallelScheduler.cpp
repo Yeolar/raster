@@ -54,7 +54,7 @@ void ParallelScheduler::run(bool blocking) {
   if (!dag_.empty()) {
     setDependency();
     if (blocking) {
-      dag_.go([&]() { waiter_.notify_one(); });
+      dag_.go([&]() { waiter_.notify(); });
     } else {
       dag_.go(nullptr);
     }

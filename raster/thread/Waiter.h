@@ -23,39 +23,37 @@ namespace rdd {
 
 class Waiter {
  public:
-  void wait() const {
+  Waiter() : signal_(false) {}
+
+  void wait() {
     std::unique_lock<std::mutex> lock(mtx_);
-    cond_.wait(lock, [&] { return signal_; });
+    cv_.wait(lock, [&] { return signal_; });
     signal_ = false;
   }
 
-  template <class Rep, class Period>
-  void wait(const std::chrono::duration<Rep, Period>& duration) const {
+  void wait(uint64_t timeout) {
+    auto t = std::chrono::microseconds(timeout);
     std::unique_lock<std::mutex> lock(mtx_);
-    cond_.wait_for(lock, duration, [&] { return signal_; });
+    cv_.wait_for(lock, t, [&] { return signal_; });
     signal_ = false;
   }
 
-  void notify_one() const {
-    {
-      std::unique_lock<std::mutex> lock(mtx_);
-      signal_ = true;
-    }
-    cond_.notify_one();
+  void notify() {
+    std::unique_lock<std::mutex> lock(mtx_);
+    signal_ = true;
+    cv_.notify_all();
   }
 
-  void notify_all() const {
-    {
-      std::unique_lock<std::mutex> lock(mtx_);
-      signal_ = true;
-    }
-    cond_.notify_all();
+  void notifyOne() {
+    std::unique_lock<std::mutex> lock(mtx_);
+    signal_ = true;
+    cv_.notify_one();
   }
 
  private:
-  mutable bool signal_{false};
-  mutable std::condition_variable cond_;
-  mutable std::mutex mtx_;
+  bool signal_;
+  std::condition_variable cv_;
+  std::mutex mtx_;
 };
 
 } // namespace rdd

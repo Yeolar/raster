@@ -30,7 +30,7 @@ ThreadedExecutor::ThreadedExecutor(std::shared_ptr<ThreadFactory> threadFactory)
 
 ThreadedExecutor::~ThreadedExecutor() {
   stopping_.store(true, std::memory_order_release);
-  controlw_.notify_one();
+  controlw_.notifyOne();
   controlt_.join();
   RDDCHECK(running_.empty());
   RDDCHECK(finished_.empty());
@@ -42,7 +42,7 @@ void ThreadedExecutor::add(VoidFunc func) {
     std::unique_lock<std::mutex> lock(enqueuedm_);
     enqueued_.push_back(std::move(func));
   }
-  controlw_.notify_one();
+  controlw_.notifyOne();
 }
 
 std::shared_ptr<ThreadFactory> ThreadedExecutor::newDefaultThreadFactory() {
@@ -51,7 +51,7 @@ std::shared_ptr<ThreadFactory> ThreadedExecutor::newDefaultThreadFactory() {
 
 void ThreadedExecutor::control() {
   setCurrentThreadName("ThreadedCtrl");
-  constexpr auto kMaxWait = std::chrono::seconds(10);
+  constexpr auto kMaxWait = 10000000; // 10s
   auto looping = true;
   while (looping) {
     controlw_.wait(kMaxWait);
@@ -66,7 +66,7 @@ void ThreadedExecutor::work(VoidFunc& func) {
     std::unique_lock<std::mutex> lock(finishedm_);
     finished_.push_back(id);
   }
-  controlw_.notify_one();
+  controlw_.notifyOne();
 }
 
 void ThreadedExecutor::controlJoinFinishedThreads() {
