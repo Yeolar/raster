@@ -20,6 +20,8 @@
 import os
 import ycm_core
 
+ROOT = os.path.dirname(os.path.abspath(__file__))
+
 # These are the compilation flags that will be used in case there's no
 # compilation database set (by default, one is not set).
 # CHANGE THIS LIST OF FLAGS. YES, THIS IS THE DROID YOU HAVE BEEN LOOKING FOR.
@@ -43,15 +45,12 @@ flags = [
 '-x',
 'c++',
 '-isystem',
-'/home/yeolar/web/rddoc/raster',
-'-isystem',
-'/home/yeolar/web/rddoc/raster/raster/3rd',
-'-isystem',
-'/home/yeolar/web/rddoc/raster/raster/3rd/thrift',
-'-isystem',
 '/usr/include',
 '-isystem',
 '/usr/local/include',
+'-isystem', ROOT,
+'-isystem', os.path.join(ROOT, 'raster/3rd'),
+'-isystem', os.path.join(ROOT, 'raster/3rd/thrift'),
 ]
 
 
