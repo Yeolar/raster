@@ -16,6 +16,8 @@ install(FILES
     Baton.h
     BlockingQueue.h
     CacheLocality.h
+    ConcurrentSkipList.h
+    ConcurrentSkipList-inl.h
     Futex.h
     LockedMap.h
     LockedQueue.h

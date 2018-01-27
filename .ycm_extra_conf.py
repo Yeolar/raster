@@ -47,7 +47,10 @@ flags = [
 '-isystem',
 '/usr/include',
 '-isystem',
+'/usr/include/c++/4.9.2',
+'-isystem',
 '/usr/local/include',
+
 '-isystem', ROOT,
 '-isystem', os.path.join(ROOT, 'raster/3rd'),
 '-isystem', os.path.join(ROOT, 'raster/3rd/thrift'),
