@@ -9,6 +9,7 @@
 #include "raster/protocol/thrift/SyncClient.h"
 #include "raster/util/Algorithm.h"
 #include "raster/util/Logging.h"
+#include "raster/util/Portability.h"
 #include "gen-cpp/Proxy.h"
 
 static const char* VERSION = "1.1.0";
@@ -45,9 +46,9 @@ bool request(const ClientOption& opt) {
 }
 
 int main(int argc, char* argv[]) {
-  google::SetVersionString(VERSION);
-  google::SetUsageMessage("Usage : ./proxy-bench");
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::SetVersionString(VERSION);
+  gflags::SetUsageMessage("Usage : ./proxy-bench");
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   CPUThreadPoolExecutor pool(FLAGS_threads);
   std::atomic<size_t> count(0);
@@ -92,6 +93,6 @@ int main(int argc, char* argv[]) {
     RDDRLOG(INFO) << "    qps: " << 1000000. / cost_avg * FLAGS_threads;
   }
 
-  google::ShutDownCommandLineFlags();
+  gflags::ShutDownCommandLineFlags();
   return 0;
 }

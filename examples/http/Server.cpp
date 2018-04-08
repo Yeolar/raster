@@ -9,6 +9,7 @@
 #include "raster/framework/HubAdaptor.h"
 #include "raster/protocol/http/AsyncServer.h"
 #include "raster/util/Logging.h"
+#include "raster/util/Portability.h"
 #include "raster/util/ReflectObject.h"
 #include "raster/util/ScopeGuard.h"
 #include "raster/util/Uuid.h"
@@ -36,9 +37,9 @@ class BaseHandler : public RequestHandler {
 };
 
 int main(int argc, char* argv[]) {
-  google::SetVersionString(VERSION);
-  google::SetUsageMessage("Usage : ./httpserver");
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::SetVersionString(VERSION);
+  gflags::SetUsageMessage("Usage : ./httpserver");
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   setupIgnoreSignal(SIGPIPE);
   setupShutdownSignal(SIGINT);
@@ -61,7 +62,7 @@ int main(int argc, char* argv[]) {
   RDDLOG(INFO) << "rdd start ... ^_^";
   Singleton<HubAdaptor>::get()->startService();
 
-  google::ShutDownCommandLineFlags();
+  gflags::ShutDownCommandLineFlags();
 
   return 0;
 }

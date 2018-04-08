@@ -10,6 +10,7 @@
 #include "raster/parallel/ParallelScheduler.h"
 #include "raster/protocol/thrift/AsyncServer.h"
 #include "raster/util/Logging.h"
+#include "raster/util/Portability.h"
 #include "raster/util/ReflectObject.h"
 #include "raster/util/ScopeGuard.h"
 #include "raster/util/Uuid.h"
@@ -80,9 +81,9 @@ class ParallelHandler : virtual public ParallelIf {
 };
 
 int main(int argc, char* argv[]) {
-  google::SetVersionString(VERSION);
-  google::SetUsageMessage("Usage : ./parallel");
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::SetVersionString(VERSION);
+  gflags::SetUsageMessage("Usage : ./parallel");
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   setupIgnoreSignal(SIGPIPE);
   setupShutdownSignal(SIGINT);
@@ -104,7 +105,7 @@ int main(int argc, char* argv[]) {
   RDDLOG(INFO) << "rdd start ... ^_^";
   Singleton<HubAdaptor>::get()->startService();
 
-  google::ShutDownCommandLineFlags();
+  gflags::ShutDownCommandLineFlags();
 
   return 0;
 }

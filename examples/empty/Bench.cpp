@@ -9,6 +9,7 @@
 #include "raster/protocol/thrift/SyncClient.h"
 #include "raster/util/Algorithm.h"
 #include "raster/util/Logging.h"
+#include "raster/util/Portability.h"
 #include "gen-cpp/Empty.h"
 
 static const char* VERSION = "1.1.0";
@@ -43,9 +44,9 @@ bool request(const ClientOption& opt) {
 }
 
 int main(int argc, char* argv[]) {
-  google::SetVersionString(VERSION);
-  google::SetUsageMessage("Usage : ./empty-bench");
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::SetVersionString(VERSION);
+  gflags::SetUsageMessage("Usage : ./empty-bench");
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   CPUThreadPoolExecutor pool(FLAGS_threads);
   std::atomic<size_t> count(0);
@@ -103,6 +104,6 @@ int main(int argc, char* argv[]) {
    *     qps: 39408.9
    */
 
-  google::ShutDownCommandLineFlags();
+  gflags::ShutDownCommandLineFlags();
   return 0;
 }

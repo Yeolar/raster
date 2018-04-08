@@ -10,6 +10,7 @@
 #include "raster/protocol/binary/AsyncClient.h"
 #include "raster/protocol/binary/AsyncServer.h"
 #include "raster/util/Logging.h"
+#include "raster/util/Portability.h"
 #include "raster/util/ScopeGuard.h"
 #include "raster/util/Uuid.h"
 #include "Helper.h"
@@ -69,9 +70,9 @@ class Proxy : public BinaryProcessor {
 };
 
 int main(int argc, char* argv[]) {
-  google::SetVersionString(VERSION);
-  google::SetUsageMessage("Usage : ./flatbuffers");
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::SetVersionString(VERSION);
+  gflags::SetUsageMessage("Usage : ./flatbuffers");
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   setupIgnoreSignal(SIGPIPE);
   setupShutdownSignal(SIGINT);
@@ -92,7 +93,7 @@ int main(int argc, char* argv[]) {
   RDDLOG(INFO) << "rdd start ... ^_^";
   Singleton<HubAdaptor>::get()->startService();
 
-  google::ShutDownCommandLineFlags();
+  gflags::ShutDownCommandLineFlags();
 
   return 0;
 }

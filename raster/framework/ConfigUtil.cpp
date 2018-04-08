@@ -18,6 +18,7 @@
 #include <gflags/gflags.h>
 
 #include "raster/framework/Config.h"
+#include "raster/util/Portability.h"
 
 DEFINE_bool(gen, false, "Generate default config");
 
@@ -39,8 +40,8 @@ int main(int argc, char* argv[]) {
     "  configutil -gen\n"
     "    generate default config\n";
 
-  google::SetUsageMessage(usage);
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::SetUsageMessage(usage);
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   if (FLAGS_gen) {
     genDefault();
@@ -49,7 +50,7 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  google::ShutDownCommandLineFlags();
+  gflags::ShutDownCommandLineFlags();
 
   return 0;
 }

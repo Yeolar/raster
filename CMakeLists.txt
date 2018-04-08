@@ -68,6 +68,27 @@ check_cxx_source_compiles("
     }"
     RDD_HAVE_XSI_STRERROR_R)
 
+if(GFLAGS_FOUND)
+    set(CMAKE_REQUIRED_LIBRARIES "gflags")
+
+    check_cxx_source_compiles("
+        #include <gflags/gflags.h>
+        void foo() { google::GetArgv(); }
+        int main() { return 0; }"
+        RDD_UNUSUAL_GFLAGS_NAMESPACE)
+
+    if(RDD_UNUSUAL_GFLAGS_NAMESPACE)
+        set(RDD_GFLAGS_NAMESPACE "google")
+    else()
+        set(RDD_GFLAGS_NAMESPACE "gflags")
+    endif()
+endif()
+
+configure_file(
+    "${PROJECT_SOURCE_DIR}/raster/raster-config.h.in"
+    "${PROJECT_SOURCE_DIR}/raster/raster-config.h"
+)
+
 # Work on all sub directories
 add_subdirectory(raster/3rd/double-conversion)
 add_subdirectory(raster/3rd/http_parser)
