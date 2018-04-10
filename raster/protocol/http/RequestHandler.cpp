@@ -44,17 +44,17 @@ void RequestHandler::onTrace() {
 }
 
 void RequestHandler::handleException(const HTTPException& e) {
-  RDDLOG(WARN) << e;
+  ACCLOG(WARN) << e;
   sendError(e.getStatusCode());
 }
 
 void RequestHandler::handleException(const std::exception& e) {
-  RDDLOG(ERROR) << "Exception: " << e.what();
+  ACCLOG(ERROR) << "Exception: " << e.what();
   sendError(500);
 }
 
 void RequestHandler::handleException() {
-  RDDLOG(ERROR) << "Unknown exception";
+  ACCLOG(ERROR) << "Unknown exception";
   sendError(500);
 }
 
@@ -72,17 +72,17 @@ void RequestHandler::sendError(uint16_t code) {
 std::string RequestHandler::getLocale() {
   if (locale_.empty()) locale_ = getUserLocale();
   if (locale_.empty()) locale_ = getBrowserLocale();
-  RDDCHECK(!locale_.empty());
+  ACCCHECK(!locale_.empty());
   return locale_;
 }
 
 std::string RequestHandler::getBrowserLocale() {
-  StringPiece languages(
+  acc::StringPiece languages(
       request->headers.getSingleOrEmpty(HTTP_HEADER_ACCEPT_LANGUAGE));
-  std::vector<std::pair<StringPiece, float>> locales;
+  std::vector<std::pair<acc::StringPiece, float>> locales;
   while (!languages.empty()) {
     auto lang = languages.split_step(',');
-    std::vector<StringPiece> parts;
+    std::vector<acc::StringPiece> parts;
     split(';', lang, parts);
     float score;
     if (parts.size() > 1 && parts[1].startsWith("q=")) {
@@ -98,8 +98,8 @@ std::string RequestHandler::getBrowserLocale() {
   }
   if (!locales.empty()) {
     std::sort(locales.begin(), locales.end(),
-              [](const std::pair<StringPiece, float>& p,
-                 const std::pair<StringPiece, float>& q) {
+              [](const std::pair<acc::StringPiece, float>& p,
+                 const std::pair<acc::StringPiece, float>& q) {
       return p.second > q.second;
     });
     return locales[0].first.str();

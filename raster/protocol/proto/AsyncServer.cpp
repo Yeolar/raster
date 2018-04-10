@@ -27,8 +27,8 @@ void PBAsyncServer::makeChannel(int port, const TimeoutOption& timeout) {
   channel_ = std::make_shared<Channel>(
       peer,
       timeout,
-      make_unique<BinaryTransportFactory>(),
-      make_unique<PBProcessorFactory>(this));
+      acc::make_unique<BinaryTransportFactory>(),
+      acc::make_unique<PBProcessorFactory>(this));
 }
 
 void PBAsyncServer::addService(

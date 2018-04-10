@@ -8,11 +8,11 @@
 #include "raster/framework/Signal.h"
 #include "raster/framework/HubAdaptor.h"
 #include "raster/protocol/http/AsyncServer.h"
-#include "raster/util/Logging.h"
-#include "raster/util/Portability.h"
-#include "raster/util/ReflectObject.h"
-#include "raster/util/ScopeGuard.h"
-#include "raster/util/Uuid.h"
+#include "accelerator/Logging.h"
+#include "accelerator/Portability.h"
+#include "accelerator/ReflectObject.h"
+#include "accelerator/ScopeGuard.h"
+#include "accelerator/Uuid.h"
 
 static const char* VERSION = "1.1.0";
 
@@ -23,7 +23,7 @@ using namespace rdd;
 class BaseHandler : public RequestHandler {
  public:
   BaseHandler() {
-    RDDLOG(DEBUG) << "BaseHandler init";
+    ACCLOG(DEBUG) << "BaseHandler init";
   }
 
   ~BaseHandler() override {}
@@ -45,10 +45,10 @@ int main(int argc, char* argv[]) {
   setupShutdownSignal(SIGINT);
   setupShutdownSignal(SIGTERM);
 
-  auto httpserver = make_unique<HTTPAsyncServer>("HTTP");
+  auto httpserver = acc::make_unique<HTTPAsyncServer>("HTTP");
   httpserver->addHandler<BaseHandler>("/");
 
-  Singleton<HubAdaptor>::get()->addService(std::move(httpserver));
+  acc::Singleton<HubAdaptor>::get()->addService(std::move(httpserver));
 
   config(FLAGS_conf.c_str(), {
          {configLogging, "logging"},
@@ -59,8 +59,8 @@ int main(int argc, char* argv[]) {
          {configJobGraph, "job.graph"}
          });
 
-  RDDLOG(INFO) << "rdd start ... ^_^";
-  Singleton<HubAdaptor>::get()->startService();
+  ACCLOG(INFO) << "rdd start ... ^_^";
+  acc::Singleton<HubAdaptor>::get()->startService();
 
   gflags::ShutDownCommandLineFlags();
 

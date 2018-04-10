@@ -23,7 +23,7 @@
 #include <boost/context/fcontext.hpp>
 #endif
 
-#include "raster/util/Function.h"
+#include "accelerator/Function.h"
 
 /**
  * Wrappers for different versions of boost::context library
@@ -62,7 +62,7 @@ class Context {
 #endif
 
  public:
-  Context(VoidFunc&& func,
+  Context(acc::VoidFunc&& func,
           unsigned char* stackLimit,
           size_t stackSize)
     : func_(std::move(func)) {
@@ -124,7 +124,7 @@ class Context {
   }
 #endif
 
-  VoidFunc func_;
+  acc::VoidFunc func_;
   FiberContext fiberContext_;
   MainContext mainContext_;
 };

@@ -9,10 +9,10 @@
 #include "raster/framework/Signal.h"
 #include "raster/protocol/binary/AsyncClient.h"
 #include "raster/protocol/binary/AsyncServer.h"
-#include "raster/util/Logging.h"
-#include "raster/util/Portability.h"
-#include "raster/util/ScopeGuard.h"
-#include "raster/util/Uuid.h"
+#include "accelerator/Logging.h"
+#include "accelerator/Portability.h"
+#include "accelerator/ScopeGuard.h"
+#include "accelerator/Uuid.h"
 #include "Helper.h"
 #include "table_generated.h"
 
@@ -26,22 +26,22 @@ using namespace rdd::fbs;
 class Proxy : public BinaryProcessor {
  public:
   Proxy(Event* event) : BinaryProcessor(event) {
-    RDDLOG(DEBUG) << "Proxy init";
+    ACCLOG(DEBUG) << "Proxy init";
   }
 
-  void process(ByteRange& response, const ByteRange& request) {
+  void process(acc::ByteRange& response, const acc::ByteRange& request) {
     auto query = ::flatbuffers::GetRoot<Query>(request.data());
     DCHECK(verifyFlatbuffer(query, request));
 
-    if (!StringPiece(query->traceid()->str()).startsWith("rdd")) {
-      RDDLOG(INFO) << "untrusted request: [" << query->traceid() << "]";
+    if (!acc::StringPiece(query->traceid()->str()).startsWith("rdd")) {
+      ACCLOG(INFO) << "untrusted request: [" << query->traceid() << "]";
       ::flatbuffers::FlatBufferBuilder fbb;
       fbb.Finish(CreateResult(fbb, 0, ResultCode_E_SOURCE__UNTRUSTED));
       response.reset(fbb.GetBufferPointer(), fbb.GetSize());
       return;
     }
 
-    auto traceid = generateUuid(query->traceid()->str(), "rdde");
+    auto traceid = acc::generateUuid(query->traceid()->str(), "rdde");
     ResultCode code = ResultCode_OK;
 
     if (query->forward()->Length() != 0) {
@@ -54,14 +54,14 @@ class Proxy : public BinaryProcessor {
                       fbb.CreateString(query->traceid()),
                       fbb.CreateString(query->query()),
                       0));
-      ByteRange q(fbb.GetBufferPointer(), fbb.GetSize());
-      ByteRange r;
+      acc::ByteRange q(fbb.GetBufferPointer(), fbb.GetSize());
+      acc::ByteRange r;
       if (!client.connect() || !client.fetch(r, q)) {
         code = ResultCode_E_BACKEND_FAILURE;
       }
     }
 
-    RDDTLOG(INFO, traceid) << "query: \"" << query->query()->str() << "\""
+    ACCTLOG(INFO, traceid) << "query: \"" << query->query()->str() << "\""
       << " code=" << code;
     ::flatbuffers::FlatBufferBuilder fbb;
     fbb.Finish(CreateResult(fbb, fbb.CreateString(traceid), code));
@@ -78,8 +78,8 @@ int main(int argc, char* argv[]) {
   setupShutdownSignal(SIGINT);
   setupShutdownSignal(SIGTERM);
 
-  Singleton<HubAdaptor>::get()->addService(
-      make_unique<BinaryAsyncServer<Proxy>>("Proxy"));
+  acc::Singleton<HubAdaptor>::get()->addService(
+      acc::make_unique<BinaryAsyncServer<Proxy>>("Proxy"));
 
   config(FLAGS_conf.c_str(), {
          {configLogging, "logging"},
@@ -90,8 +90,8 @@ int main(int argc, char* argv[]) {
          {configJobGraph, "job.graph"}
          });
 
-  RDDLOG(INFO) << "rdd start ... ^_^";
-  Singleton<HubAdaptor>::get()->startService();
+  ACCLOG(INFO) << "rdd start ... ^_^";
+  acc::Singleton<HubAdaptor>::get()->startService();
 
   gflags::ShutDownCommandLineFlags();
 

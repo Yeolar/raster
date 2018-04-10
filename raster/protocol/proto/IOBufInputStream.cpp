@@ -6,7 +6,7 @@
 
 namespace rdd {
 
-IOBufInputStream::IOBufInputStream(io::Cursor* cursor)
+IOBufInputStream::IOBufInputStream(acc::io::Cursor* cursor)
   : cursor_(cursor),
     size_(cursor_->totalLength()),
     position_(0) {

@@ -64,7 +64,7 @@ class TProcessorFactory : public ProcessorFactory {
   ~TProcessorFactory() override {}
 
   std::unique_ptr<Processor> create(Event* event) override {
-    return make_unique<ProcessorType>(event, make_unique<P>(handler_));
+    return acc::make_unique<ProcessorType>(event, acc::make_unique<P>(handler_));
   }
 
   If* handler() { return handler_.get(); }

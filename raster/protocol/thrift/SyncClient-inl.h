@@ -2,7 +2,7 @@
  * Copyright (C) 2018, Yeolar
  */
 
-#include "raster/util/Logging.h"
+#include "accelerator/Logging.h"
 
 namespace rdd {
 
@@ -52,11 +52,11 @@ connect() {
     transport_->open();
   }
   catch (apache::thrift::TException& e) {
-    RDDLOG(ERROR) << "TSyncClient: connect " << peer_
+    ACCLOG(ERROR) << "TSyncClient: connect " << peer_
       << " failed, " << e.what();
     return false;
   }
-  RDDLOG(DEBUG) << "connect peer[" << peer_ << "]";
+  ACCLOG(DEBUG) << "connect peer[" << peer_ << "]";
   return true;
 }
 
@@ -75,7 +75,7 @@ fetch(void (C::*func)(Res&, const Req&...),
     (client_.get()->*func)(response, requests...);
   }
   catch (apache::thrift::TException& e) {
-    RDDLOG(ERROR) << "TSyncClient: fetch " << peer_
+    ACCLOG(ERROR) << "TSyncClient: fetch " << peer_
       << " failed, " << e.what();
     return false;
   }
@@ -91,7 +91,7 @@ fetch(Res (C::*func)(const Req&...),
     response = (client_.get()->*func)(requests...);
   }
   catch (apache::thrift::TException& e) {
-    RDDLOG(ERROR) << "TSyncClient: fetch " << peer_
+    ACCLOG(ERROR) << "TSyncClient: fetch " << peer_
       << " failed, " << e.what();
     return false;
   }
@@ -108,8 +108,8 @@ init() {
   socket_->setSendTimeout(timeout_.wtimeout);
   transport_.reset(new TTransport(socket_));
   protocol_.reset(new TProtocol(transport_));
-  client_ = make_unique<C>(protocol_);
-  RDDLOG(DEBUG) << "SyncClient: " << peer_
+  client_ = acc::make_unique<C>(protocol_);
+  ACCLOG(DEBUG) << "SyncClient: " << peer_
     << ", timeout=" << timeout_;
 }
 

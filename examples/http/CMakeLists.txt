@@ -3,10 +3,14 @@
 add_executable(httpserver
     Server.cpp
 )
-target_link_libraries(httpserver raster_static)
+target_link_libraries(httpserver
+    raster_static
+    accelerator_static)
 
 add_executable(httpserver-bench
     Bench.cpp
 )
-target_link_libraries(httpserver-bench raster_static)
+target_link_libraries(httpserver-bench
+    raster_static
+    accelerator_static)
 

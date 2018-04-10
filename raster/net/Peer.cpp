@@ -19,10 +19,10 @@
 #include <cinttypes>
 #include <net/if.h>
 
-#include "raster/util/Conv.h"
-#include "raster/util/Exception.h"
-#include "raster/util/Hash.h"
-#include "raster/util/Macro.h"
+#include "accelerator/Conv.h"
+#include "accelerator/Exception.h"
+#include "accelerator/Hash.h"
+#include "accelerator/Macro.h"
 
 namespace {
 
@@ -206,7 +206,7 @@ void IPAddressV4::toFullyQualifiedAppend(std::string& out) const {
 }
 
 size_t IPAddressV4::hash() const {
-  return hash::hash_combine(AF_INET, hash::fnv32_buf(&addr_, 4));
+  return acc::hash::hash_combine(AF_INET, acc::hash::fnv32_buf(&addr_, 4));
 }
 
 bool IPAddressV6::isIPv4Mapped() const {
@@ -240,7 +240,7 @@ std::string IPAddressV6::str() const {
 
   if (!inet_ntop(AF_INET6, toAddr().s6_addr, buffer, INET6_ADDRSTRLEN)) {
     throw std::runtime_error(
-        to<std::string>("Invalid address with error ", strerror(errno)));
+        acc::to<std::string>("Invalid address with error ", strerror(errno)));
   }
 
   auto scopeId = scope_;
@@ -277,8 +277,8 @@ size_t IPAddressV6::hash() const {
   }
 
   uint64_t hash1 = 0, hash2 = 0;
-  hash::SpookyHashV2::Hash128(&addr_, 16, &hash1, &hash2);
-  return hash::hash_combine(AF_INET6, hash1, hash2);
+  acc::hash::SpookyHashV2::Hash128(&addr_, 16, &hash1, &hash2);
+  return acc::hash::hash_combine(AF_INET6, hash1, hash2);
 }
 
 int Peer::getPortFrom(const struct sockaddr* address) {
@@ -497,13 +497,13 @@ bool Peer::operator<(const Peer& other) const {
 }
 
 size_t Peer::hash() const {
-  size_t seed = hash::twang_mix64(family_);
+  size_t seed = acc::hash::twang_mix64(family_);
   if (UNLIKELY(!isFamilyInet())) {
     throw std::invalid_argument(
         "Peer: unsupported address family for hashing");
   }
   size_t addr = isV4() ? addr_.ipV4Addr.hash() : addr_.ipV6Addr.hash();
-  return hash::hash_combine(seed, port_, addr);
+  return acc::hash::hash_combine(seed, port_, addr);
 }
 
 struct addrinfo*
@@ -525,7 +525,7 @@ Peer::getAddrInfo(const char* host, const char* port, int flags) {
   struct addrinfo* results;
   int error = getaddrinfo(host, port, &hints, &results);
   if (error != 0) {
-    auto os = to<std::string>(
+    auto os = acc::to<std::string>(
         "Failed to resolve address for '", host, "': ",
         gai_strerror(error), " (error=", error, ")");
     throw std::system_error(error, std::generic_category(), os);
@@ -558,7 +558,7 @@ void Peer::setFromSocket(
   sockaddr_storage tmp_sock;
   socklen_t addrLen = sizeof(tmp_sock);
   if (fn(socket, (sockaddr*)&tmp_sock, &addrLen) != 0) {
-    throwSystemError("setFromSocket() failed");
+    acc::throwSystemError("setFromSocket() failed");
   }
 
   setFromSockaddr((sockaddr*)&tmp_sock, addrLen);
@@ -587,7 +587,7 @@ void Peer::getIpString(char* buf, size_t buflen, int flags) const {
       0,
       flags);
   if (rc != 0) {
-    auto os = to<std::string>(
+    auto os = acc::to<std::string>(
         "getnameinfo() failed in getIpString() error = ", gai_strerror(rc));
     throw std::system_error(rc, std::generic_category(), os);
   }

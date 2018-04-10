@@ -20,7 +20,7 @@
 
 #include <vector>
 
-#include "raster/util/Logging.h"
+#include "accelerator/Logging.h"
 
 namespace rdd {
 
@@ -67,8 +67,8 @@ HTTPHeaders::HTTPHeaders()
   headerValues_.reserve(kInitialVectorReserve);
 }
 
-void HTTPHeaders::parse(StringPiece sp) {
-  StringPiece p = sp.split_step("\r\n");
+void HTTPHeaders::parse(acc::StringPiece sp) {
+  acc::StringPiece p = sp.split_step("\r\n");
   do {
     std::string line;
     while (!p.empty() && line.empty()) {
@@ -79,15 +79,15 @@ void HTTPHeaders::parse(StringPiece sp) {
       toAppend(' ', ltrimWhitespace(p), &line);
       p = sp.split_step("\r\n");
     }
-    StringPiece name, value;
+    acc::StringPiece name, value;
     if (split(':', line, name, value)) {
       add(name, trimWhitespace(value));
     }
   } while (!sp.empty());
 }
 
-void HTTPHeaders::add(StringPiece name, StringPiece value) {
-  RDDCHECK(name.size());
+void HTTPHeaders::add(acc::StringPiece name, acc::StringPiece value) {
+  ACCCHECK(name.size());
   const HTTPHeaderCode code = HTTPCommonHeaders::hash(name.data(), name.size());
   codes_.push_back(code);
   headerNames_.push_back((code == HTTP_HEADER_OTHER)
@@ -96,7 +96,7 @@ void HTTPHeaders::add(StringPiece name, StringPiece value) {
   headerValues_.emplace_back(value.data(), value.size());
 }
 
-bool HTTPHeaders::exists(StringPiece name) const {
+bool HTTPHeaders::exists(acc::StringPiece name) const {
   const HTTPHeaderCode code = HTTPCommonHeaders::hash(name.data(), name.size());
   if (code != HTTP_HEADER_OTHER) {
     return exists(code);
@@ -119,16 +119,16 @@ size_t HTTPHeaders::getNumberOfValues(HTTPHeaderCode code) const {
   return count;
 }
 
-size_t HTTPHeaders::getNumberOfValues(StringPiece name) const {
+size_t HTTPHeaders::getNumberOfValues(acc::StringPiece name) const {
   size_t count = 0;
-  forEachValueOfHeader(name, [&] (StringPiece value) -> bool {
+  forEachValueOfHeader(name, [&] (acc::StringPiece value) -> bool {
     ++count;
     return false;
   });
   return count;
 }
 
-bool HTTPHeaders::remove(StringPiece name) {
+bool HTTPHeaders::remove(acc::StringPiece name) {
   const HTTPHeaderCode code = HTTPCommonHeaders::hash(name.data(), name.size());
   if (code != HTTP_HEADER_OTHER) {
     return remove(code);
@@ -236,7 +236,7 @@ void HTTPHeaders::copyTo(HTTPHeaders& hdrs) const {
   }
 }
 
-bool HTTPHeaders::transferHeaderIfPresent(StringPiece name,
+bool HTTPHeaders::transferHeaderIfPresent(acc::StringPiece name,
                                           HTTPHeaders& strippedHeaders) {
   bool transferred = false;
   const HTTPHeaderCode code = HTTPCommonHeaders::hash(name.data(), name.size());
@@ -273,7 +273,7 @@ void HTTPHeaders::clearHeadersFor304() {
     if (entityHeaders[codes_[i]]) {
       codes_[i] = HTTP_HEADER_NONE;
       ++deletedCount_;
-      RDDLOG(V5) << "Remove entity header " << *headerNames_[i];
+      ACCLOG(V5) << "Remove entity header " << *headerNames_[i];
     }
   }
 }
@@ -282,12 +282,12 @@ void HTTPHeaders::stripPerHopHeaders(HTTPHeaders& strippedHeaders) {
   forEachValueOfHeader(HTTP_HEADER_CONNECTION, [&]
                        (const std::string& value) -> bool {
     // Remove all headers specified in Connection header
-    StringPiece sp(value);
+    acc::StringPiece sp(value);
     while (!sp.empty()) {
       auto hdr = trimWhitespace(sp.split_step(','));
       if (!hdr.empty()) {
         if (transferHeaderIfPresent(hdr, strippedHeaders)) {
-          RDDLOG(V3) << "Stripped connection-named hop-by-hop header " << hdr;
+          ACCLOG(V3) << "Stripped connection-named hop-by-hop header " << hdr;
         }
       }
     }
@@ -303,7 +303,7 @@ void HTTPHeaders::stripPerHopHeaders(HTTPHeaders& strippedHeaders) {
       strippedHeaders.headerValues_.push_back(headerValues_[i]);
       codes_[i] = HTTP_HEADER_NONE;
       ++deletedCount_;
-      RDDLOG(V5) << "Stripped hop-by-hop header " << *headerNames_[i];
+      ACCLOG(V5) << "Stripped hop-by-hop header " << *headerNames_[i];
     }
   }
 }

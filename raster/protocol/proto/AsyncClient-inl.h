@@ -22,14 +22,14 @@ namespace rdd {
 
 template <class C>
 PBAsyncClient<C>::PBAsyncClient(const ClientOption& option)
-  : AsyncClient(Singleton<HubAdaptor>::try_get(), option) {
+  : AsyncClient(acc::Singleton<HubAdaptor>::try_get(), option) {
   init();
 }
 
 template <class C>
 PBAsyncClient<C>::PBAsyncClient(const Peer& peer,
                              const TimeoutOption& timeout)
-  : AsyncClient(Singleton<HubAdaptor>::try_get(), peer, timeout) {
+  : AsyncClient(acc::Singleton<HubAdaptor>::try_get(), peer, timeout) {
   init();
 }
 
@@ -38,7 +38,7 @@ PBAsyncClient<C>::PBAsyncClient(const Peer& peer,
                              uint64_t ctimeout,
                              uint64_t rtimeout,
                              uint64_t wtimeout)
-  : AsyncClient(Singleton<HubAdaptor>::try_get(),
+  : AsyncClient(acc::Singleton<HubAdaptor>::try_get(),
                 peer, ctimeout, rtimeout, wtimeout) {
   init();
 }
@@ -84,7 +84,7 @@ bool PBAsyncClient<C>::fetch(
 template <class C>
 std::shared_ptr<Channel> PBAsyncClient<C>::makeChannel() {
   return std::make_shared<Channel>(
-      peer_, timeout_, make_unique<BinaryTransportFactory>());
+      peer_, timeout_, acc::make_unique<BinaryTransportFactory>());
 }
 
 template <class C>

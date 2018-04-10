@@ -3,10 +3,14 @@
 add_executable(flatbuffers
     Server.cpp
 )
-target_link_libraries(flatbuffers raster_static)
+target_link_libraries(flatbuffers
+    raster_static
+    accelerator_static)
 
 add_executable(flatbuffers-bench
     Bench.cpp
 )
-target_link_libraries(flatbuffers-bench raster_static)
+target_link_libraries(flatbuffers-bench
+    raster_static
+    accelerator_static)
 

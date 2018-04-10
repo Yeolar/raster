@@ -41,10 +41,10 @@ class HTTPSyncClient {
 
   bool connected() const;
 
-  bool fetch(const HTTPMessage& headers, std::unique_ptr<IOBuf> body);
+  bool fetch(const HTTPMessage& headers, std::unique_ptr<acc::IOBuf> body);
 
   HTTPMessage* headers() const;
-  IOBuf* body() const;
+  acc::IOBuf* body() const;
   HTTPHeaders* trailers() const;
 
  private:

@@ -22,7 +22,7 @@ void HTTPTransport::reset() {
 }
 
 void HTTPTransport::processReadData() {
-  const IOBuf* buf;
+  const acc::IOBuf* buf;
   while ((buf = readBuf_.front()) != nullptr && buf->length() != 0) {
     size_t bytesParsed = codec_.onIngress(*buf);
     if (bytesParsed == 0) {
@@ -34,22 +34,22 @@ void HTTPTransport::processReadData() {
 
 #if 0
 void HTTPTransport::onReadingHeaders() {
-  RDDCHECK(state_ == INIT);
+  ACCCHECK(state_ == INIT);
 
-  IOBuf* buf = rbuf.get();
+  acc::IOBuf* buf = rbuf.get();
   headerSize_ = buf->computeChainDataLength();
 
-  StringPiece data(buf->coalesce());
+  acc::StringPiece data(buf->coalesce());
   auto eol = data.find("\r\n");
-  StringPiece method, uri, version;
+  acc::StringPiece method, uri, version;
 
   if (!split(' ', data.subpiece(0, eol), method, uri, version)) {
-    RDDLOG(INFO) << *this << " malformed HTTP request line";
+    ACCLOG(INFO) << *this << " malformed HTTP request line";
     state_ = ERROR;
     return;
   }
   if (!version.startsWith("HTTP/")) {
-    RDDLOG(INFO) << *this << " malformed HTTP version in HTTP request";
+    ACCLOG(INFO) << *this << " malformed HTTP version in HTTP request";
     state_ = ERROR;
     return;
   }
@@ -69,9 +69,9 @@ void HTTPTransport::onReadingHeaders() {
   size_t n = request_->contentLength();
   if (n != 0) {
     if (n > Protocol::BODYLEN_LIMIT) {
-      RDDLOG(WARN) << *this << " big request, bodyLength=" << n;
+      ACCLOG(WARN) << *this << " big request, bodyLength=" << n;
     } else {
-      RDDLOG(V3) << *this << " bodyLength=" << n;
+      ACCLOG(V3) << *this << " bodyLength=" << n;
     }
     /* TODO
     if (request_->headers.get("Expect") == "100-continue") {
@@ -85,10 +85,10 @@ void HTTPTransport::onReadingHeaders() {
 }
 
 void HTTPTransport::onReadingBody() {
-  RDDCHECK(state_ == ON_READING);
+  ACCCHECK(state_ == ON_READING);
 
-  IOBuf* buf = rbuf.get();
-  StringPiece data(buf->coalesce());
+  acc::IOBuf* buf = rbuf.get();
+  acc::StringPiece data(buf->coalesce());
   request_->body = data.subpiece(headerSize_);
 
   if (request_->method == HTTPMethod::POST ||
@@ -103,7 +103,7 @@ void HTTPTransport::onReadingBody() {
 }
 
 void HTTPTransport::onWriting() {
-  RDDCHECK(state_ == ON_WRITING);
+  ACCCHECK(state_ == ON_WRITING);
 
   if (response_->statusCode == 200 &&
       (request_->method == HTTPMethod::GET ||
@@ -120,7 +120,7 @@ void HTTPTransport::onWriting() {
     }
   }
   if (response_->statusCode == 304) {
-    RDDCHECK(response_->data->empty());
+    ACCCHECK(response_->data->empty());
     response_->headers.clearHeadersFor304();
   } else if (!response_->headers.exists(HTTP_HEADER_CONTENT_LENGTH)) {
     size_t n = response_->data->computeChainDataLength();
@@ -136,7 +136,7 @@ void HTTPTransport::onWriting() {
   auto level = response_->statusCode < 400 ? ::rdd::logging::LOG_INFO :
                response_->statusCode < 500 ? ::rdd::logging::LOG_WARN :
                                              ::rdd::logging::LOG_ERROR;
-  RDDLOG_STREAM(level)
+  ACCLOG_STREAM(level)
     << response_->statusCode << " "
     << *request_ << " "
     << this->cost()/1000.0 << "ms";
@@ -154,7 +154,7 @@ void HTTPTransport::onHeadersComplete(std::unique_ptr<HTTPMessage> msg) {
   headers = std::move(msg);
 }
 
-void HTTPTransport::onBody(std::unique_ptr<IOBuf> chain) {
+void HTTPTransport::onBody(std::unique_ptr<acc::IOBuf> chain) {
   if (body) {
     body->appendChain(std::move(chain));
   } else {
@@ -183,7 +183,7 @@ void HTTPTransport::sendHeaders(const HTTPMessage& headers,
   codec_.generateHeader(writeBuf_, headers, false, size);
 }
 
-size_t HTTPTransport::sendBody(std::unique_ptr<IOBuf> body, bool includeEOM) {
+size_t HTTPTransport::sendBody(std::unique_ptr<acc::IOBuf> body, bool includeEOM) {
   return codec_.generateBody(writeBuf_, std::move(body), includeEOM);
 }
 

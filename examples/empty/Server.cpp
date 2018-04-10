@@ -8,10 +8,10 @@
 #include "raster/framework/HubAdaptor.h"
 #include "raster/framework/Signal.h"
 #include "raster/protocol/thrift/AsyncServer.h"
-#include "raster/util/Logging.h"
-#include "raster/util/Portability.h"
-#include "raster/util/ScopeGuard.h"
-#include "raster/util/Uuid.h"
+#include "accelerator/Logging.h"
+#include "accelerator/Portability.h"
+#include "accelerator/ScopeGuard.h"
+#include "accelerator/Uuid.h"
 #include "gen-cpp/Empty.h"
 
 static const char* VERSION = "1.1.0";
@@ -24,20 +24,20 @@ using namespace rdd::empty;
 class EmptyHandler : virtual public EmptyIf {
  public:
   EmptyHandler() {
-    RDDLOG(DEBUG) << "EmptyHandler init";
+    ACCLOG(DEBUG) << "EmptyHandler init";
   }
 
   void run(Result& _return, const Query& query) {
-    if (!StringPiece(query.traceid).startsWith("rdd")) {
+    if (!acc::StringPiece(query.traceid).startsWith("rdd")) {
       _return.__set_code(ResultCode::E_SOURCE__UNTRUSTED);
-      RDDLOG(INFO) << "untrusted request: [" << query.traceid << "]";
+      ACCLOG(INFO) << "untrusted request: [" << query.traceid << "]";
     }
     if (!checkOK(_return)) return;
 
-    _return.__set_traceid(generateUuid(query.traceid, "rdde"));
+    _return.__set_traceid(acc::generateUuid(query.traceid, "rdde"));
     _return.__set_code(ResultCode::OK);
 
-    RDDTLOG(INFO, query.traceid) << "query: \"" << query.query << "\""
+    ACCTLOG(INFO, query.traceid) << "query: \"" << query.query << "\""
       << " code=" << _return.code;
     if (!checkOK(_return)) return;
   }
@@ -57,8 +57,8 @@ int main(int argc, char* argv[]) {
   setupShutdownSignal(SIGINT);
   setupShutdownSignal(SIGTERM);
 
-  Singleton<HubAdaptor>::get()->addService(
-      make_unique<TAsyncServer<EmptyHandler, EmptyProcessor>>("Empty"));
+  acc::Singleton<HubAdaptor>::get()->addService(
+      acc::make_unique<TAsyncServer<EmptyHandler, EmptyProcessor>>("Empty"));
 
   config(FLAGS_conf.c_str(), {
          {configLogging, "logging"},
@@ -69,8 +69,8 @@ int main(int argc, char* argv[]) {
          {configJobGraph, "job.graph"}
          });
 
-  RDDLOG(INFO) << "rdd start ... ^_^";
-  Singleton<HubAdaptor>::get()->startService();
+  ACCLOG(INFO) << "rdd start ... ^_^";
+  acc::Singleton<HubAdaptor>::get()->startService();
 
   gflags::ShutDownCommandLineFlags();
 

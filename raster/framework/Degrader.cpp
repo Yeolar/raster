@@ -16,14 +16,16 @@
 
 #include "raster/framework/Degrader.h"
 
-#include "raster/util/Logging.h"
-#include "raster/util/MapUtil.h"
-#include "raster/util/Time.h"
+#include "accelerator/Logging.h"
+#include "accelerator/MapUtil.h"
+#include "accelerator/Time.h"
 
 namespace rdd {
 
+using acc::SpinLockGuard;
+
 void CountDegrader::setup(bool open, uint32_t limit, uint32_t gap) {
-  RDDLOG(INFO) << "Degrader: setup "
+  ACCLOG(INFO) << "Degrader: setup "
     << "open=" << open << ", limit=" << limit << ", gap=" << gap;
   SpinLockGuard guard(lock_);
   open_ = open;
@@ -46,7 +48,7 @@ bool CountDegrader::needDemote() {
 }
 
 void RateDegrader::setup(bool open, uint32_t limit, double rate) {
-  RDDLOG(INFO) << "Degrader: setup "
+  ACCLOG(INFO) << "Degrader: setup "
     << "open=" << open << ", limit=" << limit << ", rate=" << rate;
   SpinLockGuard guard(lock_);
   open_ = open;
@@ -57,7 +59,7 @@ void RateDegrader::setup(bool open, uint32_t limit, double rate) {
 
 bool RateDegrader::needDemote() {
   if (open_) {
-    uint64_t ts = timestampNow();
+    uint64_t ts = acc::timestampNow();
     SpinLockGuard guard(lock_);
     if (ts_ != 0) {
       uint32_t incr = std::max(ts - ts_, 0ul) * rate_;
@@ -74,7 +76,7 @@ bool RateDegrader::needDemote() {
 
 bool DegraderManager::hit(const std::string& name) {
   std::lock_guard<std::mutex> guard(lock_);
-  auto degrader = get_ptr(degraders_, name);
+  auto degrader = acc::get_ptr(degraders_, name);
   return degrader ? degrader->get()->needDemote() : false;
 }
 

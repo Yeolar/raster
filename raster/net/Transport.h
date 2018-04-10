@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "raster/io/IOBufQueue.h"
+#include "accelerator/io/IOBufQueue.h"
 #include "raster/net/Socket.h"
 
 namespace rdd {
@@ -57,8 +57,8 @@ class Transport {
   Peer peerAddr_;
   Peer localAddr_;
   IngressState state_;
-  IOBufQueue readBuf_{IOBufQueue::cacheChainLength()};
-  IOBufQueue writeBuf_{IOBufQueue::cacheChainLength()};
+  acc::IOBufQueue readBuf_{acc::IOBufQueue::cacheChainLength()};
+  acc::IOBufQueue writeBuf_{acc::IOBufQueue::cacheChainLength()};
 };
 
 class TransportFactory {

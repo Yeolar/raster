@@ -19,7 +19,7 @@
 namespace rdd {
 
 Acceptor::Acceptor(std::shared_ptr<NetHub> hub)
-  : hub_(hub), loop_(make_unique<EventLoop>()) {
+  : hub_(hub), loop_(acc::make_unique<EventLoop>()) {
 }
 
 void Acceptor::addService(std::unique_ptr<Service> service) {
@@ -28,9 +28,9 @@ void Acceptor::addService(std::unique_ptr<Service> service) {
 
 void Acceptor::configService(
     const std::string& name, int port, const TimeoutOption& timeout) {
-  auto service = get_deref_smart_ptr(services_, name);
+  auto service = acc::get_deref_smart_ptr(services_, name);
   if (!service) {
-    RDDLOG(FATAL) << "service: [" << name << "] not added";
+    ACCLOG(FATAL) << "service: [" << name << "] not added";
     return;
   }
 
@@ -52,7 +52,7 @@ void Acceptor::listen(Service* service, int backlog) {
   event->setCompleteCallback([&](Event* ev) { hub_->execute(ev); });
   event->setCloseCallback([&](Event* ev) { hub_->execute(ev); });
   loop_->addEvent(event);
-  RDDLOG(INFO) << *event << " listen on port=" << port;
+  ACCLOG(INFO) << *event << " listen on port=" << port;
 }
 
 void Acceptor::start() {

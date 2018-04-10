@@ -23,7 +23,7 @@ namespace rdd {
 
 class Service {
  public:
-  Service(StringPiece name) : name_(name.str()) {}
+  Service(acc::StringPiece name) : name_(name.str()) {}
 
   virtual ~Service() {}
 

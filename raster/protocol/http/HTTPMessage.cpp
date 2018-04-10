@@ -20,8 +20,8 @@
 #include <utility>
 #include <vector>
 
-#include "raster/util/String.h"
-#include "raster/util/Time.h"
+#include "accelerator/String.h"
+#include "accelerator/Time.h"
 
 namespace rdd {
 
@@ -54,7 +54,7 @@ void HTTPMessage::stripPerHopHeaders() {
 }
 
 HTTPMessage::HTTPMessage() :
-    startTime_(timestampNow()),
+    startTime_(acc::timestampNow()),
     seqNo_(-1),
     localIP_(),
     versionStr_("1.0"),
@@ -131,7 +131,7 @@ void HTTPMessage::setMethod(HTTPMethod method) {
   req.method_ = method;
 }
 
-void HTTPMessage::setMethod(StringPiece method) {
+void HTTPMessage::setMethod(acc::StringPiece method) {
   setMethod(stringToMethod(method));
 }
 
@@ -148,7 +148,7 @@ const std::string& HTTPMessage::getMethodString() const {
 void HTTPMessage::setHTTPVersion(uint8_t maj, uint8_t min) {
   version_.first = maj;
   version_.second = min;
-  versionStr_ = to<std::string>(maj, ".", min);
+  versionStr_ = acc::to<std::string>(maj, ".", min);
 }
 
 const std::pair<uint8_t, uint8_t>& HTTPMessage::getHTTPVersion() const {
@@ -162,7 +162,7 @@ int HTTPMessage::processMaxForwards() {
     if (value.length() > 0) {
       int64_t max_forwards = 0;
       try {
-        max_forwards = to<int64_t>(value);
+        max_forwards = acc::to<int64_t>(value);
       } catch (const std::range_error& ex) {
         return 400;
       }
@@ -173,7 +173,7 @@ int HTTPMessage::processMaxForwards() {
         return 501;
       } else {
         headers_.set(HTTP_HEADER_MAX_FORWARDS,
-                     to<std::string>(max_forwards - 1));
+                     acc::to<std::string>(max_forwards - 1));
       }
     }
   }
@@ -207,7 +207,7 @@ void HTTPMessage::ensureHostHeader() {
 
 void HTTPMessage::setStatusCode(uint16_t status) {
   response().status_ = status;
-  response().statusStr_ = to<std::string>(status);
+  response().statusStr_ = acc::to<std::string>(status);
 }
 
 uint16_t HTTPMessage::getStatusCode() const {
@@ -229,7 +229,7 @@ HTTPMessage::constructDirectResponse(const std::pair<uint8_t,uint8_t>& version,
                                      int contentLength) {
   setHTTPVersion(version.first, version.second);
 
-  headers_.set(HTTP_HEADER_CONTENT_LENGTH, to<std::string>(contentLength));
+  headers_.set(HTTP_HEADER_CONTENT_LENGTH, acc::to<std::string>(contentLength));
 
   if (!headers_.exists(HTTP_HEADER_CONTENT_TYPE)) {
     headers_.add(HTTP_HEADER_CONTENT_TYPE, "text/plain");
@@ -243,7 +243,7 @@ void HTTPMessage::parseCookies() const {
   headers_.forEachValueOfHeader(HTTP_HEADER_COOKIE,
                                 [&](const std::string& headerval) {
     splitNameValuePieces(headerval, ';', '=',
-        [this](StringPiece cookieName, StringPiece cookieValue) {
+        [this](acc::StringPiece cookieName, acc::StringPiece cookieValue) {
           cookies_.emplace(cookieName, cookieValue);
         });
 
@@ -256,7 +256,7 @@ void HTTPMessage::unparseCookies() {
   parsedCookies_ = false;
 }
 
-const StringPiece HTTPMessage::getCookie(const std::string& name) const {
+const acc::StringPiece HTTPMessage::getCookie(const std::string& name) const {
   // Parse the cookies if we haven't done so yet
   if (!parsedCookies_) {
     parseCookies();
@@ -264,7 +264,7 @@ const StringPiece HTTPMessage::getCookie(const std::string& name) const {
 
   auto it = cookies_.find(name);
   if (it == cookies_.end()) {
-    return StringPiece();
+    return acc::StringPiece();
   } else {
     return it->second;
   }
@@ -322,7 +322,7 @@ const std::string& HTTPMessage::getQueryParam(const std::string& name) const {
 }
 
 int HTTPMessage::getIntQueryParam(const std::string& name) const {
-  return to<int>(getQueryParam(name));
+  return acc::to<int>(getQueryParam(name));
 }
 
 int HTTPMessage::getIntQueryParam(const std::string& name, int defval) const {
@@ -338,9 +338,9 @@ std::string HTTPMessage::getDecodedQueryParam(const std::string& name) const {
 
   std::string result;
   try {
-    uriUnescape(val, result, UriEscapeMode::QUERY);
+    acc::uriUnescape(val, result, acc::UriEscapeMode::QUERY);
   } catch (const std::exception& ex) {
-    RDDLOG(WARN) << "Invalid escaped query param: " << exceptionStr(ex);
+    ACCLOG(WARN) << "Invalid escaped query param: " << acc::exceptionStr(ex);
   }
   return result;
 }
@@ -367,7 +367,7 @@ bool HTTPMessage::setQueryString(const std::string& query) {
     return true;
   }
 
-  RDDLOG(V4) << "Error parsing URL during setQueryString: " << request().url_;
+  ACCLOG(V4) << "Error parsing URL during setQueryString: " << request().url_;
   return false;
 }
 
@@ -412,23 +412,23 @@ std::string HTTPMessage::createQueryString(
   return query;
 }
 
-std::string HTTPMessage::createUrl(const StringPiece scheme,
-                                   const StringPiece authority,
-                                   const StringPiece path,
-                                   const StringPiece query,
-                                   const StringPiece fragment) {
+std::string HTTPMessage::createUrl(const acc::StringPiece scheme,
+                                   const acc::StringPiece authority,
+                                   const acc::StringPiece path,
+                                   const acc::StringPiece query,
+                                   const acc::StringPiece fragment) {
   std::string url;
   url.reserve(scheme.size() + authority.size() + path.size() + query.size() +
               fragment.size() + 5); // 5 chars for ://,? and #
   if (!scheme.empty()) {
-    toAppend(scheme.str(), "://", &url);
+    acc::toAppend(scheme.str(), "://", &url);
   }
-  toAppend(authority, path, &url);
+  acc::toAppend(authority, path, &url);
   if (!query.empty()) {
-    toAppend('?', query, &url);
+    acc::toAppend('?', query, &url);
   }
   if (!fragment.empty()) {
-    toAppend('#', fragment, &url);
+    acc::toAppend('#', fragment, &url);
   }
   url.shrink_to_fit();
   return url;
@@ -438,20 +438,20 @@ void HTTPMessage::splitNameValuePieces(
         const std::string& input,
         char pairDelim,
         char valueDelim,
-        std::function<void(StringPiece, StringPiece)> callback) {
+        std::function<void(acc::StringPiece, acc::StringPiece)> callback) {
 
-  StringPiece sp(input);
+  acc::StringPiece sp(input);
   while (!sp.empty()) {
-    StringPiece keyValue = sp.split_step(pairDelim);
+    acc::StringPiece keyValue = sp.split_step(pairDelim);
     if (keyValue.empty()) {
       continue;
     }
 
-    StringPiece name, value;
+    acc::StringPiece name, value;
     if (split(valueDelim, keyValue, name, value)) {
       callback(trimWhitespace(name), trimWhitespace(value));
     } else {
-      callback(trimWhitespace(keyValue), StringPiece());
+      callback(trimWhitespace(keyValue), acc::StringPiece());
     }
   }
 }
@@ -462,14 +462,14 @@ void HTTPMessage::splitNameValue(
         char valueDelim,
         std::function<void(std::string&&, std::string&&)> callback) {
 
-  StringPiece sp(input);
+  acc::StringPiece sp(input);
   while (!sp.empty()) {
-    StringPiece keyValue = sp.split_step(pairDelim);
+    acc::StringPiece keyValue = sp.split_step(pairDelim);
     if (keyValue.empty()) {
       continue;
     }
 
-    StringPiece name, value;
+    acc::StringPiece name, value;
     if (split(valueDelim, keyValue, name, value)) {
       callback(std::move(trimWhitespace(name).str()),
                std::move(trimWhitespace(value).str()));
@@ -482,7 +482,7 @@ void HTTPMessage::splitNameValue(
 }
 
 void HTTPMessage::dumpMessage(int vlogLevel) const {
-  RDDLOG_STREAM(vlogLevel)
+  ACCLOG_STREAM(vlogLevel)
     << "Version: " << versionStr_
     << ", chunked: " << chunked_
     << ", Fields for message:";
@@ -515,13 +515,13 @@ void HTTPMessage::dumpMessage(int vlogLevel) const {
 
   for (auto field : fields) {
     if (!field.second->empty()) {
-      RDDLOG_STREAM(vlogLevel)
+      ACCLOG_STREAM(vlogLevel)
         << " " << field.first << ":" << stripCntrlChars(*field.second);
     }
   }
 
   headers_.forEach([&] (const std::string& h, const std::string& v) {
-    RDDLOG_STREAM(vlogLevel)
+    ACCLOG_STREAM(vlogLevel)
       << " " << stripCntrlChars(h) << ": " << stripCntrlChars(v);
   });
 }
@@ -570,20 +570,20 @@ bool HTTPMessage::computeKeepalive() const {
 bool HTTPMessage::checkForHeaderToken(const HTTPHeaderCode headerCode,
                                       char const* token,
                                       bool caseSensitive) const {
-  StringPiece tokenPiece(token);
+  acc::StringPiece tokenPiece(token);
   // Search through all of the headers with this name.
   // forEachValueOfHeader will return true iff it was "broken" prematurely
   // with "return true" in the lambda-function
   return headers_.forEachValueOfHeader(headerCode,
                                        [&] (const std::string& value) {
     std::string lower;
-    // Use StringPiece, since it implements a faster find() than std::string
-    StringPiece headerValue;
+    // Use acc::StringPiece, since it implements a faster find() than std::string
+    acc::StringPiece headerValue;
     if (caseSensitive) {
       headerValue.reset(value);
     } else {
       lower = value;
-      toLowerAscii(lower);
+      acc::toLowerAscii(lower);
       headerValue.reset(lower);
     }
 

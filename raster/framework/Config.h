@@ -18,24 +18,24 @@
 
 #include <vector>
 
-#include "raster/util/Function.h"
-#include "raster/util/json.h"
+#include "accelerator/Function.h"
+#include "accelerator/json.h"
 
 namespace rdd {
 
-typedef std::pair<void(*)(const dynamic&, bool), std::string> ConfigTask;
+typedef std::pair<void(*)(const acc::dynamic&, bool), std::string> ConfigTask;
 
 std::string generateDefault();
 
-void configLogging(const dynamic& j, bool reload);
-void configProcess(const dynamic& j, bool reload);
-void configService(const dynamic& j, bool reload);
-void configThreadPool(const dynamic& j, bool reload);
-void configNet(const dynamic& j, bool reload);
-void configMonitor(const dynamic& j, bool reload);
-void configDegrader(const dynamic& j, bool reload);
-void configSampler(const dynamic& j, bool reload);
-void configJobGraph(const dynamic& j, bool reload);
+void configLogging(const acc::dynamic& j, bool reload);
+void configProcess(const acc::dynamic& j, bool reload);
+void configService(const acc::dynamic& j, bool reload);
+void configThreadPool(const acc::dynamic& j, bool reload);
+void configNet(const acc::dynamic& j, bool reload);
+void configMonitor(const acc::dynamic& j, bool reload);
+void configDegrader(const acc::dynamic& j, bool reload);
+void configSampler(const acc::dynamic& j, bool reload);
+void configJobGraph(const acc::dynamic& j, bool reload);
 
 class ConfigManager {
  public:

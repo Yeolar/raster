@@ -31,7 +31,7 @@ void BinaryTransport::reset() {
 }
 
 void BinaryTransport::processReadData() {
-  const IOBuf* buf;
+  const acc::IOBuf* buf;
   while ((buf = readBuf_.front()) != nullptr && buf->length() != 0) {
     size_t bytesParsed = onIngress(*buf);
     if (bytesParsed == 0) {
@@ -41,8 +41,8 @@ void BinaryTransport::processReadData() {
   }
 }
 
-size_t BinaryTransport::onIngress(const IOBuf& buf) {
-  std::unique_ptr<IOBuf> clone(buf.clone());
+size_t BinaryTransport::onIngress(const acc::IOBuf& buf) {
+  std::unique_ptr<acc::IOBuf> clone(buf.clone());
   if (!headersComplete_) {
     size_t headerLeft = sizeof(header) - headerSize_;
     size_t headerCopy = std::min(headerLeft, buf.length());
@@ -72,20 +72,20 @@ void BinaryTransport::sendHeader(uint32_t header) {
   writeBuf_.append(&n, sizeof(n));
 }
 
-size_t BinaryTransport::sendBody(std::unique_ptr<IOBuf> body) {
+size_t BinaryTransport::sendBody(std::unique_ptr<acc::IOBuf> body) {
   size_t n = body->computeChainDataLength();
   writeBuf_.append(std::move(body));
   return n;
 }
 
 void ZlibTransport::reset() {
-  compressor_.reset(new ZlibStreamCompressor(ZlibCompressionType::DEFLATE, 9));
-  decompressor_.reset(new ZlibStreamDecompressor(ZlibCompressionType::DEFLATE));
+  compressor_.reset(new acc::ZlibStreamCompressor(acc::ZlibCompressionType::DEFLATE, 9));
+  decompressor_.reset(new acc::ZlibStreamDecompressor(acc::ZlibCompressionType::DEFLATE));
   body->clear();
 }
 
 void ZlibTransport::processReadData() {
-  const IOBuf* buf;
+  const acc::IOBuf* buf;
   while ((buf = readBuf_.front()) != nullptr && buf->length() != 0) {
     size_t bytesParsed = onIngress(*buf);
     if (bytesParsed == 0) {
@@ -95,7 +95,7 @@ void ZlibTransport::processReadData() {
   }
 }
 
-size_t ZlibTransport::onIngress(const IOBuf& buf) {
+size_t ZlibTransport::onIngress(const acc::IOBuf& buf) {
   auto decompressed = decompressor_->decompress(&buf);
   if (decompressed->length() > 0) {
     if (body) {
@@ -112,7 +112,7 @@ size_t ZlibTransport::onIngress(const IOBuf& buf) {
   return decompressed->length();
 }
 
-size_t ZlibTransport::sendBody(std::unique_ptr<IOBuf> body) {
+size_t ZlibTransport::sendBody(std::unique_ptr<acc::IOBuf> body) {
   size_t n = body->computeChainDataLength();
   auto compressed = compressor_->compress(body.get(), false);
   writeBuf_.append(std::move(compressed));

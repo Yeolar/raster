@@ -21,7 +21,7 @@
 #include <memory>
 #include <mutex>
 
-#include "raster/util/Algorithm.h"
+#include "accelerator/Algorithm.h"
 
 namespace rdd {
 
@@ -60,7 +60,7 @@ class SamplerManager {
 template <class Sam, class ...Args>
 void SamplerManager::setupSampler(const std::string& name, Args&&... args) {
   std::lock_guard<std::mutex> guard(lock_);
-  if (!contain(samplers_, name)) {
+  if (!acc::contain(samplers_, name)) {
     samplers_[name].reset(new Sam());
   }
   Sampler* d = samplers_[name].get();
@@ -70,5 +70,5 @@ void SamplerManager::setupSampler(const std::string& name, Args&&... args) {
 } // namespace rdd
 
 #define RDDSAM_HIT(name) \
-  ::rdd::Singleton< ::rdd::SamplerManager>::get()->hit(name)
+  ::acc::Singleton< ::rdd::SamplerManager>::get()->hit(name)
 

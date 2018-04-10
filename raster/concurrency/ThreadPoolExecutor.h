@@ -19,11 +19,11 @@
 
 #include "raster/concurrency/Executor.h"
 #include "raster/concurrency/ThreadFactory.h"
-#include "raster/thread/Baton.h"
-#include "raster/thread/BlockingQueue.h"
-#include "raster/thread/RWSpinLock.h"
-#include "raster/thread/Synchronized.h"
-#include "raster/util/Logging.h"
+#include "accelerator/thread/Baton.h"
+#include "accelerator/thread/BlockingQueue.h"
+#include "accelerator/thread/RWSpinLock.h"
+#include "accelerator/thread/Synchronized.h"
+#include "accelerator/Logging.h"
 
 namespace rdd {
 
@@ -35,13 +35,13 @@ class ThreadPoolExecutor : public virtual Executor {
 
   ~ThreadPoolExecutor() override;
 
-  void add(VoidFunc func) override = 0;
-  virtual void add(VoidFunc func,
+  void add(acc::VoidFunc func) override = 0;
+  virtual void add(acc::VoidFunc func,
                    uint64_t expiration,
-                   VoidFunc expireCallback) = 0;
+                   acc::VoidFunc expireCallback) = 0;
 
   void setThreadFactory(std::shared_ptr<ThreadFactory> threadFactory) {
-    RDDCHECK(numThreads() == 0);
+    ACCCHECK(numThreads() == 0);
     threadFactory_ = std::move(threadFactory);
   }
 
@@ -124,12 +124,12 @@ class ThreadPoolExecutor : public virtual Executor {
 
   struct TaskStatsCallbackRegistry;
 
-  struct RDD_ALIGN_TO_AVOID_FALSE_SHARING Thread : public ThreadHandle {
+  struct ACC_ALIGN_TO_AVOID_FALSE_SHARING Thread : public ThreadHandle {
     explicit Thread(ThreadPoolExecutor* pool)
         : id(nextId++),
           handle(),
           idle(true),
-          lastActiveTime(timestampNow()),
+          lastActiveTime(acc::timestampNow()),
           taskStatsCallbacks(pool->taskStatsCallbacks_) {}
 
     ~Thread() override = default;
@@ -139,7 +139,7 @@ class ThreadPoolExecutor : public virtual Executor {
     std::thread handle;
     bool idle;
     uint64_t lastActiveTime;
-    Baton startupBaton;
+    acc::Baton startupBaton;
     std::shared_ptr<TaskStatsCallbackRegistry> taskStatsCallbacks;
   };
 
@@ -147,18 +147,18 @@ class ThreadPoolExecutor : public virtual Executor {
 
   struct Task {
     explicit Task(
-        VoidFunc&& func,
+        acc::VoidFunc&& func,
         uint64_t expiration,
-        VoidFunc&& expireCallback);
+        acc::VoidFunc&& expireCallback);
 
     Task(Task&&) noexcept;
     Task& operator=(Task&&) noexcept;
 
-    VoidFunc func_;
+    acc::VoidFunc func_;
     TaskStats stats_;
     uint64_t enqueueTime_;
     uint64_t expiration_;
-    VoidFunc expireCallback_;
+    acc::VoidFunc expireCallback_;
   };
 
   static void runTask(const ThreadPtr& thread, Task&& task);
@@ -210,8 +210,8 @@ class ThreadPoolExecutor : public virtual Executor {
           [&](const ThreadPtr& ts1, const ThreadPtr& ts2) -> bool { // inline
             return compare(ts1, ts2);
           });
-      RDDCHECK(itPair.first != vec_.end());
-      RDDCHECK(std::next(itPair.first) == itPair.second);
+      ACCCHECK(itPair.first != vec_.end());
+      ACCCHECK(std::next(itPair.first) == itPair.second);
       vec_.erase(itPair.first);
     }
 
@@ -230,13 +230,13 @@ class ThreadPoolExecutor : public virtual Executor {
   std::shared_ptr<ThreadFactory> threadFactory_;
 
   ThreadList threadList_;
-  RWSpinLock threadListLock_;
-  GenericBlockingQueue<ThreadPtr> stoppedThreads_;
+  acc::RWSpinLock threadListLock_;
+  acc::GenericBlockingQueue<ThreadPtr> stoppedThreads_;
   std::atomic<bool> isJoin_; // whether the current downsizing is a join
 
   struct TaskStatsCallbackRegistry {
-    ThreadLocal<bool> inCallback;
-    Synchronized<std::vector<TaskStatsCallback>> callbackList;
+    acc::ThreadLocal<bool> inCallback;
+    acc::Synchronized<std::vector<TaskStatsCallback>> callbackList;
   };
   std::shared_ptr<TaskStatsCallbackRegistry> taskStatsCallbacks_;
   std::vector<std::shared_ptr<Observer>> observers_;

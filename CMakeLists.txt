@@ -50,6 +50,7 @@ link_libraries(
 )
 
 include_directories(
+    ${PROJECT_SOURCE_DIR}/accelerator
     ${PROJECT_SOURCE_DIR}/raster/3rd
     ${PROJECT_SOURCE_DIR}
 )
@@ -90,20 +91,16 @@ configure_file(
 )
 
 # Work on all sub directories
-add_subdirectory(raster/3rd/double-conversion)
+add_subdirectory(accelerator)
+
 add_subdirectory(raster/3rd/http_parser)
 add_subdirectory(raster/3rd/thrift)
 
 add_subdirectory(raster/concurrency)
 add_subdirectory(raster/coroutine)
-add_subdirectory(raster/enc)
 add_subdirectory(raster/framework)
-add_subdirectory(raster/gen)
-add_subdirectory(raster/io)
-add_subdirectory(raster/io/compression)
-add_subdirectory(raster/io/event)
+add_subdirectory(raster/event)
 add_subdirectory(raster/net)
-add_subdirectory(raster/parallel)
 add_subdirectory(raster/plugins/flume)
 add_subdirectory(raster/protocol/binary)
 add_subdirectory(raster/protocol/http)
@@ -111,53 +108,37 @@ add_subdirectory(raster/protocol/proto)
 add_subdirectory(raster/protocol/thrift)
 add_subdirectory(raster/serializer)
 add_subdirectory(raster/ssl)
-add_subdirectory(raster/thread)
-add_subdirectory(raster/util)
 
 add_library(raster_static STATIC
-    $<TARGET_OBJECTS:double-conversion>
     $<TARGET_OBJECTS:httpparser>
     $<TARGET_OBJECTS:thrift>
     $<TARGET_OBJECTS:raster_concurrency>
     $<TARGET_OBJECTS:raster_coroutine>
-    $<TARGET_OBJECTS:raster_enc>
     $<TARGET_OBJECTS:raster_framework>
-    $<TARGET_OBJECTS:raster_io>
-    $<TARGET_OBJECTS:raster_io_compression>
-    $<TARGET_OBJECTS:raster_io_event>
+    $<TARGET_OBJECTS:raster_event>
     $<TARGET_OBJECTS:raster_net>
-    $<TARGET_OBJECTS:raster_parallel>
     $<TARGET_OBJECTS:raster_plugins_flume>
     $<TARGET_OBJECTS:raster_protocol_binary>
     $<TARGET_OBJECTS:raster_protocol_http>
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_protocol_thrift>
     $<TARGET_OBJECTS:raster_ssl>
-    $<TARGET_OBJECTS:raster_thread>
-    $<TARGET_OBJECTS:raster_util>
 )
 set_target_properties(raster_static PROPERTIES OUTPUT_NAME raster)
 add_library(raster_shared SHARED
-    $<TARGET_OBJECTS:double-conversion>
     $<TARGET_OBJECTS:httpparser>
     $<TARGET_OBJECTS:thrift>
     $<TARGET_OBJECTS:raster_concurrency>
     $<TARGET_OBJECTS:raster_coroutine>
-    $<TARGET_OBJECTS:raster_enc>
     $<TARGET_OBJECTS:raster_framework>
-    $<TARGET_OBJECTS:raster_io>
-    $<TARGET_OBJECTS:raster_io_compression>
-    $<TARGET_OBJECTS:raster_io_event>
+    $<TARGET_OBJECTS:raster_event>
     $<TARGET_OBJECTS:raster_net>
-    $<TARGET_OBJECTS:raster_parallel>
     $<TARGET_OBJECTS:raster_plugins_flume>
     $<TARGET_OBJECTS:raster_protocol_binary>
     $<TARGET_OBJECTS:raster_protocol_http>
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_protocol_thrift>
     $<TARGET_OBJECTS:raster_ssl>
-    $<TARGET_OBJECTS:raster_thread>
-    $<TARGET_OBJECTS:raster_util>
 )
 set_target_properties(raster_shared PROPERTIES OUTPUT_NAME raster)
 
@@ -178,7 +159,7 @@ install(TARGETS raster_shared
 add_subdirectory(examples/empty)
 add_subdirectory(examples/flatbuffers)
 add_subdirectory(examples/http)
-add_subdirectory(examples/parallel)
+#add_subdirectory(examples/parallel)
 add_subdirectory(examples/pbrpc)
 add_subdirectory(examples/proxy)
 

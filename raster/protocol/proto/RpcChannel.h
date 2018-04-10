@@ -20,11 +20,11 @@
 #include <string>
 #include <google/protobuf/service.h>
 
-#include "raster/io/event/Event.h"
+#include "raster/event/Event.h"
 #include "raster/net/NetUtil.h"
 #include "raster/net/Socket.h"
 #include "raster/protocol/binary/Transport.h"
-#include "raster/thread/LockedMap.h"
+#include "accelerator/thread/LockedMap.h"
 
 namespace rdd {
 
@@ -39,11 +39,11 @@ class PBRpcChannel : public google::protobuf::RpcChannel {
       google::protobuf::Message* response,
       google::protobuf::Closure* done) override;
 
-  void process(const std::unique_ptr<IOBuf>& buf);
+  void process(const std::unique_ptr<acc::IOBuf>& buf);
 
  protected:
   virtual void send(
-      std::unique_ptr<IOBuf> buf,
+      std::unique_ptr<acc::IOBuf> buf,
       std::function<void(bool, const std::string&)> resultCb) = 0;
 
  private:
@@ -64,7 +64,7 @@ class PBRpcChannel : public google::protobuf::RpcChannel {
 
   void startCancel(std::string callId);
 
-  LockedMap<std::string, std::shared_ptr<Handle>> handles_;
+  acc::LockedMap<std::string, std::shared_ptr<Handle>> handles_;
 };
 
 class PBSyncRpcChannel : public PBRpcChannel {
@@ -82,7 +82,7 @@ class PBSyncRpcChannel : public PBRpcChannel {
 
  private:
   void send(
-      std::unique_ptr<IOBuf> buf,
+      std::unique_ptr<acc::IOBuf> buf,
       std::function<void(bool, const std::string&)> resultCb) override;
 
   Peer peer_;
@@ -98,7 +98,7 @@ class PBAsyncRpcChannel : public PBRpcChannel {
 
  private:
   void send(
-      std::unique_ptr<IOBuf> buf,
+      std::unique_ptr<acc::IOBuf> buf,
       std::function<void(bool, const std::string&)> resultCb) override;
 
   Event* event_;

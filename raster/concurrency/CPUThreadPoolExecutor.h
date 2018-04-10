@@ -36,7 +36,7 @@ class CPUThreadPoolExecutor : public ThreadPoolExecutor {
 
   CPUThreadPoolExecutor(
       size_t numThreads,
-      std::unique_ptr<BlockingQueue<CPUTask>> taskQueue,
+      std::unique_ptr<acc::BlockingQueue<CPUTask>> taskQueue,
       std::shared_ptr<ThreadFactory> threadFactory =
           std::make_shared<ThreadFactory>("CPUThreadPool"));
 
@@ -53,10 +53,10 @@ class CPUThreadPoolExecutor : public ThreadPoolExecutor {
 
   ~CPUThreadPoolExecutor() override;
 
-  void add(VoidFunc func) override;
-  void add(VoidFunc func,
+  void add(acc::VoidFunc func) override;
+  void add(acc::VoidFunc func,
            uint64_t expiration,
-           VoidFunc expireCallback = nullptr) override;
+           acc::VoidFunc expireCallback = nullptr) override;
 
   uint64_t getPendingTaskCount() override;
 
@@ -64,9 +64,9 @@ class CPUThreadPoolExecutor : public ThreadPoolExecutor {
     // Must be noexcept move constructible so it can be used in MPMCQueue
 
     explicit CPUTask(
-        VoidFunc&& f,
+        acc::VoidFunc&& f,
         uint64_t expiration,
-        VoidFunc&& expireCallback)
+        acc::VoidFunc&& expireCallback)
         : Task(std::move(f), expiration, std::move(expireCallback)),
           poison(false) {}
     CPUTask()
@@ -81,7 +81,7 @@ class CPUThreadPoolExecutor : public ThreadPoolExecutor {
   void threadRun(ThreadPtr thread) override;
   void stopThreads(size_t n) override;
 
-  std::unique_ptr<BlockingQueue<CPUTask>> taskQueue_;
+  std::unique_ptr<acc::BlockingQueue<CPUTask>> taskQueue_;
   std::atomic<ssize_t> threadsToStop_{0};
 };
 

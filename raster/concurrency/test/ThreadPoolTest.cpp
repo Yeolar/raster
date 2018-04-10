@@ -21,7 +21,7 @@
 
 using namespace rdd;
 
-static VoidFunc burnMs(uint64_t ms) {
+static acc::VoidFunc burnMs(uint64_t ms) {
   return [ms]() { usleep(ms * 1000); };
 }
 

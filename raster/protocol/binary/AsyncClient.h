@@ -34,11 +34,11 @@ class BinaryAsyncClient : public AsyncClient {
 
   ~BinaryAsyncClient() override {}
 
-  bool recv(ByteRange& response);
+  bool recv(acc::ByteRange& response);
 
-  bool send(const ByteRange& request);
+  bool send(const acc::ByteRange& request);
 
-  bool fetch(ByteRange& response, const ByteRange& request);
+  bool fetch(acc::ByteRange& response, const acc::ByteRange& request);
 
  protected:
   std::shared_ptr<Channel> makeChannel() override;

@@ -19,7 +19,7 @@
 #include <fstream>
 
 #include "raster/plugins/flume/gen-cpp/Scribe.h"
-#include "raster/util/Time.h"
+#include "accelerator/Time.h"
 
 namespace rdd {
 
@@ -27,7 +27,7 @@ FlumeClient::FlumeClient(const ClientOption& option,
                          const std::string& category,
                          const std::string& logDir)
   : category_(category), logDir_(logDir) {
-  client_ = make_unique<TSyncClient<ScribeClient>>(option);
+  client_ = acc::make_unique<TSyncClient<ScribeClient>>(option);
 }
 
 FlumeClient::~FlumeClient() {
@@ -52,7 +52,7 @@ void FlumeClient::send() {
 
 void FlumeClient::sendInBatch(const std::vector<LogEntry>& entries) {
   if (!client_->connected() && !client_->connect()) {
-    RDDLOG(ERROR) << "connect flume client failed";
+    ACCLOG(ERROR) << "connect flume client failed";
     writeToDisk(entries);
     return;
   }
@@ -60,14 +60,14 @@ void FlumeClient::sendInBatch(const std::vector<LogEntry>& entries) {
   ResultCode r;
   if (!client_->fetch(&ScribeClient::Log, r, entries) ||
       r != ResultCode::OK) {
-    RDDLOG(ERROR) << "write to flume client failed";
+    ACCLOG(ERROR) << "write to flume client failed";
     writeToDisk(entries);
   }
 }
 
 void FlumeClient::writeToDisk(const std::vector<LogEntry>& entries) {
-  std::string path = to<std::string>(
-    logDir_, "/", category_, ".flume.", timeNowPrintf("%Y%m%d"));
+  std::string path = acc::to<std::string>(
+    logDir_, "/", category_, ".flume.", acc::timeNowPrintf("%Y%m%d"));
   std::ofstream file(path.c_str(), std::ofstream::app);
 
   if (file.is_open()) {

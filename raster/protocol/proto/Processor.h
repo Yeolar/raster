@@ -56,7 +56,7 @@ class PBProcessorFactory : public ProcessorFactory {
   ~PBProcessorFactory() override {}
 
   std::unique_ptr<Processor> create(Event* event) override {
-    return make_unique<PBProcessor>(event, server_);
+    return acc::make_unique<PBProcessor>(event, server_);
   }
 
  private:

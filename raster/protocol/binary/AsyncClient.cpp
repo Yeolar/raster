@@ -22,13 +22,13 @@
 namespace rdd {
 
 BinaryAsyncClient::BinaryAsyncClient(const ClientOption& option)
-  : AsyncClient(Singleton<HubAdaptor>::try_get(), option) {
+  : AsyncClient(acc::Singleton<HubAdaptor>::try_get(), option) {
   channel_ = makeChannel();
 }
 
 BinaryAsyncClient::BinaryAsyncClient(const Peer& peer,
                                      const TimeoutOption& timeout)
-  : AsyncClient(Singleton<HubAdaptor>::try_get(), peer, timeout) {
+  : AsyncClient(acc::Singleton<HubAdaptor>::try_get(), peer, timeout) {
   channel_ = makeChannel();
 }
 
@@ -36,12 +36,12 @@ BinaryAsyncClient::BinaryAsyncClient(const Peer& peer,
                                      uint64_t ctimeout,
                                      uint64_t rtimeout,
                                      uint64_t wtimeout)
-  : AsyncClient(Singleton<HubAdaptor>::try_get(),
+  : AsyncClient(acc::Singleton<HubAdaptor>::try_get(),
                 peer, ctimeout, rtimeout, wtimeout) {
   channel_ = makeChannel();
 }
 
-bool BinaryAsyncClient::recv(ByteRange& response) {
+bool BinaryAsyncClient::recv(acc::ByteRange& response) {
   if (!event_ || event_->state() == Event::kFail) {
     return false;
   }
@@ -50,17 +50,17 @@ bool BinaryAsyncClient::recv(ByteRange& response) {
   return true;
 }
 
-bool BinaryAsyncClient::send(const ByteRange& request) {
+bool BinaryAsyncClient::send(const acc::ByteRange& request) {
   if (!event_) {
     return false;
   }
   auto transport = event_->transport<BinaryTransport>();
   transport->sendHeader(request.size());
-  transport->sendBody(IOBuf::copyBuffer(request));
+  transport->sendBody(acc::IOBuf::copyBuffer(request));
   return true;
 }
 
-bool BinaryAsyncClient::fetch(ByteRange& response, const ByteRange& request) {
+bool BinaryAsyncClient::fetch(acc::ByteRange& response, const acc::ByteRange& request) {
   return (send(request) &&
           FiberManager::yield() &&
           recv(response));
@@ -70,7 +70,7 @@ std::shared_ptr<Channel> BinaryAsyncClient::makeChannel() {
   return std::make_shared<Channel>(
       peer_,
       timeout_,
-      make_unique<BinaryTransportFactory>());
+      acc::make_unique<BinaryTransportFactory>());
 }
 
 } // namespace rdd

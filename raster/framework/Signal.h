@@ -19,7 +19,7 @@
 #include <csignal>
 #include <vector>
 
-#include "raster/util/Function.h"
+#include "accelerator/Function.h"
 
 namespace rdd {
 
@@ -37,7 +37,7 @@ class Shutdown {
  public:
   Shutdown() {}
 
-  void addTask(VoidFunc&& callback) {
+  void addTask(acc::VoidFunc&& callback) {
     callbacks_.push_back(std::move(callback));
   }
 
@@ -49,7 +49,7 @@ class Shutdown {
   }
 
  private:
-  std::vector<VoidFunc> callbacks_;
+  std::vector<acc::VoidFunc> callbacks_;
 };
 
 } // namespace rdd

@@ -20,10 +20,10 @@
 #include <iostream>
 
 #include "raster/3rd/http_parser/http_parser.h"
-#include "raster/io/IOBufQueue.h"
+#include "accelerator/io/IOBufQueue.h"
 #include "raster/protocol/http/HTTPException.h"
 #include "raster/protocol/http/HTTPMessage.h"
-#include "raster/util/Optional.h"
+#include "accelerator/Optional.h"
 
 namespace rdd {
 
@@ -53,7 +53,7 @@ class HTTP1xCodec {
 
     virtual void onHeadersComplete(std::unique_ptr<HTTPMessage> msg) = 0;
 
-    virtual void onBody(std::unique_ptr<IOBuf> chain) = 0;
+    virtual void onBody(std::unique_ptr<acc::IOBuf> chain) = 0;
 
     /*
      * onChunkHeader() will be called when the chunk header is received.  As
@@ -96,7 +96,7 @@ class HTTP1xCodec {
 
   void setParserPaused(bool paused);
 
-  size_t onIngress(const IOBuf& buf);
+  size_t onIngress(const acc::IOBuf& buf);
 
   void onIngressEOF();
 
@@ -106,7 +106,7 @@ class HTTP1xCodec {
    * Write parts for an egress message.
    */
 
-  void generateHeader(IOBufQueue& writeBuf,
+  void generateHeader(acc::IOBufQueue& writeBuf,
                       const HTTPMessage& msg,
                       bool eom = false,
                       HTTPHeaderSize* size = nullptr);
@@ -116,19 +116,19 @@ class HTTP1xCodec {
    * if necessary (e.g. you haven't manually sent a chunk header and the
    * message should be chunked).
    */
-  size_t generateBody(IOBufQueue& writeBuf,
-                      std::unique_ptr<IOBuf> chain,
+  size_t generateBody(acc::IOBufQueue& writeBuf,
+                      std::unique_ptr<acc::IOBuf> chain,
                       bool eom);
 
-  size_t generateChunkHeader(IOBufQueue& writeBuf, size_t length);
+  size_t generateChunkHeader(acc::IOBufQueue& writeBuf, size_t length);
 
-  size_t generateChunkTerminator(IOBufQueue& writeBuf);
+  size_t generateChunkTerminator(acc::IOBufQueue& writeBuf);
 
-  size_t generateTrailers(IOBufQueue& writeBuf, const HTTPHeaders& trailers);
+  size_t generateTrailers(acc::IOBufQueue& writeBuf, const HTTPHeaders& trailers);
 
-  size_t generateEOM(IOBufQueue& writeBuf);
+  size_t generateEOM(acc::IOBufQueue& writeBuf);
 
-  size_t generateAbort(IOBufQueue& writeBuf);
+  size_t generateAbort(acc::IOBufQueue& writeBuf);
 
  private:
   enum class HeaderParseState : uint8_t {
@@ -147,7 +147,7 @@ class HTTP1xCodec {
     DISABLED,   // incoming message disabled keepalive
   };
 
-  void addDateHeader(IOBufQueue& writeBuf, size_t& len);
+  void addDateHeader(acc::IOBufQueue& writeBuf, size_t& len);
 
   bool isParsingHeaders() const {
     return (headerParseState_ > HeaderParseState::kParsingHeaderIdle) &&
@@ -177,11 +177,11 @@ class HTTP1xCodec {
 
   Callback* callback_;
   http_parser parser_;
-  const IOBuf* currentIngressBuf_;
+  const acc::IOBuf* currentIngressBuf_;
   std::unique_ptr<HTTPMessage> msg_;
   std::unique_ptr<HTTPHeaders> trailers_;
   std::string currentHeaderName_;
-  StringPiece currentHeaderNameStringPiece_;
+  acc::StringPiece currentHeaderNameStringPiece_;
   std::string currentHeaderValue_;
   std::string url_;
   std::string reason_;

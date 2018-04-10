@@ -50,7 +50,7 @@
 #include <cstring>
 
 #include "raster/protocol/http/HTTPCommonHeaders.h"
-#include "raster/util/Logging.h"
+#include "accelerator/Logging.h"
 
 namespace rdd {
 

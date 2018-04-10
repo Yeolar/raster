@@ -49,7 +49,7 @@ class RequestHandler {
   virtual std::string getUserLocale() { return ""; }
 
   HTTPMessage* headers;
-  IOBuf* body;
+  acc::IOBuf* body;
   HTTPHeaders* trailers;
   ResponseBuilder response;
 

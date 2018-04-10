@@ -20,7 +20,7 @@
 
 #include "raster/protocol/proto/Message.h"
 #include "raster/protocol/proto/RpcController.h"
-#include "raster/util/Uuid.h"
+#include "accelerator/Uuid.h"
 
 namespace rdd {
 
@@ -32,7 +32,7 @@ void PBRpcChannel::CallMethod(
     const google::protobuf::Message* request,
     google::protobuf::Message* response,
     google::protobuf::Closure* done) {
-  std::string callId = uuidGenerateTime();
+  std::string callId = acc::uuidGenerateTime();
   if (controller) {
     PBRpcController* c = dynamic_cast<PBRpcController*>(controller);
     if (c) {
@@ -41,7 +41,7 @@ void PBRpcChannel::CallMethod(
   }
   std::shared_ptr<Handle> handle(new Handle(controller, response, done));
   handles_.update(std::make_pair(callId, handle));
-  IOBufQueue out(IOBufQueue::cacheChainLength());
+  acc::IOBufQueue out(acc::IOBufQueue::cacheChainLength());
   proto::serializeRequest(callId, *method, *request, out);
   send(out.move(), std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
 }
@@ -71,14 +71,14 @@ void PBRpcChannel::startCancel(std::string callId) {
   if (handles_.count(callId) == 0) {
     return;
   }
-  IOBufQueue out(IOBufQueue::cacheChainLength());
+  acc::IOBufQueue out(acc::IOBufQueue::cacheChainLength());
   proto::serializeCancel(callId, out);
   send(out.move(), std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
 }
 
-void PBRpcChannel::process(const std::unique_ptr<IOBuf>& buf) {
+void PBRpcChannel::process(const std::unique_ptr<acc::IOBuf>& buf) {
   try {
-    io::Cursor in(buf.get());
+    acc::io::Cursor in(buf.get());
     int type = proto::readInt(in);
     switch (type) {
       case proto::RESPONSE_MSG: {
@@ -107,12 +107,12 @@ void PBRpcChannel::process(const std::unique_ptr<IOBuf>& buf) {
         break;
       }
       default:
-        RDDLOG(FATAL) << "unknown message type: " << type;
+        ACCLOG(FATAL) << "unknown message type: " << type;
     }
   } catch (std::exception& e) {
-    RDDLOG(WARN) << "catch exception: " << e.what();
+    ACCLOG(WARN) << "catch exception: " << e.what();
   } catch (...) {
-    RDDLOG(WARN) << "catch unknown exception";
+    ACCLOG(WARN) << "catch unknown exception";
   }
 }
 
@@ -133,7 +133,7 @@ void PBSyncRpcChannel::close() {
 }
 
 void PBSyncRpcChannel::send(
-    std::unique_ptr<IOBuf> buf,
+    std::unique_ptr<acc::IOBuf> buf,
     std::function<void(bool, const std::string&)> resultCb) {
   transport_.sendHeader(buf->computeChainDataLength());
   transport_.sendBody(std::move(buf));
@@ -145,7 +145,7 @@ void PBSyncRpcChannel::send(
 }
 
 void PBAsyncRpcChannel::send(
-    std::unique_ptr<IOBuf> buf,
+    std::unique_ptr<acc::IOBuf> buf,
     std::function<void(bool, const std::string&)> resultCb) {
   auto transport = event_->transport<BinaryTransport>();
   transport->sendHeader(buf->computeChainDataLength());

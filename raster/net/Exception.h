@@ -19,7 +19,7 @@
 #include <string>
 #include <utility>
 
-#include "raster/util/Conv.h"
+#include "accelerator/Conv.h"
 
 namespace rdd {
 
@@ -36,7 +36,7 @@ class NetException : public std::exception {
 
   template<typename... Args>
   explicit NetException(Args&&... args)
-    : msg_(to<std::string>(std::forward<Args>(args)...)),
+    : msg_(acc::to<std::string>(std::forward<Args>(args)...)),
       code_(0) {}
 
   ~NetException(void) noexcept override {}

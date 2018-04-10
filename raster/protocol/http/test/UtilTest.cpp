@@ -15,7 +15,7 @@
  */
 
 #include "raster/protocol/http/Util.h"
-#include "raster/util/MapUtil.h"
+#include "accelerator/MapUtil.h"
 #include <gtest/gtest.h>
 
 using namespace rdd;

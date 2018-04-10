@@ -33,15 +33,15 @@ IOThreadPoolExecutor::~IOThreadPoolExecutor() {
   stop();
 }
 
-void IOThreadPoolExecutor::add(VoidFunc func) {
+void IOThreadPoolExecutor::add(acc::VoidFunc func) {
   add(std::move(func), 0);
 }
 
 void IOThreadPoolExecutor::add(
-    VoidFunc func,
+    acc::VoidFunc func,
     uint64_t expiration,
-    VoidFunc expireCallback) {
-  RWSpinLock::ReadHolder r{&threadListLock_};
+    acc::VoidFunc expireCallback) {
+  acc::RWSpinLock::ReadHolder r{&threadListLock_};
   if (threadList_.get().empty()) {
     throw std::runtime_error("No threads available");
   }
@@ -78,7 +78,7 @@ IOThreadPoolExecutor::pickThread() {
 }
 
 EventLoop* IOThreadPoolExecutor::getEventLoop() {
-  RWSpinLock::ReadHolder r{&threadListLock_};
+  acc::RWSpinLock::ReadHolder r{&threadListLock_};
   return pickThread()->eventLoop;
 }
 

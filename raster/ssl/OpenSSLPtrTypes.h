@@ -20,8 +20,8 @@
 #include <openssl/ssl.h>
 
 #include "raster/ssl/OpenSSL.h"
-#include "raster/util/Logging.h"
-#include "raster/util/Memory.h"
+#include "accelerator/Logging.h"
+#include "accelerator/Memory.h"
 
 namespace rdd {
 
@@ -72,7 +72,7 @@ using BioDeleter = rdd::static_function_deleter<BIO, &BIO_vfree>;
 using BioUniquePtr = std::unique_ptr<BIO, BioDeleter>;
 using BioChainDeleter = rdd::static_function_deleter<BIO, &BIO_free_all>;
 using BioChainUniquePtr = std::unique_ptr<BIO, BioChainDeleter>;
-inline void BIO_free_fb(BIO* bio) { RDDCHECK_EQ(1, BIO_free(bio)); }
+inline void BIO_free_fb(BIO* bio) { ACCCHECK_EQ(1, BIO_free(bio)); }
 using BioDeleterFb = rdd::static_function_deleter<BIO, &BIO_free_fb>;
 using BioUniquePtrFb = std::unique_ptr<BIO, BioDeleterFb>;
 

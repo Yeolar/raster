@@ -37,9 +37,9 @@ class BinarySyncTransport : public BinaryTransport {
 
   void close();
 
-  void send(const ByteRange& request);
+  void send(const acc::ByteRange& request);
 
-  void recv(ByteRange& response);
+  void recv(acc::ByteRange& response);
 
  private:
   Peer peer_;

@@ -19,10 +19,12 @@
 #include <curl/curl.h>
 
 #include "raster/net/NetUtil.h"
-#include "raster/util/json.h"
-#include "raster/util/Logging.h"
+#include "accelerator/json.h"
+#include "accelerator/Logging.h"
 
 namespace rdd {
+
+using acc::dynamic;
 
 const char* FalconSender::URL = "http://127.0.0.1:1988/v1/push";
 
@@ -64,7 +66,7 @@ static size_t writeFn(char *ptr, size_t size, size_t nmemb, void *userdata) {
 bool FalconSender::post(const std::string& data) {
   CURL* curl = curl_easy_init();
   if (!curl) {
-    RDDLOG(ERROR) << "curl_easy_init failed";
+    ACCLOG(ERROR) << "curl_easy_init failed";
     return false;
   }
   curl_easy_setopt(curl, CURLOPT_URL, url_.c_str());
@@ -76,7 +78,7 @@ bool FalconSender::post(const std::string& data) {
   CURLcode res = curl_easy_perform(curl);
   curl_easy_cleanup(curl);
   if (res != CURLE_OK) {
-    RDDLOG(ERROR) << "curl_easy_perform failed: " << curl_easy_strerror(res);
+    ACCLOG(ERROR) << "curl_easy_perform failed: " << curl_easy_strerror(res);
   }
   return res == CURLE_OK;
 }

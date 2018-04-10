@@ -22,7 +22,7 @@
 #include <string>
 
 #include "raster/protocol/http/HTTPCommonHeaders.h"
-#include "raster/util/Range.h"
+#include "accelerator/Range.h"
 
 namespace rdd {
 
@@ -76,15 +76,15 @@ class HTTPHeaders {
   HTTPHeaders (HTTPHeaders&&) noexcept;
   HTTPHeaders& operator= (HTTPHeaders&&);
 
-  void parse(StringPiece sp);
+  void parse(acc::StringPiece sp);
 
-  void add(StringPiece name, StringPiece value);
+  void add(acc::StringPiece name, acc::StringPiece value);
   template <typename T> // T = string
-  void add(StringPiece name, T&& value);
+  void add(acc::StringPiece name, T&& value);
   template <typename T> // T = string
   void add(HTTPHeaderCode code, T&& value);
 
-  void set(StringPiece name, const std::string& value) {
+  void set(acc::StringPiece name, const std::string& value) {
     remove(name);
     add(name, value);
   }
@@ -93,7 +93,7 @@ class HTTPHeaders {
     add(code, value);
   }
 
-  bool exists(StringPiece name) const;
+  bool exists(acc::StringPiece name) const;
   bool exists(HTTPHeaderCode code) const;
 
   template <typename T>
@@ -154,7 +154,7 @@ class HTTPHeaders {
   std::string getSingle(const T& nameOrCode, const std::string& dflt="") const;
 
   size_t getNumberOfValues(HTTPHeaderCode code) const;
-  size_t getNumberOfValues(StringPiece name) const;
+  size_t getNumberOfValues(acc::StringPiece name) const;
 
   /**
    * Process the ordered list of values for the given header name:
@@ -169,11 +169,11 @@ class HTTPHeaders {
    * true), and false otherwise.
    */
   template <typename LAMBDA> // const string & -> bool
-  inline bool forEachValueOfHeader(StringPiece name, LAMBDA func) const;
+  inline bool forEachValueOfHeader(acc::StringPiece name, LAMBDA func) const;
   template <typename LAMBDA> // const string & -> bool
   inline bool forEachValueOfHeader(HTTPHeaderCode code, LAMBDA func) const;
 
-  bool remove(StringPiece name);
+  bool remove(acc::StringPiece name);
   bool remove(HTTPHeaderCode code);
 
   void removeAll();
@@ -204,7 +204,7 @@ class HTTPHeaders {
 
   static const size_t kInitialVectorReserve = 16;
 
-  bool transferHeaderIfPresent(StringPiece name, HTTPHeaders& dest);
+  bool transferHeaderIfPresent(acc::StringPiece name, HTTPHeaders& dest);
 
   static void initGlobals() __attribute__ ((__constructor__));
 
@@ -212,7 +212,7 @@ class HTTPHeaders {
 };
 
 template <typename T> // T = string
-void HTTPHeaders::add(StringPiece name, T&& value) {
+void HTTPHeaders::add(acc::StringPiece name, T&& value) {
   assert(name.size());
   const HTTPHeaderCode code = HTTPCommonHeaders::hash(name.data(), name.size());
   codes_.push_back(code);
@@ -269,7 +269,7 @@ void HTTPHeaders::forEachWithCode(LAMBDA func) const {
 }
 
 template <typename LAMBDA> // const string & -> bool
-bool HTTPHeaders::forEachValueOfHeader(StringPiece name, LAMBDA func) const {
+bool HTTPHeaders::forEachValueOfHeader(acc::StringPiece name, LAMBDA func) const {
   const HTTPHeaderCode code = HTTPCommonHeaders::hash(name.data(), name.size());
   if (code != HTTP_HEADER_OTHER) {
     return forEachValueOfHeader(code, func);

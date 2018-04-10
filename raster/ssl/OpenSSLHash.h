@@ -19,10 +19,10 @@
 
 #include <openssl/ssl.h>
 
-#include "raster/io/IOBuf.h"
+#include "raster/io/acc::IOBuf.h"
 #include "raster/ssl/OpenSSLPtrTypes.h"
-#include "raster/util/Conv.h"
-#include "raster/util/Range.h"
+#include "accelerator/Conv.h"
+#include "accelerator/Range.h"
 
 namespace rdd {
 
@@ -55,7 +55,7 @@ class OpenSSLHash {
       check_libssl_result(
           1, EVP_DigestUpdate(ctx_.get(), data.data(), data.size()));
     }
-    void hash_update(const IOBuf& data) {
+    void hash_update(const acc::IOBuf& data) {
       for (auto r : data) {
         hash_update(r);
       }
@@ -86,7 +86,7 @@ class OpenSSLHash {
   static void hash(
       MutableByteRange out,
       const EVP_MD* md,
-      const IOBuf& data) {
+      const acc::IOBuf& data) {
     Digest hash;
     hash.hash_init(md);
     hash.hash_update(data);
@@ -95,13 +95,13 @@ class OpenSSLHash {
   static void sha1(MutableByteRange out, ByteRange data) {
     hash(out, EVP_sha1(), data);
   }
-  static void sha1(MutableByteRange out, const IOBuf& data) {
+  static void sha1(MutableByteRange out, const acc::IOBuf& data) {
     hash(out, EVP_sha1(), data);
   }
   static void sha256(MutableByteRange out, ByteRange data) {
     hash(out, EVP_sha256(), data);
   }
-  static void sha256(MutableByteRange out, const IOBuf& data) {
+  static void sha256(MutableByteRange out, const acc::IOBuf& data) {
     hash(out, EVP_sha256(), data);
   }
 
@@ -118,7 +118,7 @@ class OpenSSLHash {
     void hash_update(ByteRange data) {
       check_libssl_result(1, HMAC_Update(ctx_.get(), data.data(), data.size()));
     }
-    void hash_update(const IOBuf& data) {
+    void hash_update(const acc::IOBuf& data) {
       for (auto r : data) {
         hash_update(r);
       }
@@ -150,7 +150,7 @@ class OpenSSLHash {
       MutableByteRange out,
       const EVP_MD* md,
       ByteRange key,
-      const IOBuf& data) {
+      const acc::IOBuf& data) {
     Hmac hmac;
     hmac.hash_init(md, key);
     hmac.hash_update(data);
@@ -161,7 +161,7 @@ class OpenSSLHash {
     hmac(out, EVP_sha1(), key, data);
   }
   static void hmac_sha1(
-      MutableByteRange out, ByteRange key, const IOBuf& data) {
+      MutableByteRange out, ByteRange key, const acc::IOBuf& data) {
     hmac(out, EVP_sha1(), key, data);
   }
   static void hmac_sha256(
@@ -169,7 +169,7 @@ class OpenSSLHash {
     hmac(out, EVP_sha256(), key, data);
   }
   static void hmac_sha256(
-      MutableByteRange out, ByteRange key, const IOBuf& data) {
+      MutableByteRange out, ByteRange key, const acc::IOBuf& data) {
     hmac(out, EVP_sha256(), key, data);
   }
 

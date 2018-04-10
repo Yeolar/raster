@@ -24,11 +24,11 @@
 namespace rdd {
 
 /*
- * Outer base on IOBuf, support string-like interface.
+ * Outer base on acc::IOBuf, support string-like interface.
  */
 class IOBufOuter {
 public:
-  IOBufOuter(IOBuf* buf, uint64_t growth)
+  IOBufOuter(acc::IOBuf* buf, uint64_t growth)
     : appender_(buf, growth) {}
 
   void append(const char* p, size_t n) {
@@ -82,7 +82,7 @@ TEST(bsp_serialize, basic) {
     }
   }
   {
-    IOBuf buf;
+    acc::IOBuf buf;
     IOBufOuter out(&buf, 1024);
     std::vector<int> a = { 1, 2, 3, 4, 5 };
     std::vector<int> b;

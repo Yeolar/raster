@@ -26,7 +26,7 @@ void Transport::getReadBuffer(void** buf, size_t* bufSize) {
 }
 
 void Transport::readDataAvailable(size_t readSize) {
-  RDDLOG(V3) << "read completed, bytes=" << readSize;
+  ACCLOG(V3) << "read completed, bytes=" << readSize;
   readBuf_.postallocate(readSize);
   processReadData();
 }
@@ -53,7 +53,7 @@ int Transport::writeData(Socket* socket) {
   if (state_ == kError) {
     return -1;
   }
-  const IOBuf* buf;
+  const acc::IOBuf* buf;
   while ((buf = writeBuf_.front()) != nullptr && buf->length() != 0) {
     ssize_t r = socket->send(buf->data(), buf->length());
     if (r < 0) {

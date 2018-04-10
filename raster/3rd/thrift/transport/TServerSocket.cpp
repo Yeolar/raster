@@ -31,7 +31,7 @@
 
 #include "TSocket.h"
 #include "TServerSocket.h"
-#include "raster/util/Logging.h"
+#include "accelerator/Logging.h"
 
 #ifndef AF_LOCAL
 #define AF_LOCAL AF_UNIX
@@ -185,7 +185,7 @@ void TServerSocket::listen() {
   int sv[2];
   // Create the socket pair used to interrupt
   if (-1 == socketpair(AF_LOCAL, SOCK_STREAM, 0, sv)) {
-    RDDPLOG(ERROR) << "TServerSocket::listen() socketpair() interrupt";
+    ACCPLOG(ERROR) << "TServerSocket::listen() socketpair() interrupt";
     interruptSockWriter_ = -1;
     interruptSockReader_ = -1;
   } else {
@@ -195,7 +195,7 @@ void TServerSocket::listen() {
 
   // Create the socket pair used to interrupt all clients
   if (-1 == socketpair(AF_LOCAL, SOCK_STREAM, 0, sv)) {
-    RDDPLOG(ERROR) << "TServerSocket::listen() socketpair() childInterrupt";
+    ACCPLOG(ERROR) << "TServerSocket::listen() socketpair() childInterrupt";
     childInterruptSockWriter_ = -1;
     pChildInterruptSockReader_.reset();
   } else {
@@ -221,7 +221,7 @@ void TServerSocket::listen() {
   // If address is not specified use wildcard address (NULL)
   error = getaddrinfo(address_.empty() ? NULL : &address_[0], port, &hints, &res0);
   if (error) {
-    RDDLOG(ERROR) << "getaddrinfo " << error << ": " << gai_strerror(error);
+    ACCLOG(ERROR) << "getaddrinfo " << error << ": " << gai_strerror(error);
     close();
     throw TTransportException(TTransportException::NOT_OPEN,
                               "Could not resolve host for server socket.");
@@ -241,7 +241,7 @@ void TServerSocket::listen() {
   }
 
   if (serverSocket_ == -1) {
-    RDDPLOG(ERROR) << "TServerSocket::listen() socket()";
+    ACCPLOG(ERROR) << "TServerSocket::listen() socket()";
     int errno_copy = errno;
     close();
     throw TTransportException(TTransportException::NOT_OPEN,
@@ -259,7 +259,7 @@ void TServerSocket::listen() {
 // ignore errors coming out of this setsockopt on Windows.  This is because
 // SO_EXCLUSIVEADDRUSE requires admin privileges on WinXP, but we don't
 // want to force servers to be an admin.
-    RDDPLOG(ERROR) << "TServerSocket::listen() setsockopt() SO_REUSEADDR";
+    ACCPLOG(ERROR) << "TServerSocket::listen() setsockopt() SO_REUSEADDR";
     int errno_copy = errno;
     close();
     throw TTransportException(TTransportException::NOT_OPEN,
@@ -274,7 +274,7 @@ void TServerSocket::listen() {
                          SO_SNDBUF,
                          cast_sockopt(&tcpSendBuffer_),
                          sizeof(tcpSendBuffer_))) {
-      RDDPLOG(ERROR) << "TServerSocket::listen() setsockopt() SO_SNDBUF";
+      ACCPLOG(ERROR) << "TServerSocket::listen() setsockopt() SO_SNDBUF";
       int errno_copy = errno;
       close();
       throw TTransportException(TTransportException::NOT_OPEN,
@@ -289,7 +289,7 @@ void TServerSocket::listen() {
                          SO_RCVBUF,
                          cast_sockopt(&tcpRecvBuffer_),
                          sizeof(tcpRecvBuffer_))) {
-      RDDPLOG(ERROR) << "TServerSocket::listen() setsockopt() SO_RCVBUF";
+      ACCPLOG(ERROR) << "TServerSocket::listen() setsockopt() SO_RCVBUF";
       int errno_copy = errno;
       close();
       throw TTransportException(TTransportException::NOT_OPEN,
@@ -302,7 +302,7 @@ void TServerSocket::listen() {
 #ifdef TCP_DEFER_ACCEPT
   if (path_.empty()) {
     if (-1 == setsockopt(serverSocket_, IPPROTO_TCP, TCP_DEFER_ACCEPT, &one, sizeof(one))) {
-      RDDPLOG(ERROR) << "TServerSocket::listen() setsockopt() TCP_DEFER_ACCEPT";
+      ACCPLOG(ERROR) << "TServerSocket::listen() setsockopt() TCP_DEFER_ACCEPT";
       int errno_copy = errno;
       close();
       throw TTransportException(TTransportException::NOT_OPEN,
@@ -320,7 +320,7 @@ void TServerSocket::listen() {
                          IPV6_V6ONLY,
                          cast_sockopt(&zero),
                          sizeof(zero))) {
-      RDDPLOG(ERROR) << "TServerSocket::listen() IPV6_V6ONLY";
+      ACCPLOG(ERROR) << "TServerSocket::listen() IPV6_V6ONLY";
     }
   }
 #endif // #ifdef IPV6_V6ONLY
@@ -328,7 +328,7 @@ void TServerSocket::listen() {
   // Turn linger off, don't want to block on calls to close
   struct linger ling = {0, 0};
   if (-1 == setsockopt(serverSocket_, SOL_SOCKET, SO_LINGER, cast_sockopt(&ling), sizeof(ling))) {
-    RDDPLOG(ERROR) << "TServerSocket::listen() setsockopt() SO_LINGER";
+    ACCPLOG(ERROR) << "TServerSocket::listen() setsockopt() SO_LINGER";
     int errno_copy = errno;
     close();
     throw TTransportException(TTransportException::NOT_OPEN, "Could not set SO_LINGER", errno_copy);
@@ -339,7 +339,7 @@ void TServerSocket::listen() {
     // TCP Nodelay, speed over bandwidth
     if (-1
         == setsockopt(serverSocket_, IPPROTO_TCP, TCP_NODELAY, cast_sockopt(&one), sizeof(one))) {
-      RDDPLOG(ERROR) << "TServerSocket::listen() setsockopt() TCP_NODELAY";
+      ACCPLOG(ERROR) << "TServerSocket::listen() setsockopt() TCP_NODELAY";
       int errno_copy = errno;
       close();
       throw TTransportException(TTransportException::NOT_OPEN,
@@ -351,7 +351,7 @@ void TServerSocket::listen() {
   // Set NONBLOCK on the accept socket
   int flags = fcntl(serverSocket_, F_GETFL, 0);
   if (flags == -1) {
-    RDDPLOG(ERROR) << "TServerSocket::listen() fcntl() F_GETFL";
+    ACCPLOG(ERROR) << "TServerSocket::listen() fcntl() F_GETFL";
     int errno_copy = errno;
     close();
     throw TTransportException(TTransportException::NOT_OPEN,
@@ -360,7 +360,7 @@ void TServerSocket::listen() {
   }
 
   if (-1 == fcntl(serverSocket_, F_SETFL, flags | O_NONBLOCK)) {
-    RDDPLOG(ERROR) << "TServerSocket::listen() fcntl() O_NONBLOCK";
+    ACCPLOG(ERROR) << "TServerSocket::listen() fcntl() O_NONBLOCK";
     int errno_copy = errno;
     close();
     throw TTransportException(TTransportException::NOT_OPEN,
@@ -377,7 +377,7 @@ void TServerSocket::listen() {
     // Unix Domain Socket
     size_t len = path_.size() + 1;
     if (len > sizeof(((sockaddr_un*)NULL)->sun_path)) {
-      RDDPLOG(ERROR) << "TSocket::listen() Unix Domain socket path too long";
+      ACCPLOG(ERROR) << "TSocket::listen() Unix Domain socket path too long";
       throw TTransportException(TTransportException::NOT_OPEN,
                                 "Unix Domain socket path too long",
                                 errno);
@@ -411,7 +411,7 @@ void TServerSocket::listen() {
       socklen_t len = sizeof(sa);
       std::memset(&sa, 0, len);
       if (::getsockname(serverSocket_, &sa, &len) < 0) {
-        RDDPLOG(ERROR) << "TServerSocket::getPort() getsockname()";
+        ACCPLOG(ERROR) << "TServerSocket::getPort() getsockname()";
       } else {
         if (sa.sa_family == AF_INET6) {
           const struct sockaddr_in6* sin = reinterpret_cast<const struct sockaddr_in6*>(&sa);
@@ -427,9 +427,9 @@ void TServerSocket::listen() {
   // throw an error if we failed to bind properly
   if (retries > retryLimit_) {
     if (!path_.empty()) {
-      RDDLOG(ERROR) << "TServerSocket::listen() PATH " << path_;
+      ACCLOG(ERROR) << "TServerSocket::listen() PATH " << path_;
     } else {
-      RDDLOG(ERROR) << "TServerSocket::listen() BIND " << port_;
+      ACCLOG(ERROR) << "TServerSocket::listen() BIND " << port_;
     }
     close();
     throw TTransportException(TTransportException::NOT_OPEN,
@@ -442,7 +442,7 @@ void TServerSocket::listen() {
 
   // Call listen
   if (-1 == ::listen(serverSocket_, acceptBacklog_)) {
-    RDDPLOG(ERROR) << "TServerSocket::listen() listen()";
+    ACCPLOG(ERROR) << "TServerSocket::listen() listen()";
     int errno_copy = errno;
     close();
     throw TTransportException(TTransportException::NOT_OPEN, "Could not listen", errno_copy);
@@ -486,14 +486,14 @@ shared_ptr<TTransport> TServerSocket::acceptImpl() {
         // a certain number
         continue;
       }
-      RDDPLOG(ERROR) << "TServerSocket::acceptImpl() poll()";
+      ACCPLOG(ERROR) << "TServerSocket::acceptImpl() poll()";
       throw TTransportException(TTransportException::UNKNOWN, "Unknown", errno);
     } else if (ret > 0) {
       // Check for an interrupt signal
       if (interruptSockReader_ != -1 && (fds[1].revents & POLLIN)) {
         int8_t buf;
         if (-1 == recv(interruptSockReader_, cast_sockopt(&buf), sizeof(int8_t), 0)) {
-          RDDPLOG(ERROR) << "TServerSocket::acceptImpl() recv() interrupt";
+          ACCPLOG(ERROR) << "TServerSocket::acceptImpl() recv() interrupt";
         }
         throw TTransportException(TTransportException::INTERRUPTED);
       }
@@ -503,7 +503,7 @@ shared_ptr<TTransport> TServerSocket::acceptImpl() {
         break;
       }
     } else {
-      RDDPLOG(ERROR) << "TServerSocket::acceptImpl() poll 0";
+      ACCPLOG(ERROR) << "TServerSocket::acceptImpl() poll 0";
       throw TTransportException(TTransportException::UNKNOWN);
     }
   }
@@ -514,14 +514,14 @@ shared_ptr<TTransport> TServerSocket::acceptImpl() {
       = ::accept(serverSocket_, (struct sockaddr*)&clientAddress, (socklen_t*)&size);
 
   if (clientSocket == -1) {
-    RDDPLOG(ERROR) << "TServerSocket::acceptImpl() ::accept()";
+    ACCPLOG(ERROR) << "TServerSocket::acceptImpl() ::accept()";
     throw TTransportException(TTransportException::UNKNOWN, "accept()", errno);
   }
 
   // Make sure client socket is blocking
   int flags = fcntl(clientSocket, F_GETFL, 0);
   if (flags == -1) {
-    RDDPLOG(ERROR) << "TServerSocket::acceptImpl() fcntl() F_GETFL";
+    ACCPLOG(ERROR) << "TServerSocket::acceptImpl() fcntl() F_GETFL";
     int errno_copy = errno;
     ::close(clientSocket);
     throw TTransportException(TTransportException::UNKNOWN,
@@ -530,7 +530,7 @@ shared_ptr<TTransport> TServerSocket::acceptImpl() {
   }
 
   if (-1 == fcntl(clientSocket, F_SETFL, flags & ~O_NONBLOCK)) {
-    RDDPLOG(ERROR) << "TServerSocket::acceptImpl() fcntl() F_SETFL ~O_NONBLOCK";
+    ACCPLOG(ERROR) << "TServerSocket::acceptImpl() fcntl() F_SETFL ~O_NONBLOCK";
     int errno_copy = errno;
     ::close(clientSocket);
     throw TTransportException(TTransportException::UNKNOWN,
@@ -568,7 +568,7 @@ void TServerSocket::notify(int notifySocket) {
   if (notifySocket != -1) {
     int8_t byte = 0;
     if (-1 == send(notifySocket, cast_sockopt(&byte), sizeof(int8_t), 0)) {
-      RDDPLOG(ERROR) << "TServerSocket::notify() send()";
+      ACCPLOG(ERROR) << "TServerSocket::notify() send()";
     }
   }
 }

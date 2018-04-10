@@ -20,7 +20,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/service.h>
 
-#include "raster/io/Cursor.h"
+#include "accelerator/io/Cursor.h"
 #include "raster/protocol/proto/RpcController.h"
 
 namespace rdd {
@@ -33,35 +33,35 @@ enum {
   CANCEL_MSG   = 3
 };
 
-char readChar(io::Cursor& in);
+char readChar(acc::io::Cursor& in);
 
-void writeChar(char c, IOBufQueue& out);
+void writeChar(char c, acc::IOBufQueue& out);
 
-int readInt(io::Cursor& in);
+int readInt(acc::io::Cursor& in);
 
-void writeInt(int i, IOBufQueue& out);
+void writeInt(int i, acc::IOBufQueue& out);
 
-std::string readString(io::Cursor& in);
+std::string readString(acc::io::Cursor& in);
 
-void writeString(const std::string& s, IOBufQueue& out);
+void writeString(const std::string& s, acc::IOBufQueue& out);
 
 const google::protobuf::MethodDescriptor* readMethodDescriptor(
-    io::Cursor& in);
+    acc::io::Cursor& in);
 
 void writeMethodDescriptor(
     const google::protobuf::MethodDescriptor& method,
-    IOBufQueue& out);
+    acc::IOBufQueue& out);
 
 void readMessage(
-    io::Cursor& in,
+    acc::io::Cursor& in,
     std::shared_ptr<google::protobuf::Message>& msg);
 
 void writeMessage(
     const google::protobuf::Message& msg,
-    IOBufQueue& out);
+    acc::IOBufQueue& out);
 
 void parseRequestFrom(
-    io::Cursor& in,
+    acc::io::Cursor& in,
     std::string& callId,
     const google::protobuf::MethodDescriptor*& method,
     std::shared_ptr<google::protobuf::Message>& request);
@@ -70,10 +70,10 @@ void serializeRequest(
     const std::string& callId,
     const google::protobuf::MethodDescriptor& method,
     const google::protobuf::Message& request,
-    IOBufQueue& out);
+    acc::IOBufQueue& out);
 
 void parseResponseFrom(
-    io::Cursor& in,
+    acc::io::Cursor& in,
     std::string& callId,
     PBRpcController& controller,
     std::shared_ptr<google::protobuf::Message>& response);
@@ -82,15 +82,15 @@ void serializeResponse(
     const std::string& callId,
     const PBRpcController& controller,
     const google::protobuf::Message* response,
-    IOBufQueue& out);
+    acc::IOBufQueue& out);
 
 void parseCancelFrom(
-    io::Cursor& in,
+    acc::io::Cursor& in,
     std::string& callId);
 
 void serializeCancel(
     const std::string& callId,
-    IOBufQueue& out);
+    acc::IOBufQueue& out);
 
 } // namespace proto
 } // namespace rdd

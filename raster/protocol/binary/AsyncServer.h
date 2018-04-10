@@ -24,7 +24,7 @@ namespace rdd {
 template <class P>
 class BinaryAsyncServer : public Service {
  public:
-  BinaryAsyncServer(StringPiece name) : Service(name) {}
+  BinaryAsyncServer(acc::StringPiece name) : Service(name) {}
   ~BinaryAsyncServer() override {}
 
   void makeChannel(int port, const TimeoutOption& timeout) override {
@@ -33,8 +33,8 @@ class BinaryAsyncServer : public Service {
     channel_ = std::make_shared<Channel>(
         peer,
         timeout,
-        make_unique<BinaryTransportFactory>(),
-        make_unique<BinaryProcessorFactory<P>>());
+        acc::make_unique<BinaryTransportFactory>(),
+        acc::make_unique<BinaryProcessorFactory<P>>());
   }
 };
 

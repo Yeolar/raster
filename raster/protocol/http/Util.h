@@ -21,7 +21,7 @@
 
 #include "raster/protocol/http/HTTPHeaders.h"
 #include "raster/protocol/http/HTTPMethod.h"
-#include "raster/util/Range.h"
+#include "accelerator/Range.h"
 
 namespace rdd {
 
@@ -67,9 +67,9 @@ bool bodyImplied(const HTTPHeaders& headers);
  * Return true if the string was well formed according to the RFC.  Note it can
  * return false but still populate output with best-effort parsing.
  */
-typedef std::pair<StringPiece, double> TokenQPair;
+typedef std::pair<acc::StringPiece, double> TokenQPair;
 
-bool parseQvalues(StringPiece value, std::vector<TokenQPair> &output);
+bool parseQvalues(acc::StringPiece value, std::vector<TokenQPair> &output);
 
 } // namespace RFC2616
 
@@ -106,8 +106,8 @@ struct HTTPFile {
  * The arguments and files parameters will be updated with the parsed contents.
  */
 void parseBodyArguments(
-    StringPiece contentType,
-    StringPiece body,
+    acc::StringPiece contentType,
+    acc::StringPiece body,
     URLQuery& arguments,
     std::multimap<std::string, HTTPFile>& files);
 
@@ -118,8 +118,8 @@ void parseBodyArguments(
  * of the body.
  */
 void parseMultipartFormData(
-    StringPiece boundary,
-    StringPiece data,
+    acc::StringPiece boundary,
+    acc::StringPiece data,
     URLQuery& arguments,
     std::multimap<std::string, HTTPFile>& files);
 #endif

@@ -22,7 +22,7 @@ namespace rdd {
 
 void HTTPProcessor::run() {
   auto transport = event_->transport<HTTPTransport>();
-  transport->headers->dumpMessage(logging::LOG_V1);
+  transport->headers->dumpMessage(acc::logging::LOG_V1);
 
   handler_->headers = transport->headers.get();
   handler_->body = transport->body.get();
@@ -70,7 +70,7 @@ void HTTPProcessor::run() {
 std::unique_ptr<Processor> HTTPProcessorFactory::create(Event* event) {
   auto transport = event->transport<HTTPTransport>();
   auto url = transport->headers->getURL();
-  return make_unique<HTTPProcessor>(event, router_(url));
+  return acc::make_unique<HTTPProcessor>(event, router_(url));
 }
 
 } // namespace rdd

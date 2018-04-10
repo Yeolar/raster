@@ -22,7 +22,7 @@
 
 #include <string>
 #include "../Thrift.h"
-#include "raster/util/String.h"
+#include "accelerator/String.h"
 
 namespace apache {
 namespace thrift {
@@ -63,7 +63,7 @@ public:
     : apache::thrift::TException(message), type_(type) {}
 
   TTransportException(TTransportExceptionType type, const std::string& message, int errno_copy)
-    : apache::thrift::TException(message + ": " + rdd::errnoStr(errno_copy)), type_(type) {}
+    : apache::thrift::TException(message + ": " + acc::errnoStr(errno_copy)), type_(type) {}
 
   virtual ~TTransportException() throw() {}
 

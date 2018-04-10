@@ -17,7 +17,7 @@
 
 #include "raster/protocol/http/HTTP1xCodec.h"
 
-#include "raster/io/Cursor.h"
+#include "accelerator/io/Cursor.h"
 #include "raster/protocol/http/Util.h"
 
 namespace {
@@ -50,7 +50,7 @@ unsigned u64toa(uint64_t value, void* dst) {
   return length;
 }
 
-void appendUint(rdd::IOBufQueue& queue, size_t& len, uint64_t value) {
+void appendUint(acc::IOBufQueue& queue, size_t& len, uint64_t value) {
   char buf[32];
   size_t encodedLen = u64toa(value, buf);
   queue.append(buf, encodedLen);
@@ -60,7 +60,7 @@ void appendUint(rdd::IOBufQueue& queue, size_t& len, uint64_t value) {
 #define appendLiteral(queue, len, str) (len) += (sizeof(str) - 1); \
   (queue).append(str, sizeof(str) - 1)
 
-void appendString(rdd::IOBufQueue& queue, size_t& len, const std::string& str) {
+void appendString(acc::IOBufQueue& queue, size_t& len, const std::string& str) {
   queue.append(str.data(), str.length());
   len += str.length();
 }
@@ -144,12 +144,12 @@ void HTTP1xCodec::setParserPaused(bool paused) {
   parserPaused_ = paused;
 }
 
-size_t HTTP1xCodec::onIngress(const IOBuf& buf) {
+size_t HTTP1xCodec::onIngress(const acc::IOBuf& buf) {
   if (parserError_) {
     return 0;
   }
   // Callers responsibility to prevent calling onIngress from a callback
-  RDDCHECK(!parserActive_);
+  ACCCHECK(!parserActive_);
   parserActive_ = true;
   currentIngressBuf_ = &buf;
   size_t bytesParsed = http_parser_execute(&parser_,
@@ -169,7 +169,7 @@ size_t HTTP1xCodec::onIngress(const IOBuf& buf) {
   }
   if (currentHeaderName_.empty() && !currentHeaderNameStringPiece_.empty()) {
     // we currently are storing a chunk of header name via pointers in
-    // currentHeaderNameStringPiece_, but the currentIngressBuf_ is about to
+    // currentHeaderNameacc::StringPiece_, but the currentIngressBuf_ is about to
     // vanish and so we need to copy over that data to currentHeaderName_
     currentHeaderName_.assign(currentHeaderNameStringPiece_.begin(),
                               currentHeaderNameStringPiece_.size());
@@ -207,7 +207,7 @@ void HTTP1xCodec::onParserError(const char* what) {
   inRecvLastChunk_ = false;
   http_errno parser_errno = HTTP_PARSER_ERRNO(&parser_);
   HTTPException error(HTTPException::Direction::INGRESS,
-                      what ? what : to<std::string>(
+                      what ? what : acc::to<std::string>(
                         "Error parsing message: ",
                         http_errno_description(parser_errno)
                       ));
@@ -244,13 +244,13 @@ bool HTTP1xCodec::isBusy() const {
   return requestPending_ || responsePending_;
 }
 
-void HTTP1xCodec::addDateHeader(IOBufQueue& writeBuf, size_t& len) {
+void HTTP1xCodec::addDateHeader(acc::IOBufQueue& writeBuf, size_t& len) {
   appendLiteral(writeBuf, len, "Date: ");
   appendString(writeBuf, len, HTTPMessage::formatDateHeader());
   appendLiteral(writeBuf, len, CRLF);
 }
 
-void HTTP1xCodec::generateHeader(IOBufQueue& writeBuf,
+void HTTP1xCodec::generateHeader(acc::IOBufQueue& writeBuf,
                                  const HTTPMessage& msg,
                                  bool eom,
                                  HTTPHeaderSize* size) {
@@ -334,7 +334,7 @@ void HTTP1xCodec::generateHeader(IOBufQueue& writeBuf,
       // TODO: add support for the case where "close" is part of
       // a comma-separated list of values
       static const std::string kClose = "close";
-      if (caseInsensitiveEqual(value, kClose)) {
+      if (acc::caseInsensitiveEqual(value, kClose)) {
         keepalive_ = false;
       }
       // We'll generate a new Connection header based on the keepalive_ state
@@ -342,7 +342,7 @@ void HTTP1xCodec::generateHeader(IOBufQueue& writeBuf,
     } else if (!hasTransferEncodingChunked &&
                code == HTTP_HEADER_TRANSFER_ENCODING) {
       static const std::string kChunked = "chunked";
-      if (!caseInsensitiveEqual(value, kChunked)) {
+      if (!acc::caseInsensitiveEqual(value, kChunked)) {
         return;
       }
       hasTransferEncodingChunked = true;
@@ -423,8 +423,8 @@ void HTTP1xCodec::generateHeader(IOBufQueue& writeBuf,
   }
 }
 
-size_t HTTP1xCodec::generateBody(IOBufQueue& writeBuf,
-                                 std::unique_ptr<IOBuf> chain,
+size_t HTTP1xCodec::generateBody(acc::IOBufQueue& writeBuf,
+                                 std::unique_ptr<acc::IOBuf> chain,
                                  bool eom) {
   if (!chain) {
     return 0;
@@ -441,8 +441,8 @@ size_t HTTP1xCodec::generateBody(IOBufQueue& writeBuf,
   if (egressChunked_ && !inChunk_) {
     char chunkLenBuf[32];
     int rc = snprintf(chunkLenBuf, sizeof(chunkLenBuf), "%zx\r\n", buflen);
-    RDDCHECK(rc > 0);
-    RDDCHECK(size_t(rc) < sizeof(chunkLenBuf));
+    ACCCHECK(rc > 0);
+    ACCCHECK(size_t(rc) < sizeof(chunkLenBuf));
 
     writeBuf.append(chunkLenBuf, rc);
     totLen += rc;
@@ -460,20 +460,20 @@ size_t HTTP1xCodec::generateBody(IOBufQueue& writeBuf,
   return totLen;
 }
 
-size_t HTTP1xCodec::generateChunkHeader(IOBufQueue& writeBuf, size_t length) {
-  // TODO: Format directly into the IOBuf, rather than copying after the fact.
-  // IOBufQueue::append() currently forces us to copy.
+size_t HTTP1xCodec::generateChunkHeader(acc::IOBufQueue& writeBuf, size_t length) {
+  // TODO: Format directly into the acc::IOBuf, rather than copying after the fact.
+  // acc::IOBufQueue::append() currently forces us to copy.
 
-  RDDCHECK(length) << "use sendEOM to terminate the message using the "
+  ACCCHECK(length) << "use sendEOM to terminate the message using the "
                 << "standard zero-length chunk. Don't "
                 << "send zero-length chunks using this API.";
   if (egressChunked_) {
-    RDDCHECK(!inChunk_);
+    ACCCHECK(!inChunk_);
     inChunk_ = true;
     char chunkLenBuf[32];
     int rc = snprintf(chunkLenBuf, sizeof(chunkLenBuf), "%zx\r\n", length);
-    RDDCHECK(rc > 0);
-    RDDCHECK(size_t(rc) < sizeof(chunkLenBuf));
+    ACCCHECK(rc > 0);
+    ACCCHECK(size_t(rc) < sizeof(chunkLenBuf));
 
     writeBuf.append(chunkLenBuf, rc);
     return rc;
@@ -482,7 +482,7 @@ size_t HTTP1xCodec::generateChunkHeader(IOBufQueue& writeBuf, size_t length) {
   return 0;
 }
 
-size_t HTTP1xCodec::generateChunkTerminator(IOBufQueue& writeBuf) {
+size_t HTTP1xCodec::generateChunkTerminator(acc::IOBufQueue& writeBuf) {
   if (egressChunked_ && inChunk_) {
     inChunk_ = false;
     writeBuf.append("\r\n", 2);
@@ -492,11 +492,11 @@ size_t HTTP1xCodec::generateChunkTerminator(IOBufQueue& writeBuf) {
   return 0;
 }
 
-size_t HTTP1xCodec::generateTrailers(IOBufQueue& writeBuf,
+size_t HTTP1xCodec::generateTrailers(acc::IOBufQueue& writeBuf,
                                      const HTTPHeaders& trailers) {
   size_t len = 0;
   if (egressChunked_) {
-    RDDCHECK(!inChunk_);
+    ACCCHECK(!inChunk_);
     appendLiteral(writeBuf, len, "0\r\n");
     lastChunkWritten_ = true;
     trailers.forEach([&] (const std::string& trailer,
@@ -510,10 +510,10 @@ size_t HTTP1xCodec::generateTrailers(IOBufQueue& writeBuf,
   return len;
 }
 
-size_t HTTP1xCodec::generateEOM(IOBufQueue& writeBuf) {
+size_t HTTP1xCodec::generateEOM(acc::IOBufQueue& writeBuf) {
   size_t len = 0;
   if (egressChunked_) {
-    RDDCHECK(!inChunk_);
+    ACCCHECK(!inChunk_);
     if (headRequest_ && transportDirection_ == TransportDirection::DOWNSTREAM) {
       lastChunkWritten_ = true;
     } else {
@@ -539,7 +539,7 @@ size_t HTTP1xCodec::generateEOM(IOBufQueue& writeBuf) {
   return len;
 }
 
-size_t HTTP1xCodec::generateAbort(IOBufQueue& writeBuf) {
+size_t HTTP1xCodec::generateAbort(acc::IOBufQueue& writeBuf) {
   // We won't be able to send anything else on the transport after this.
   disableKeepalivePending_ = true;
   return 0;
@@ -595,10 +595,10 @@ int HTTP1xCodec::onHeaderField(const char* buf, size_t len) {
 
     // we're already parsing a header name
     if (currentHeaderName_.empty()) {
-      // but we've been keeping it in currentHeaderNameStringPiece_ until now
+      // but we've been keeping it in currentHeaderNameacc::StringPiece_ until now
       if (currentHeaderNameStringPiece_.end() == buf) {
         // the header name we are currently reading is contiguous in memory,
-        // and so we just adjust the right end of our StringPiece;
+        // and so we just adjust the right end of our acc::StringPiece;
         // this is likely because onIngress() hasn't been called since we got
         // the previous chunk (otherwise currentHeaderName_ would be nonempty)
         currentHeaderNameStringPiece_.advance(len);
@@ -666,7 +666,7 @@ int HTTP1xCodec::onHeadersComplete(size_t len) {
       // is part of the Request-URI. Any Host header field value in the
       // request MUST be ignored."
       auto hostAndPort = parseUrl.hostAndPort();
-      RDDLOG(V4) << "Adding inferred host header: " << hostAndPort;
+      ACCLOG(V4) << "Adding inferred host header: " << hostAndPort;
       msg_->getHeaders().set(HTTP_HEADER_HOST, hostAndPort);
     }
 
@@ -726,12 +726,12 @@ int HTTP1xCodec::onHeadersComplete(size_t len) {
 int HTTP1xCodec::onBody(const char* buf, size_t len) {
   DCHECK(!isParsingHeaders());
   DCHECK(!inRecvLastChunk_);
-  RDDCHECK(currentIngressBuf_ != nullptr);
+  ACCCHECK(currentIngressBuf_ != nullptr);
   const char* dataStart = (const char*)currentIngressBuf_->data();
   const char* dataEnd = dataStart + currentIngressBuf_->length();
   DCHECK_GE(buf, dataStart);
   DCHECK_LE(buf + len, dataEnd);
-  std::unique_ptr<IOBuf> clone(currentIngressBuf_->clone());
+  std::unique_ptr<acc::IOBuf> clone(currentIngressBuf_->clone());
   clone->trimStart(buf - dataStart);
   clone->trimEnd(dataEnd - (buf + len));
   callback_->onBody(std::move(clone));
@@ -742,7 +742,7 @@ int HTTP1xCodec::onChunkHeader(size_t len) {
   if (len > 0) {
     callback_->onChunkHeader(len);
   } else {
-    RDDLOG(V5)
+    ACCLOG(V5)
       << "Suppressed onChunkHeader callback for final zero length chunk";
     inRecvLastChunk_ = true;
   }

@@ -22,7 +22,7 @@
 
 #include "raster/plugins/flume/gen-cpp/scribe_types.h"
 #include "raster/protocol/thrift/SyncClient.h"
-#include "raster/thread/AtomicLinkedList.h"
+#include "accelerator/thread/AtomicLinkedList.h"
 
 namespace rdd {
 
@@ -47,7 +47,7 @@ class FlumeClient {
 
   std::string category_;
   std::string logDir_;
-  AtomicLinkedList<LogEntry> queue_;
+  acc::AtomicLinkedList<LogEntry> queue_;
   std::unique_ptr<TSyncClient<ScribeClient>> client_;
 };
 

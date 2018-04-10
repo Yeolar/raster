@@ -21,27 +21,27 @@
 #include <string>
 #include <thread>
 
-#include "raster/thread/ThreadUtil.h"
-#include "raster/util/Conv.h"
-#include "raster/util/Function.h"
+#include "accelerator/thread/ThreadUtil.h"
+#include "accelerator/Conv.h"
+#include "accelerator/Function.h"
 
 namespace rdd {
 
 class ThreadFactory {
  public:
-  ThreadFactory(StringPiece prefix)
+  ThreadFactory(acc::StringPiece prefix)
     : prefix_(prefix.str()) {}
 
-  std::thread newThread(VoidFunc&& func) {
-    auto name = to<std::string>(prefix_, suffix_++);
+  std::thread newThread(acc::VoidFunc&& func) {
+    auto name = acc::to<std::string>(prefix_, suffix_++);
     return std::thread(
         [&] () {
-          setCurrentThreadName(name);
+        acc::setCurrentThreadName(name);
           func();
         });
   }
 
-  void setNamePrefix(StringPiece prefix) {
+  void setNamePrefix(acc::StringPiece prefix) {
     prefix_ = prefix.str();
   }
 

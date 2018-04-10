@@ -23,8 +23,8 @@
 #include "raster/3rd/thrift/protocol/TBinaryProtocol.h"
 #include "raster/3rd/thrift/protocol/TJSONProtocol.h"
 #include "raster/3rd/thrift/transport/TBufferTransports.h"
-#include "raster/util/String.h"
-#include "raster/util/Traits.h"
+#include "accelerator/String.h"
+#include "accelerator/Traits.h"
 
 namespace rdd {
 

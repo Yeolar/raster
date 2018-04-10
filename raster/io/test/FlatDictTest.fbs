@@ -1,9 +1,0 @@
-// Copyright (C) 2017, Yeolar
-
-namespace rdd.fbs;
-
-table Person {
-    name: string;
-    city: string;
-}
-

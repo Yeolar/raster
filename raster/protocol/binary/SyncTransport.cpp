@@ -16,7 +16,7 @@
 
 #include "raster/protocol/binary/SyncTransport.h"
 
-#include "raster/io/IOBuf.h"
+#include "accelerator/io/IOBuf.h"
 
 namespace rdd {
 
@@ -36,13 +36,13 @@ void BinarySyncTransport::close() {
   socket_->close();
 }
 
-void BinarySyncTransport::send(const ByteRange& request) {
+void BinarySyncTransport::send(const acc::ByteRange& request) {
   sendHeader(request.size());
-  sendBody(IOBuf::copyBuffer(request));
+  sendBody(acc::IOBuf::copyBuffer(request));
   writeData(socket_.get());
 }
 
-void BinarySyncTransport::recv(ByteRange& response) {
+void BinarySyncTransport::recv(acc::ByteRange& response) {
   readData(socket_.get());
   response = body->coalesce();
 }

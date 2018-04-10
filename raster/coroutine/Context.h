@@ -18,13 +18,13 @@
 
 #include <ucontext.h>
 
-#include "raster/util/Function.h"
+#include "accelerator/Function.h"
 
 namespace rdd {
 
 class Context {
  public:
-  Context(VoidFunc&& func,
+  Context(acc::VoidFunc&& func,
           unsigned char* stackLimit,
           size_t stackSize)
     : func_(std::move(func)) {
@@ -48,7 +48,7 @@ class Context {
     ctx->func_();
   }
 
-  VoidFunc func_;
+  acc::VoidFunc func_;
   ucontext_t fiberContext_;
   ucontext_t mainContext_;
 };

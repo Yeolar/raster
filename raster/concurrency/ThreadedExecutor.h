@@ -27,7 +27,7 @@
 
 #include "raster/concurrency/Executor.h"
 #include "raster/concurrency/ThreadFactory.h"
-#include "raster/thread/Waiter.h"
+#include "accelerator/thread/Waiter.h"
 
 namespace rdd {
 
@@ -64,7 +64,7 @@ class ThreadedExecutor : public virtual Executor {
   ThreadedExecutor(ThreadedExecutor&&) = delete;
   ThreadedExecutor& operator=(ThreadedExecutor&&) = delete;
 
-  void add(VoidFunc func) override;
+  void add(acc::VoidFunc func) override;
 
  private:
   static std::shared_ptr<ThreadFactory> newDefaultThreadFactory();
@@ -74,17 +74,17 @@ class ThreadedExecutor : public virtual Executor {
   void controlJoinFinishedThreads();
   void controlLaunchEnqueuedTasks();
 
-  void work(VoidFunc& func);
+  void work(acc::VoidFunc& func);
 
   std::shared_ptr<ThreadFactory> threadFactory_;
 
   std::atomic<bool> stopping_{false};
 
-  Waiter controlw_;
+  acc::Waiter controlw_;
   std::thread controlt_;
 
   std::mutex enqueuedm_;
-  std::deque<VoidFunc> enqueued_;
+  std::deque<acc::VoidFunc> enqueued_;
 
   //  Accessed only by the control thread, so no synchronization.
   std::map<std::thread::id, std::thread> running_;

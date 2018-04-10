@@ -22,13 +22,13 @@
 
 #include "raster/net/Service.h"
 #include "raster/protocol/proto/RpcController.h"
-#include "raster/thread/LockedMap.h"
+#include "accelerator/thread/LockedMap.h"
 
 namespace rdd {
 
 class PBAsyncServer : public Service {
  public:
-  PBAsyncServer(StringPiece name) : Service(name) {}
+  PBAsyncServer(acc::StringPiece name) : Service(name) {}
   ~PBAsyncServer() override {}
 
   void makeChannel(int port, const TimeoutOption& timeout) override;
@@ -63,7 +63,7 @@ class PBAsyncServer : public Service {
   std::map<
     const google::protobuf::ServiceDescriptor*,
     std::shared_ptr<google::protobuf::Service>> services_;
-  LockedMap<std::string, std::shared_ptr<Handle>> handles_;
+  acc::LockedMap<std::string, std::shared_ptr<Handle>> handles_;
 };
 
 } // namespace rdd

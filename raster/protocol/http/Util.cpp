@@ -18,12 +18,12 @@
 
 #include "raster/protocol/http/HTTPMessage.h"
 #include "raster/protocol/http/ParseURL.h"
-#include "raster/thread/ThreadUtil.h"
-#include "raster/thread/UnionBasedStatic.h"
-#include "raster/util/Algorithm.h"
-#include "raster/util/Logging.h"
-#include "raster/util/MapUtil.h"
-#include "raster/util/String.h"
+#include "accelerator/thread/ThreadUtil.h"
+#include "accelerator/thread/UnionBasedStatic.h"
+#include "accelerator/Algorithm.h"
+#include "accelerator/Logging.h"
+#include "accelerator/MapUtil.h"
+#include "accelerator/String.h"
 
 namespace rdd {
 
@@ -51,9 +51,9 @@ bool bodyImplied(const HTTPHeaders& headers) {
     headers.exists(HTTP_HEADER_CONTENT_LENGTH);
 }
 
-bool parseQvalues(StringPiece value, std::vector<TokenQPair> &output) {
+bool parseQvalues(acc::StringPiece value, std::vector<TokenQPair> &output) {
   bool result = true;
-  static ThreadLocal<std::vector<StringPiece>> tokens;
+  static acc::ThreadLocal<std::vector<acc::StringPiece>> tokens;
   tokens->clear();
   split(",", value, *tokens, true /*ignore empty*/);
   for (auto& token: *tokens) {
@@ -62,10 +62,10 @@ bool parseQvalues(StringPiece value, std::vector<TokenQPair> &output) {
     if (pos != std::string::npos) {
       auto qpos = token.find("q=", pos);
       if (qpos != std::string::npos) {
-        StringPiece qvalueStr(token.data() + qpos + 2,
+        acc::StringPiece qvalueStr(token.data() + qpos + 2,
                               token.size() - (qpos + 2));
         try {
-          qvalue = to<double>(&qvalueStr);
+          qvalue = acc::to<double>(&qvalueStr);
         } catch (const std::range_error&) {
           // q=<some garbage>
           result = false;
@@ -96,7 +96,7 @@ bool parseQvalues(StringPiece value, std::vector<TokenQPair> &output) {
 
 namespace {
 
-std::string unquote(StringPiece sp) {
+std::string unquote(acc::StringPiece sp) {
   if (sp.size() < 2)
     return sp.str();
   if (sp.front() != '"' || sp.back() != '"')
@@ -111,9 +111,9 @@ std::string unquote(StringPiece sp) {
     toAppend(sp.subpiece(0, i), &out);
     char c = sp[i + 1];
     if (c != '\\' && c != '"') {
-      toAppend('\\', &out);
+      acc::toAppend('\\', &out);
     }
-    toAppend(c, &out);
+    acc::toAppend(c, &out);
     sp.advance(i + 2);
     i = sp.find('\\');
   }
@@ -130,11 +130,11 @@ std::string urlJoin(const std::string& base, const std::string& url) {
 
   ParseURL b(base);
   ParseURL u(url);
-  StringPiece scheme = u.scheme();
-  StringPiece authority = u.authority();
-  StringPiece path = u.path();
-  StringPiece query = u.query();
-  StringPiece fragment = u.fragment();
+  acc::StringPiece scheme = u.scheme();
+  acc::StringPiece authority = u.authority();
+  acc::StringPiece path = u.path();
+  acc::StringPiece query = u.query();
+  acc::StringPiece fragment = u.fragment();
 
   if (scheme != b.scheme())
     return url;
@@ -150,7 +150,7 @@ std::string urlJoin(const std::string& base, const std::string& url) {
     return HTTPMessage::createUrl(scheme, authority, path, query, fragment);
   }
 
-  std::vector<StringPiece> segments;
+  std::vector<acc::StringPiece> segments;
   split('/', b.path(), segments);
   segments.pop_back();
   split('/', path, segments);
@@ -200,20 +200,20 @@ std::string urlConcat(const std::string& url,
     if (it != params.begin()) {
       out.push_back('&');
     }
-    uriEscape(it->first, out, UriEscapeMode::QUERY);
+    uriEscape(it->first, out, acc::UriEscapeMode::QUERY);
     out.push_back('=');
-    uriEscape(it->second, out, UriEscapeMode::QUERY);
+    uriEscape(it->second, out, acc::UriEscapeMode::QUERY);
   }
   out.shrink_to_fit();
   return out;
 }
 
 /*
-static StringPiece splitParam(StringPiece& sp) {
-  auto count = [](StringPiece s, StringPiece p) -> int {
+static acc::StringPiece splitParam(acc::StringPiece& sp) {
+  auto count = [](acc::StringPiece s, acc::StringPiece p) -> int {
     int n = 0;
     size_t r = s.find(p);
-    while (r != StringPiece::npos) {
+    while (r != acc::StringPiece::npos) {
       n++;
       s.advance(r + p.size());
       r = s.find(p);
@@ -222,26 +222,26 @@ static StringPiece splitParam(StringPiece& sp) {
   };
 
   size_t i = sp.find(';');
-  while (i != StringPiece::npos) {
+  while (i != acc::StringPiece::npos) {
     auto sub = sp.subpiece(0, i);
     auto k = count(sub, "\"") - count(sub, "\\\"");
     if (k % 2 == 0) break;
     i = sp.find(';', i + 1);
   }
 
-  StringPiece result = sp.subpiece(0, i);
-  sp.advance(i != StringPiece::npos ? i + 1 : sp.size());
+  acc::StringPiece result = sp.subpiece(0, i);
+  sp.advance(i != acc::StringPiece::npos ? i + 1 : sp.size());
 
   return result;
 }
 
 static std::string parseHeader(
-    StringPiece line, std::map<std::string, std::string>& dict) {
+    acc::StringPiece line, std::map<std::string, std::string>& dict) {
   std::string key = splitParam(line).str();
 
   while (!line.empty()) {
     auto p = splitParam(line);
-    StringPiece name, value;
+    acc::StringPiece name, value;
     if (split('=', p, name, value)) {
       dict.emplace(toLowerAscii(trimWhitespace(name)),
                    unquote(trimWhitespace(value)));
@@ -251,8 +251,8 @@ static std::string parseHeader(
 }
 
 void parseBodyArguments(
-    StringPiece contentType,
-    StringPiece body,
+    acc::StringPiece contentType,
+    acc::StringPiece body,
     URLQuery& arguments,
     std::multimap<std::string, HTTPFile>& files) {
   if (contentType.startsWith("application/x-www-form-urlencoded")) {
@@ -261,7 +261,7 @@ void parseBodyArguments(
     bool found = false;
     while (!contentType.empty()) {
       auto field = contentType.split_step(';');
-      StringPiece k, v;
+      acc::StringPiece k, v;
       if (split('=', trimWhitespace(field), k, v)) {
         if (k == "boundary" && !v.empty()) {
           parseMultipartFormData(v, body, arguments, files);
@@ -271,14 +271,14 @@ void parseBodyArguments(
       }
     }
     if (!found) {
-      RDDLOG(WARN) << "Invalid multipart/form-data";
+      ACCLOG(WARN) << "Invalid multipart/form-data";
     }
   }
 }
 
 void parseMultipartFormData(
-    StringPiece boundary,
-    StringPiece data,
+    acc::StringPiece boundary,
+    acc::StringPiece data,
     URLQuery& arguments,
     std::multimap<std::string, HTTPFile>& files) {
   // The standard allows for the boundary to be quoted in the header,
@@ -288,21 +288,21 @@ void parseMultipartFormData(
     boundary.pop_back();
   }
 
-  auto last = rfind(data, StringPiece(to<std::string>("--", boundary, "--")));
-  if (last == StringPiece::npos) {
-    RDDLOG(WARN) << "Invalid multipart/form-data: no final boundary";
+  auto last = rfind(data, acc::StringPiece(to<std::string>("--", boundary, "--")));
+  if (last == acc::StringPiece::npos) {
+    ACCLOG(WARN) << "Invalid multipart/form-data: no final boundary";
     return;
   }
 
-  std::vector<StringPiece> parts;
+  std::vector<acc::StringPiece> parts;
   split(to<std::string>("--", boundary, "\r\n"), data.subpiece(0, last), parts);
 
   for (auto part : parts) {
     if (part.empty())
       continue;
     auto eoh = part.find("\r\n\r\n");
-    if (eoh == StringPiece::npos) {
-      RDDLOG(WARN) << "multipart/form-data missing headers";
+    if (eoh == acc::StringPiece::npos) {
+      ACCLOG(WARN) << "multipart/form-data missing headers";
       continue;
     }
     HTTPHeaders headers;
@@ -312,12 +312,12 @@ void parseMultipartFormData(
     auto dispHeader = headers.combine(HTTP_HEADER_CONTENT_DISPOSITION);
     auto disposition = parseHeader(dispHeader, dispParams);
     if (disposition != "form-data" || !part.endsWith("\r\n")) {
-      RDDLOG(WARN) << "Invalid multipart/form-data";
+      ACCLOG(WARN) << "Invalid multipart/form-data";
       continue;
     }
     auto it = dispParams.find("name");
     if (it == dispParams.end()) {
-      RDDLOG(WARN) << "multipart/form-data value missing name";
+      ACCLOG(WARN) << "multipart/form-data value missing name";
       continue;
     }
     auto name = it->second;

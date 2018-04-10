@@ -25,7 +25,7 @@ namespace rdd {
 template <class If, class P>
 class TAsyncServer : public Service {
  public:
-  TAsyncServer(StringPiece name) : Service(name) {}
+  TAsyncServer(acc::StringPiece name) : Service(name) {}
   ~TAsyncServer() override {}
 
   void makeChannel(int port, const TimeoutOption& timeout) override {
@@ -34,8 +34,8 @@ class TAsyncServer : public Service {
     channel_ = std::make_shared<Channel>(
         peer,
         timeout,
-        make_unique<BinaryTransportFactory>(),
-        make_unique<TProcessorFactory<P, If, TProcessor>>());
+        acc::make_unique<BinaryTransportFactory>(),
+        acc::make_unique<TProcessorFactory<P, If, TProcessor>>());
   }
 
   If* handler() {
@@ -47,7 +47,7 @@ class TAsyncServer : public Service {
 template <class If, class P>
 class TZlibAsyncServer : public Service {
  public:
-  TZlibAsyncServer(StringPiece name) : Service(name) {}
+  TZlibAsyncServer(acc::StringPiece name) : Service(name) {}
   ~TZlibAsyncServer() override {}
 
   void makeChannel(int port, const TimeoutOption& timeout) override {
@@ -56,8 +56,8 @@ class TZlibAsyncServer : public Service {
     channel_ = std::make_shared<Channel>(
         peer,
         timeout,
-        make_unique<ZlibTransportFactory>(),
-        make_unique<TProcessorFactory<P, If, TZlibProcessor>>());
+        acc::make_unique<ZlibTransportFactory>(),
+        acc::make_unique<TProcessorFactory<P, If, TZlibProcessor>>());
   }
 
   If* handler() {

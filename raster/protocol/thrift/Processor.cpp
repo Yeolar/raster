@@ -28,13 +28,13 @@ void TProcessor::run() {
     uint32_t n;
     pobuf_->getBuffer(&p, &n);
     transport->sendHeader(n);
-    transport->sendBody(IOBuf::copyBuffer(p, n));;
+    transport->sendBody(acc::IOBuf::copyBuffer(p, n));;
   } catch (apache::thrift::protocol::TProtocolException& e) {
-    RDDLOG(WARN) << "catch exception: " << e.what();
+    ACCLOG(WARN) << "catch exception: " << e.what();
   } catch (std::exception& e) {
-    RDDLOG(WARN) << "catch exception: " << e.what();
+    ACCLOG(WARN) << "catch exception: " << e.what();
   } catch (...) {
-    RDDLOG(WARN) << "catch unknown exception";
+    ACCLOG(WARN) << "catch unknown exception";
   }
 }
 
@@ -47,13 +47,13 @@ void TZlibProcessor::run() {
     uint8_t* p;
     uint32_t n;
     pobuf_->getBuffer(&p, &n);
-    transport->sendBody(IOBuf::copyBuffer(p, n));;
+    transport->sendBody(acc::IOBuf::copyBuffer(p, n));;
   } catch (apache::thrift::protocol::TProtocolException& e) {
-    RDDLOG(WARN) << "catch exception: " << e.what();
+    ACCLOG(WARN) << "catch exception: " << e.what();
   } catch (std::exception& e) {
-    RDDLOG(WARN) << "catch exception: " << e.what();
+    ACCLOG(WARN) << "catch exception: " << e.what();
   } catch (...) {
-    RDDLOG(WARN) << "catch unknown exception";
+    ACCLOG(WARN) << "catch unknown exception";
   }
 }
 

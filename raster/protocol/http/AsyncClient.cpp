@@ -22,13 +22,13 @@
 namespace rdd {
 
 HTTPAsyncClient::HTTPAsyncClient(const ClientOption& option)
-  : AsyncClient(Singleton<HubAdaptor>::try_get(), option) {
+  : AsyncClient(acc::Singleton<HubAdaptor>::try_get(), option) {
   channel_ = makeChannel();
 }
 
 HTTPAsyncClient::HTTPAsyncClient(const Peer& peer,
                                  const TimeoutOption& timeout)
-  : AsyncClient(Singleton<HubAdaptor>::try_get(), peer, timeout) {
+  : AsyncClient(acc::Singleton<HubAdaptor>::try_get(), peer, timeout) {
   channel_ = makeChannel();
 }
 
@@ -36,7 +36,7 @@ HTTPAsyncClient::HTTPAsyncClient(const Peer& peer,
                                  uint64_t ctimeout,
                                  uint64_t rtimeout,
                                  uint64_t wtimeout)
-  : AsyncClient(Singleton<HubAdaptor>::try_get(),
+  : AsyncClient(acc::Singleton<HubAdaptor>::try_get(),
                 peer, ctimeout, rtimeout, wtimeout) {
   channel_ = makeChannel();
 }
@@ -49,7 +49,7 @@ bool HTTPAsyncClient::recv() {
 }
 
 bool HTTPAsyncClient::send(const HTTPMessage& headers,
-                           std::unique_ptr<IOBuf> body) {
+                           std::unique_ptr<acc::IOBuf> body) {
   if (!event_) {
     return false;
   }
@@ -61,7 +61,7 @@ bool HTTPAsyncClient::send(const HTTPMessage& headers,
 }
 
 bool HTTPAsyncClient::fetch(const HTTPMessage& headers,
-                            std::unique_ptr<IOBuf> body) {
+                            std::unique_ptr<acc::IOBuf> body) {
   return (send(headers, std::move(body)) &&
           FiberManager::yield() &&
           recv());
@@ -71,7 +71,7 @@ HTTPMessage* HTTPAsyncClient::message() const {
   return event_->transport<HTTPTransport>()->headers.get();
 }
 
-IOBuf* HTTPAsyncClient::body() const {
+acc::IOBuf* HTTPAsyncClient::body() const {
   return event_->transport<HTTPTransport>()->body.get();
 }
 
@@ -83,7 +83,7 @@ std::shared_ptr<Channel> HTTPAsyncClient::makeChannel() {
   return std::make_shared<Channel>(
       peer_,
       timeout_,
-      make_unique<HTTPTransportFactory>(TransportDirection::UPSTREAM));
+      acc::make_unique<HTTPTransportFactory>(TransportDirection::UPSTREAM));
 }
 
 } // namespace rdd

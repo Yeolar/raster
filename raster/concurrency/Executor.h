@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "raster/util/Function.h"
+#include "accelerator/Function.h"
 
 namespace rdd {
 
@@ -26,7 +26,7 @@ namespace rdd {
 class Executor {
  public:
   virtual ~Executor() {}
-  virtual void add(VoidFunc) = 0;
+  virtual void add(acc::VoidFunc) = 0;
 };
 
 } // namespace rdd

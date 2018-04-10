@@ -21,8 +21,8 @@
 #include <string>
 #include <google/protobuf/service.h>
 
-#include "raster/io/Cursor.h"
-#include "raster/util/Function.h"
+#include "accelerator/io/Cursor.h"
+#include "accelerator/Function.h"
 
 namespace rdd {
 
@@ -42,13 +42,13 @@ class PBRpcController : public google::protobuf::RpcController {
   bool IsCanceled() const override;
   void NotifyOnCancel(google::protobuf::Closure* closure) override;
 
-  void parseFrom(io::Cursor& in);
-  void serializeTo(IOBufQueue& out) const;
+  void parseFrom(acc::io::Cursor& in);
+  void serializeTo(acc::IOBufQueue& out) const;
 
   void copyFrom(const PBRpcController& o);
 
   void setCanceled() { canceled_ = true; }
-  void setStartCancel(VoidFunc&& cancelFunc);
+  void setStartCancel(acc::VoidFunc&& cancelFunc);
 
   void complete();
 
@@ -58,7 +58,7 @@ class PBRpcController : public google::protobuf::RpcController {
   std::string failedReason_;
   std::set<google::protobuf::Closure*> closures_;
   std::mutex closuresLock_;
-  VoidFunc cancelFunc_;
+  acc::VoidFunc cancelFunc_;
 };
 
 } // namespace rdd

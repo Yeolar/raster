@@ -16,7 +16,7 @@
 
 #include "raster/framework/PeriodicScheduler.h"
 
-#include "raster/util/Time.h"
+#include "accelerator/Time.h"
 
 namespace rdd {
 
@@ -35,13 +35,13 @@ void PeriodicScheduler::stop() {
   handle_.join();
 }
 
-void PeriodicScheduler::add(VoidFunc&& func, uint64_t interval) {
+void PeriodicScheduler::add(acc::VoidFunc&& func, uint64_t interval) {
   tasks_.wlock()->emplace_back(std::move(func), interval);
 }
 
 void PeriodicScheduler::run() {
-  setCurrentThreadName("AutoTaskThread");
-  timestamp_ = timestampNow();
+  acc::setCurrentThreadName("AutoTaskThread");
+  timestamp_ = acc::timestampNow();
   while (running_) {
     runTasks();
     usleep(10000); // 10ms
@@ -49,7 +49,7 @@ void PeriodicScheduler::run() {
 }
 
 void PeriodicScheduler::runTasks() {
-  uint64_t passed = timePassed(timestamp_);
+  uint64_t passed = acc::timePassed(timestamp_);
   auto tasks = tasks_.rlock();
   for (const auto& t : *tasks) {
     if (t.checkStamp(passed / t.interval)) {

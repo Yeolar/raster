@@ -21,8 +21,8 @@
 #include <string>
 #include <type_traits>
 
-#include "raster/util/Macro.h"
-#include "raster/util/Range.h"
+#include "accelerator/Macro.h"
+#include "accelerator/Range.h"
 
 namespace rdd {
 

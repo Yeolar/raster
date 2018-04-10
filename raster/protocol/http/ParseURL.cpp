@@ -58,7 +58,7 @@ void ParseURL::parse() {
       fragment_ = url_.subpiece(u.field_data[UF_FRAGMENT].off,
                                 u.field_data[UF_FRAGMENT].len);
 
-      authority_ = (port_) ? to<std::string>(host_, ":", port_)
+      authority_ = (port_) ? acc::to<std::string>(host_, ":", port_)
                            : host_.str();
     }
   } else {
@@ -115,7 +115,7 @@ bool ParseURL::parseAuthority() {
   auto pos = authority_.find(":", right != std::string::npos ? right : 0);
   if (pos != std::string::npos) {
     try {
-      port_ = to<uint16_t>(StringPiece(authority_, pos+1, std::string::npos));
+      port_ = acc::to<uint16_t>(acc::StringPiece(authority_, pos+1, std::string::npos));
     } catch (...) {
       return false;
     }
@@ -123,11 +123,11 @@ bool ParseURL::parseAuthority() {
 
   if (left == std::string::npos && right == std::string::npos) {
     // not a ipv6 literal
-    host_ = StringPiece(authority_, 0, pos);
+    host_ = acc::StringPiece(authority_, 0, pos);
     return true;
   } else if (left < right && right != std::string::npos) {
     // a ipv6 literal
-    host_ = StringPiece(authority_, left, right - left + 1);
+    host_ = acc::StringPiece(authority_, left, right - left + 1);
     return true;
   } else {
     return false;

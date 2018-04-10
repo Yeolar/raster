@@ -24,8 +24,8 @@ void HTTPAsyncServer::makeChannel(int port, const TimeoutOption& timeoutOpt) {
   channel_ = std::make_shared<Channel>(
       peer,
       timeoutOpt,
-      make_unique<HTTPTransportFactory>(TransportDirection::DOWNSTREAM),
-      make_unique<HTTPProcessorFactory>(
+      acc::make_unique<HTTPTransportFactory>(TransportDirection::DOWNSTREAM),
+      acc::make_unique<HTTPProcessorFactory>(
           [&](const std::string& url) {
             return matchHandler(url);
           }));

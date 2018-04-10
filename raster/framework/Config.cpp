@@ -26,13 +26,15 @@
 #include "raster/framework/HubAdaptor.h"
 #include "raster/framework/Monitor.h"
 #include "raster/framework/Sampler.h"
-#include "raster/io/FileUtil.h"
-#include "raster/parallel/ParallelScheduler.h"
-#include "raster/thread/ThreadUtil.h"
-#include "raster/util/Logging.h"
-#include "raster/util/ProcessUtil.h"
+#include "accelerator/io/FileUtil.h"
+#include "accelerator/parallel/ParallelScheduler.h"
+#include "accelerator/thread/ThreadUtil.h"
+#include "accelerator/Logging.h"
+#include "accelerator/ProcessUtil.h"
 
 namespace rdd {
+
+using acc::dynamic;
 
 static dynamic defaultLogging() {
   return dynamic::object
@@ -47,17 +49,17 @@ static dynamic defaultLogging() {
 void configLogging(const dynamic& j, bool reload) {
   // reloadable
   if (!j.isObject()) {
-    RDDLOG(FATAL) << "config logging error: " << j;
+    ACCLOG(FATAL) << "config logging error: " << j;
     return;
   }
-  RDDLOG(INFO) << "config logger";
-  logging::BaseLogger::Options opts;
-  opts.logFile   = json::get(j, "logfile", "rdd.log");
-  opts.level     = json::get(j, "level", 1);
-  opts.rotate    = json::get(j, "rotate", 0);
-  opts.splitSize = json::get(j, "splitsize", 0);
-  opts.async     = json::get(j, "async", true);
-  Singleton<logging::RDDLogger>::get()->setOptions(opts);
+  ACCLOG(INFO) << "config logger";
+  acc::logging::BaseLogger::Options opts;
+  opts.logFile   = acc::json::get(j, "logfile", "rdd.log");
+  opts.level     = acc::json::get(j, "level", 1);
+  opts.rotate    = acc::json::get(j, "rotate", 0);
+  opts.splitSize = acc::json::get(j, "splitsize", 0);
+  opts.async     = acc::json::get(j, "async", true);
+  acc::Singleton<acc::logging::ACCLogger>::get()->setOptions(opts);
 }
 
 static dynamic defaultProcess() {
@@ -69,12 +71,12 @@ static dynamic defaultProcess() {
 void configProcess(const dynamic& j, bool reload) {
   if (reload) return;
   if (!j.isObject()) {
-    RDDLOG(FATAL) << "config process error: " << j;
+    ACCLOG(FATAL) << "config process error: " << j;
     return;
   }
-  RDDLOG(INFO) << "config process";
-  auto pidfile = json::get(j, "pidfile", "/tmp/rdd.pid");
-  writePid(pidfile.c_str(), osThreadId());
+  ACCLOG(INFO) << "config process";
+  auto pidfile = acc::json::get(j, "pidfile", "/tmp/rdd.pid");
+  acc::writePid(pidfile.c_str(), acc::osThreadId());
 }
 
 static dynamic defaultService() {
@@ -90,20 +92,20 @@ static dynamic defaultService() {
 void configService(const dynamic& j, bool reload) {
   if (reload) return;
   if (!j.isObject()) {
-    RDDLOG(FATAL) << "config service error: " << j;
+    ACCLOG(FATAL) << "config service error: " << j;
     return;
   }
   for (auto& kv : j.items()) {
     const dynamic& k = kv.first;
     const dynamic& v = kv.second;
-    RDDLOG(INFO) << "config service." << k;
-    auto service = json::get(v, "service", "");
+    ACCLOG(INFO) << "config service." << k;
+    auto service = acc::json::get(v, "service", "");
     int port = k.asInt();
     TimeoutOption timeoutOpt;
-    timeoutOpt.ctimeout = json::get(v, "conn_timeout", 100000);
-    timeoutOpt.rtimeout = json::get(v, "recv_timeout", 300000);
-    timeoutOpt.wtimeout = json::get(v, "send_timeout", 1000000);
-    Singleton<HubAdaptor>::get()->configService(service, port, timeoutOpt);
+    timeoutOpt.ctimeout = acc::json::get(v, "conn_timeout", 100000);
+    timeoutOpt.rtimeout = acc::json::get(v, "recv_timeout", 300000);
+    timeoutOpt.wtimeout = acc::json::get(v, "send_timeout", 1000000);
+    acc::Singleton<HubAdaptor>::get()->configService(service, port, timeoutOpt);
   }
 }
 
@@ -119,16 +121,16 @@ static dynamic defaultThreadPool() {
 void configThreadPool(const dynamic& j, bool reload) {
   if (reload) return;
   if (!j.isObject()) {
-    RDDLOG(FATAL) << "config thread error: " << j;
+    ACCLOG(FATAL) << "config thread error: " << j;
     return;
   }
   for (auto& kv : j.items()) {
     const dynamic& k = kv.first;
     const dynamic& v = kv.second;
-    RDDLOG(INFO) << "config thread." << k;
+    ACCLOG(INFO) << "config thread." << k;
     auto name = k.asString();
-    int threadCount = json::get(v, "thread_count", 4);
-    Singleton<HubAdaptor>::get()->configThreads(name, threadCount);
+    int threadCount = acc::json::get(v, "thread_count", 4);
+    acc::Singleton<HubAdaptor>::get()->configThreads(name, threadCount);
   }
 }
 
@@ -142,18 +144,18 @@ static dynamic defaultNet() {
 void configNet(const dynamic& j, bool reload) {
   // reloadable
   if (!j.isObject()) {
-    RDDLOG(FATAL) << "config net error: " << j;
+    ACCLOG(FATAL) << "config net error: " << j;
     return;
   }
-  RDDLOG(INFO) << "config net";
-  auto forwarding = json::get(j, "forwarding", false);
-  Singleton<HubAdaptor>::get()->setForwarding(forwarding);
+  ACCLOG(INFO) << "config net";
+  auto forwarding = acc::json::get(j, "forwarding", false);
+  acc::Singleton<HubAdaptor>::get()->setForwarding(forwarding);
   for (auto& i : j.getDefault("copy", dynamic::array)) {
     ForwardTarget t;
-    t.port  = json::get(i, "port", 0);
-    t.fpeer = Peer(json::get(i, "fhost", ""), json::get(i, "fport", 0));
-    t.flow  = json::get(i, "flow", 100);
-    Singleton<HubAdaptor>::get()->addForwardTarget(std::move(t));
+    t.port  = acc::json::get(i, "port", 0);
+    t.fpeer = Peer(acc::json::get(i, "fhost", ""), acc::json::get(i, "fport", 0));
+    t.flow  = acc::json::get(i, "flow", 100);
+    acc::Singleton<HubAdaptor>::get()->addForwardTarget(std::move(t));
   }
 }
 
@@ -168,19 +170,19 @@ static dynamic defaultMonitor() {
 void configMonitor(const dynamic& j, bool reload) {
   // reloadable
   if (!j.isObject()) {
-    RDDLOG(FATAL) << "config monitor error: " << j;
+    ACCLOG(FATAL) << "config monitor error: " << j;
     return;
   }
-  RDDLOG(INFO) << "config monitor";
-  if (json::get(j, "open", false)) {
-    Singleton<Monitor>::get()->setPrefix(json::get(j, "prefix", "rdd"));
-    if (json::get(j, "sender", "falcon") == "falcon") {
-      Singleton<Monitor>::get()->setSender(
+  ACCLOG(INFO) << "config monitor";
+  if (acc::json::get(j, "open", false)) {
+    acc::Singleton<Monitor>::get()->setPrefix(acc::json::get(j, "prefix", "rdd"));
+    if (acc::json::get(j, "sender", "falcon") == "falcon") {
+      acc::Singleton<Monitor>::get()->setSender(
           std::unique_ptr<Monitor::Sender>(new FalconSender()));
     }
-    Singleton<Monitor>::get()->start();
+    acc::Singleton<Monitor>::get()->start();
   } else {
-    Singleton<Monitor>::get()->stop();
+    acc::Singleton<Monitor>::get()->stop();
   }
 }
 
@@ -202,27 +204,27 @@ static dynamic defaultDegrader() {
 void configDegrader(const dynamic& j, bool reload) {
   // reloadable
   if (!j.isObject()) {
-    RDDLOG(FATAL) << "config degrader error: " << j;
+    ACCLOG(FATAL) << "config degrader error: " << j;
     return;
   }
-  RDDLOG(INFO) << "config degrader";
+  ACCLOG(INFO) << "config degrader";
   for (auto& kv : j.items()) {
     const dynamic& k = kv.first;
     const dynamic& v = kv.second;
-    RDDLOG(INFO) << "config degrader." << k;
+    ACCLOG(INFO) << "config degrader." << k;
     for (auto& i : v) {
-      if (json::get(i, "type", "") == "count") {
-        auto open = json::get(i, "open", false);
-        auto limit = json::get(i, "limit", 0);
-        auto gap = json::get(i, "gap", 0);
-        Singleton<DegraderManager>::get()->setupDegrader<CountDegrader>(
+      if (acc::json::get(i, "type", "") == "count") {
+        auto open = acc::json::get(i, "open", false);
+        auto limit = acc::json::get(i, "limit", 0);
+        auto gap = acc::json::get(i, "gap", 0);
+        acc::Singleton<DegraderManager>::get()->setupDegrader<CountDegrader>(
             k.asString(), open, limit, gap);
       }
-      if (json::get(i, "type", "") == "rate") {
-        auto open = json::get(i, "open", false);
-        auto limit = json::get(i, "limit", 0);
-        auto rate = json::get(i, "rate", 0.0);
-        Singleton<DegraderManager>::get()->setupDegrader<RateDegrader>(
+      if (acc::json::get(i, "type", "") == "rate") {
+        auto open = acc::json::get(i, "open", false);
+        auto limit = acc::json::get(i, "limit", 0);
+        auto rate = acc::json::get(i, "rate", 0.0);
+        acc::Singleton<DegraderManager>::get()->setupDegrader<RateDegrader>(
             k.asString(), open, limit, rate);
       }
       // other types
@@ -242,19 +244,19 @@ static dynamic defaultSampler() {
 void configSampler(const dynamic& j, bool reload) {
   // reloadable
   if (!j.isObject()) {
-    RDDLOG(FATAL) << "config sampler error: " << j;
+    ACCLOG(FATAL) << "config sampler error: " << j;
     return;
   }
-  RDDLOG(INFO) << "config sampler";
+  ACCLOG(INFO) << "config sampler";
   for (auto& kv : j.items()) {
     const dynamic& k = kv.first;
     const dynamic& v = kv.second;
-    RDDLOG(INFO) << "config sampler." << k;
+    ACCLOG(INFO) << "config sampler." << k;
     for (auto& i : v) {
-      if (json::get(i, "type", "") == "percent") {
-        auto open = json::get(i, "open", false);
-        auto percent = json::get(i, "percent", 0.0);
-        Singleton<SamplerManager>::get()->setupSampler<PercentSampler>(
+      if (acc::json::get(i, "type", "") == "percent") {
+        auto open = acc::json::get(i, "open", false);
+        auto percent = acc::json::get(i, "percent", 0.0);
+        acc::Singleton<SamplerManager>::get()->setupSampler<PercentSampler>(
             k.asString(), open, percent);
       }
       // other types
@@ -271,18 +273,18 @@ static dynamic defaultJob() {
 void configJobGraph(const dynamic& j, bool reload) {
   // reloadable
   if (!j.isObject()) {
-    RDDLOG(FATAL) << "config job.graph error: " << j;
+    ACCLOG(FATAL) << "config job.graph error: " << j;
     return;
   }
-  RDDLOG(INFO) << "config job.graph";
+  ACCLOG(INFO) << "config job.graph";
   for (auto& kv : j.items()) {
     const dynamic& k = kv.first;
     const dynamic& v = kv.second;
-    RDDLOG(INFO) << "config job.graph." << k;
-    Graph& g = Singleton<GraphManager>::get()->graph(k.asString());
+    ACCLOG(INFO) << "config job.graph." << k;
+    acc::Graph& g = acc::Singleton<acc::GraphManager>::get()->graph(k.asString());
     for (auto& i : v) {
-      auto name = json::get(i, "name", "");
-      auto next = json::getArray<std::string>(i, "next");
+      auto name = acc::json::get(i, "name", "");
+      auto next = acc::json::getArray<std::string>(i, "next");
       g.set(name, next);
     }
   }
@@ -303,28 +305,28 @@ std::string generateDefault() {
 }
 
 void ConfigManager::load() {
-  RDDLOG(INFO) << "config rdd by conf: " << conf_;
+  ACCLOG(INFO) << "config rdd by conf: " << conf_;
 
   std::string s;
-  if (!readFile(conf_, s)) {
-    RDDLOG(FATAL) << "config error: file read error: " << conf_;
+  if (!acc::readFile(conf_, s)) {
+    ACCLOG(FATAL) << "config error: file read error: " << conf_;
     return;
   }
-  dynamic j = parseJson(json::stripComments(s));
+  dynamic j = acc::parseJson(acc::json::stripComments(s));
   if (!j.isObject()) {
-    RDDLOG(FATAL) << "config error: JSON parse error";
+    ACCLOG(FATAL) << "config error: JSON parse error";
     return;
   }
-  RDDLOG(DEBUG) << j;
+  ACCLOG(DEBUG) << j;
 
   for (auto& task : tasks_) {
-    task.first(json::resolve(j, task.second), inited_);
+    task.first(acc::json::resolve(j, task.second), inited_);
   }
   inited_ = true;
 }
 
 void config(const char* name, std::initializer_list<ConfigTask> confs) {
-  ConfigManager* cm = Singleton<ConfigManager>::get();
+  ConfigManager* cm = acc::Singleton<ConfigManager>::get();
   cm->setConfFile(name);
   for (auto& conf : confs) {
     cm->addTask(conf);

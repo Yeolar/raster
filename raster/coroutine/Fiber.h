@@ -22,7 +22,7 @@
 #include <memory>
 
 #include "raster/coroutine/BoostContext.h"
-#include "raster/util/Time.h"
+#include "accelerator/Time.h"
 
 namespace rdd {
 
@@ -43,8 +43,8 @@ class Fiber {
     void run();
 
     Fiber* fiber;
-    std::list<VoidFunc> blockCallbacks;
-    VoidFunc scheduleCallback;
+    std::list<acc::VoidFunc> blockCallbacks;
+    acc::VoidFunc scheduleCallback;
   };
 
  public:
@@ -86,7 +86,7 @@ class Fiber {
   Context context_;
 
   int status_{kInit};
-  std::vector<Timestamp> timestamps_;
+  std::vector<acc::Timestamp> timestamps_;
 };
 
 std::ostream& operator<<(std::ostream& os, const Fiber& fiber);

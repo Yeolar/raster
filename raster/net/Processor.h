@@ -18,7 +18,7 @@
 
 #include <memory>
 
-#include "raster/io/event/Event.h"
+#include "raster/event/Event.h"
 
 namespace rdd {
 

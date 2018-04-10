@@ -18,11 +18,11 @@
 
 #include <memory>
 
-#include "raster/io/IOBuf.h"
+#include "accelerator/io/IOBuf.h"
 #include "raster/net/ErrorEnum.h"
 #include "raster/net/Exception.h"
 #include "raster/protocol/http/HTTPMessage.h"
-#include "raster/util/Memory.h"
+#include "accelerator/Memory.h"
 
 namespace rdd {
 
@@ -54,7 +54,7 @@ class HTTPException : public NetException {
 
   template<typename... Args>
   explicit HTTPException(uint32_t statusCode, Args&&... args)
-    : NetException(to<std::string>(std::forward<Args>(args)...)),
+    : NetException(acc::to<std::string>(std::forward<Args>(args)...)),
       dir_(Direction::INGRESS_AND_EGRESS),
       statusCode_(statusCode) {}
 
@@ -68,7 +68,7 @@ class HTTPException : public NetException {
       currentIngressBuf_ = std::move(ex.currentIngressBuf_->clone());
     }
     if (ex.partialMsg_) {
-      partialMsg_ = make_unique<HTTPMessage>(*ex.partialMsg_.get());
+      partialMsg_ = acc::make_unique<HTTPMessage>(*ex.partialMsg_.get());
     }
   }
 
@@ -122,11 +122,11 @@ class HTTPException : public NetException {
     return errno_;
   }
 
-  void setCurrentIngressBuf(std::unique_ptr<IOBuf> buf) {
+  void setCurrentIngressBuf(std::unique_ptr<acc::IOBuf> buf) {
     currentIngressBuf_ = std::move(buf);
   }
 
-  std::unique_ptr<IOBuf> moveCurrentIngressBuf() {
+  std::unique_ptr<acc::IOBuf> moveCurrentIngressBuf() {
     return std::move(currentIngressBuf_);
   }
 
@@ -144,7 +144,7 @@ class HTTPException : public NetException {
   uint32_t statusCode_{0};
   uint32_t errno_{0};
   // current ingress buffer, may be compressed
-  std::unique_ptr<IOBuf> currentIngressBuf_;
+  std::unique_ptr<acc::IOBuf> currentIngressBuf_;
   // partial message that is being parsed
   std::unique_ptr<HTTPMessage> partialMsg_;
 };

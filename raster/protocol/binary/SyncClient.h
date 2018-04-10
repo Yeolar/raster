@@ -41,7 +41,7 @@ class BinarySyncClient {
 
   bool connected() const;
 
-  bool fetch(ByteRange& response, const ByteRange& request);
+  bool fetch(acc::ByteRange& response, const acc::ByteRange& request);
 
  private:
   void init();

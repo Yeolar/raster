@@ -38,12 +38,12 @@ class HTTPAsyncClient : public AsyncClient {
 
   bool recv();
 
-  bool send(const HTTPMessage& headers, std::unique_ptr<IOBuf> body);
+  bool send(const HTTPMessage& headers, std::unique_ptr<acc::IOBuf> body);
 
-  bool fetch(const HTTPMessage& headers, std::unique_ptr<IOBuf> body);
+  bool fetch(const HTTPMessage& headers, std::unique_ptr<acc::IOBuf> body);
 
   HTTPMessage* message() const;
-  IOBuf* body() const;
+  acc::IOBuf* body() const;
   HTTPHeaders* trailers() const;
 
  protected:

@@ -31,8 +31,8 @@ void HubAdaptor::configThreads(const std::string& name, size_t threadCount) {
   } else {
     auto factory = std::make_shared<ThreadFactory>("CPUThreadPool" + name + "_");
     cpuPoolMap_.emplace(
-        to<int>(name),
-        make_unique<CPUThreadPoolExecutor>(threadCount, factory));
+        acc::to<int>(name),
+        acc::make_unique<CPUThreadPoolExecutor>(threadCount, factory));
   }
 }
 
@@ -55,7 +55,7 @@ HubAdaptor::getCPUThreadPoolExecutor(int poolId) {
   if (it != cpuPoolMap_.end()) {
     return it->second.get();
   }
-  RDDLOG(FATAL) << "CPUThreadPool" << poolId << " not found";
+  ACCLOG(FATAL) << "CPUThreadPool" << poolId << " not found";
   return nullptr;
 }
 
@@ -65,7 +65,7 @@ HubAdaptor::getSharedCPUThreadPoolExecutor(int poolId) {
   if (it != cpuPoolMap_.end()) {
     return it->second;
   }
-  RDDLOG(FATAL) << "CPUThreadPool" << poolId << " not found";
+  ACCLOG(FATAL) << "CPUThreadPool" << poolId << " not found";
   return nullptr;
 }
 

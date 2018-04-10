@@ -18,13 +18,13 @@
 
 #include <google/protobuf/io/zero_copy_stream.h>
 
-#include "raster/io/Cursor.h"
+#include "accelerator/io/Cursor.h"
 
 namespace rdd {
 
 class IOBufInputStream : public google::protobuf::io::ZeroCopyInputStream {
  public:
-  IOBufInputStream(io::Cursor* cursor);
+  IOBufInputStream(acc::io::Cursor* cursor);
   ~IOBufInputStream() override {}
 
   // implements ZeroCopyInputStream
@@ -34,7 +34,7 @@ class IOBufInputStream : public google::protobuf::io::ZeroCopyInputStream {
   google::protobuf::int64 ByteCount() const override;
 
  private:
-  io::Cursor* cursor_;
+  acc::io::Cursor* cursor_;
   const int size_;
   int position_;
 };

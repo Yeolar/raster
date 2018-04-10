@@ -18,6 +18,8 @@
 
 namespace rdd {
 
+using acc::SharedMutex;
+
 Group::Group(size_t capacity) : capacity_(capacity) {
   increase(1);
 }

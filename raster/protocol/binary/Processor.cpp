@@ -12,11 +12,11 @@ void BinaryProcessor::run() {
     ibuf_ = transport->body->coalesce();
     process(obuf_, ibuf_);
     transport->sendHeader(obuf_.size());
-    transport->sendBody(IOBuf::copyBuffer(obuf_));
+    transport->sendBody(acc::IOBuf::copyBuffer(obuf_));
   } catch (std::exception& e) {
-    RDDLOG(WARN) << "catch exception: " << e.what();
+    ACCLOG(WARN) << "catch exception: " << e.what();
   } catch (...) {
-    RDDLOG(WARN) << "catch unknown exception";
+    ACCLOG(WARN) << "catch unknown exception";
   }
 }
 

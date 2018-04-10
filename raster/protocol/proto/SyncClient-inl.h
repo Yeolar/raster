@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "raster/util/Logging.h"
+#include "accelerator/Logging.h"
 
 namespace rdd {
 
@@ -58,11 +58,11 @@ bool PBSyncClient<C>::connect() {
     rpcChannel_->open();
   }
   catch (std::exception& e) {
-    RDDLOG(ERROR) << "PBSyncClient: connect " << peer_
+    ACCLOG(ERROR) << "PBSyncClient: connect " << peer_
       << " failed, " << e.what();
     return false;
   }
-  RDDLOG(DEBUG) << "connect peer[" << peer_ << "]";
+  ACCLOG(DEBUG) << "connect peer[" << peer_ << "]";
   return true;
 }
 
@@ -84,7 +84,7 @@ bool PBSyncClient<C>::fetch(
     (service_.get()->*func)(controller_.get(), &request, &_return, nullptr);
   }
   catch (std::exception& e) {
-    RDDLOG(ERROR) << "PBSyncClient: fetch " << peer_
+    ACCLOG(ERROR) << "PBSyncClient: fetch " << peer_
       << " failed, " << e.what();
     return false;
   }
@@ -96,7 +96,7 @@ void PBSyncClient<C>::init() {
   rpcChannel_.reset(new PBSyncRpcChannel(peer_, timeout_));
   controller_.reset(new PBRpcController());
   service_.reset(new C(rpcChannel_.get()));
-  RDDLOG(DEBUG) << "SyncClient: " << peer_ << ", timeout=" << timeout_;
+  ACCLOG(DEBUG) << "SyncClient: " << peer_ << ", timeout=" << timeout_;
 }
 
 } // namespace rdd

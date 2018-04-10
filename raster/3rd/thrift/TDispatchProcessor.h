@@ -20,7 +20,7 @@
 #define _THRIFT_TDISPATCHPROCESSOR_H_ 1
 
 #include "TProcessor.h"
-#include "raster/util/Logging.h"
+#include "accelerator/Logging.h"
 
 namespace apache {
 namespace thrift {
@@ -62,7 +62,7 @@ public:
     // (The old generated processor code used to try to skip a T_STRUCT and
     // continue.  However, that seems unsafe.)
     if (mtype != protocol::T_CALL && mtype != protocol::T_ONEWAY) {
-      RDDLOG(ERROR) << "received invalid message type " << mtype << " from client";
+      ACCLOG(ERROR) << "received invalid message type " << mtype << " from client";
       return false;
     }
 
@@ -77,7 +77,7 @@ protected:
     in->readMessageBegin(fname, mtype, seqid);
 
     if (mtype != protocol::T_CALL && mtype != protocol::T_ONEWAY) {
-      RDDLOG(ERROR) << "received invalid message type " << mtype << " from client";
+      ACCLOG(ERROR) << "received invalid message type " << mtype << " from client";
       return false;
     }
 
@@ -115,7 +115,7 @@ public:
     in->readMessageBegin(fname, mtype, seqid);
 
     if (mtype != protocol::T_CALL && mtype != protocol::T_ONEWAY) {
-      RDDLOG(ERROR) << "received invalid message type " << mtype << " from client";
+      ACCLOG(ERROR) << "received invalid message type " << mtype << " from client";
       return false;
     }
 

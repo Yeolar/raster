@@ -16,7 +16,7 @@
 
 #include "raster/protocol/binary/SyncClient.h"
 
-#include "raster/util/Logging.h"
+#include "accelerator/Logging.h"
 
 namespace rdd {
 
@@ -54,11 +54,11 @@ bool BinarySyncClient::connect() {
     transport_->open();
   }
   catch (std::exception& e) {
-    RDDLOG(ERROR) << "BinarySyncClient: connect " << peer_
+    ACCLOG(ERROR) << "BinarySyncClient: connect " << peer_
       << " failed, " << e.what();
     return false;
   }
-  RDDLOG(DEBUG) << "connect peer[" << peer_ << "]";
+  ACCLOG(DEBUG) << "connect peer[" << peer_ << "]";
   return true;
 }
 
@@ -66,13 +66,13 @@ bool BinarySyncClient::connected() const {
   return transport_->isOpen();
 }
 
-bool BinarySyncClient::fetch(ByteRange& response, const ByteRange& request) {
+bool BinarySyncClient::fetch(acc::ByteRange& response, const acc::ByteRange& request) {
   try {
     transport_->send(request);
     transport_->recv(response);
   }
   catch (std::exception& e) {
-    RDDLOG(ERROR) << "BinarySyncClient: fetch " << peer_
+    ACCLOG(ERROR) << "BinarySyncClient: fetch " << peer_
       << " failed, " << e.what();
     return false;
   }
@@ -81,7 +81,7 @@ bool BinarySyncClient::fetch(ByteRange& response, const ByteRange& request) {
 
 void BinarySyncClient::init() {
   transport_.reset(new BinarySyncTransport(peer_, timeout_));
-  RDDLOG(DEBUG) << "SyncClient: " << peer_;
+  ACCLOG(DEBUG) << "SyncClient: " << peer_;
 }
 
 } // namespace rdd

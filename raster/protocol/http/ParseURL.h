@@ -19,39 +19,39 @@
 
 #include <string>
 
-#include "raster/util/Conv.h"
-#include "raster/util/Logging.h"
-#include "raster/util/Range.h"
+#include "accelerator/Conv.h"
+#include "accelerator/Logging.h"
+#include "accelerator/Range.h"
 
 namespace rdd {
 
 /**
  * ParseURL can handle non-fully-formed URLs.
  * This class must not persist beyond the lifetime of the buffer
- * underlying the input StringPiece
+ * underlying the input acc::StringPiece
  */
 class ParseURL {
  public:
   ParseURL() {}
-  explicit ParseURL(StringPiece urlVal) {
+  explicit ParseURL(acc::StringPiece urlVal) {
     init(urlVal);
   }
 
-  void init(StringPiece urlVal) {
-    RDDCHECK(!initialized_);
+  void init(acc::StringPiece urlVal) {
+    ACCCHECK(!initialized_);
     url_ = urlVal;
     parse();
     initialized_ = true;
   }
 
-  StringPiece url() const { return url_; }
-  StringPiece scheme() const { return scheme_; }
+  acc::StringPiece url() const { return url_; }
+  acc::StringPiece scheme() const { return scheme_; }
   std::string authority() const { return authority_; }
-  StringPiece host() const { return host_; }
+  acc::StringPiece host() const { return host_; }
   uint16_t port() const { return port_; }
-  StringPiece path() const { return path_; }
-  StringPiece query() const { return query_; }
-  StringPiece fragment() const { return fragment_; }
+  acc::StringPiece path() const { return path_; }
+  acc::StringPiece query() const { return query_; }
+  acc::StringPiece fragment() const { return fragment_; }
 
   bool valid() const { return valid_; }
   bool hasHost() const { return valid() && !host_.empty(); }
@@ -59,12 +59,12 @@ class ParseURL {
   std::string hostAndPort() const {
     std::string rc = host_.str();
     if (port_ != 0) {
-      toAppend(":", port_, &rc);
+      acc::toAppend(":", port_, &rc);
     }
     return rc;
   }
 
-  StringPiece hostNoBrackets() {
+  acc::StringPiece hostNoBrackets() {
     stripBrackets();
     return hostNoBrackets_;
   }
@@ -80,14 +80,14 @@ class ParseURL {
 
   bool parseAuthority();
 
-  StringPiece url_;
-  StringPiece scheme_;
+  acc::StringPiece url_;
+  acc::StringPiece scheme_;
   std::string authority_;
-  StringPiece host_;
-  StringPiece hostNoBrackets_;
-  StringPiece path_;
-  StringPiece query_;
-  StringPiece fragment_;
+  acc::StringPiece host_;
+  acc::StringPiece hostNoBrackets_;
+  acc::StringPiece path_;
+  acc::StringPiece query_;
+  acc::StringPiece fragment_;
   uint16_t port_{0};
   bool valid_{false};
   bool initialized_{false};

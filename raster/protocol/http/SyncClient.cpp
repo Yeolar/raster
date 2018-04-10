@@ -16,7 +16,7 @@
 
 #include "raster/protocol/http/SyncClient.h"
 
-#include "raster/util/Logging.h"
+#include "accelerator/Logging.h"
 
 namespace rdd {
 
@@ -54,11 +54,11 @@ bool HTTPSyncClient::connect() {
     transport_->open();
   }
   catch (std::exception& e) {
-    RDDLOG(ERROR) << "HTTPSyncClient: connect " << peer_
+    ACCLOG(ERROR) << "HTTPSyncClient: connect " << peer_
       << " failed, " << e.what();
     return false;
   }
-  RDDLOG(DEBUG) << "connect peer[" << peer_ << "]";
+  ACCLOG(DEBUG) << "connect peer[" << peer_ << "]";
   return true;
 }
 
@@ -67,7 +67,7 @@ bool HTTPSyncClient::connected() const {
 }
 
 bool HTTPSyncClient::fetch(const HTTPMessage& headers,
-                           std::unique_ptr<IOBuf> body) {
+                           std::unique_ptr<acc::IOBuf> body) {
   try {
     transport_->sendHeaders(headers, nullptr);
     transport_->sendBody(std::move(body), false);
@@ -76,7 +76,7 @@ bool HTTPSyncClient::fetch(const HTTPMessage& headers,
     transport_->recv();
   }
   catch (std::exception& e) {
-    RDDLOG(ERROR) << "HTTPSyncClient: fetch " << peer_
+    ACCLOG(ERROR) << "HTTPSyncClient: fetch " << peer_
       << " failed, " << e.what();
     return false;
   }
@@ -87,7 +87,7 @@ HTTPMessage* HTTPSyncClient::headers() const {
   return transport_->headers.get();
 }
 
-IOBuf* HTTPSyncClient::body() const {
+acc::IOBuf* HTTPSyncClient::body() const {
   return transport_->body.get();
 }
 
@@ -97,7 +97,7 @@ HTTPHeaders* HTTPSyncClient::trailers() const {
 
 void HTTPSyncClient::init() {
   transport_.reset(new HTTPSyncTransport(peer_, timeout_));
-  RDDLOG(DEBUG) << "SyncClient: " << peer_
+  ACCLOG(DEBUG) << "SyncClient: " << peer_
     << ", timeout=" << timeout_;
 }
 

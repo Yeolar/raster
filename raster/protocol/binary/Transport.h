@@ -16,10 +16,10 @@
 
 #pragma once
 
-#include "raster/io/compression/ZlibStreamCompressor.h"
-#include "raster/io/compression/ZlibStreamDecompressor.h"
+#include "accelerator/compression/ZlibStreamCompressor.h"
+#include "accelerator/compression/ZlibStreamDecompressor.h"
 #include "raster/net/Transport.h"
-#include "raster/util/Memory.h"
+#include "accelerator/Memory.h"
 
 namespace rdd {
 
@@ -32,13 +32,13 @@ class BinaryTransport : public Transport {
 
   void processReadData() override;
 
-  size_t onIngress(const IOBuf& buf);
+  size_t onIngress(const acc::IOBuf& buf);
 
   void sendHeader(uint32_t header);
-  size_t sendBody(std::unique_ptr<IOBuf> body);
+  size_t sendBody(std::unique_ptr<acc::IOBuf> body);
 
   uint32_t header;
-  std::unique_ptr<IOBuf> body;
+  std::unique_ptr<acc::IOBuf> body;
 
  private:
   uint8_t headerBuf_[4];
@@ -52,7 +52,7 @@ class BinaryTransportFactory : public TransportFactory {
   ~BinaryTransportFactory() override {}
 
   std::unique_ptr<Transport> create() override {
-    return make_unique<BinaryTransport>();
+    return acc::make_unique<BinaryTransport>();
   }
 };
 
@@ -65,15 +65,15 @@ class ZlibTransport : public Transport {
 
   void processReadData() override;
 
-  size_t onIngress(const IOBuf& buf);
+  size_t onIngress(const acc::IOBuf& buf);
 
-  size_t sendBody(std::unique_ptr<IOBuf> body);
+  size_t sendBody(std::unique_ptr<acc::IOBuf> body);
 
-  std::unique_ptr<IOBuf> body;
+  std::unique_ptr<acc::IOBuf> body;
 
  private:
-  std::unique_ptr<ZlibStreamCompressor> compressor_;
-  std::unique_ptr<ZlibStreamDecompressor> decompressor_;
+  std::unique_ptr<acc::ZlibStreamCompressor> compressor_;
+  std::unique_ptr<acc::ZlibStreamDecompressor> decompressor_;
 };
 
 class ZlibTransportFactory : public TransportFactory {
@@ -82,7 +82,7 @@ class ZlibTransportFactory : public TransportFactory {
   ~ZlibTransportFactory() override {}
 
   std::unique_ptr<Transport> create() override {
-    return make_unique<ZlibTransport>();
+    return acc::make_unique<ZlibTransport>();
   }
 };
 

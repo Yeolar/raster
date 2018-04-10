@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "raster/concurrency/ThreadPoolExecutor.h"
-#include "raster/thread/Synchronized.h"
+#include "accelerator/thread/Synchronized.h"
 
 namespace rdd {
 
@@ -33,15 +33,15 @@ class PeriodicScheduler {
 
   void stop();
 
-  void add(VoidFunc&& func, uint64_t interval);
+  void add(acc::VoidFunc&& func, uint64_t interval);
 
  private:
   struct PeriodicTask {
-    VoidFunc func;
+    acc::VoidFunc func;
     uint64_t interval;
     mutable uint64_t stamp;
 
-    PeriodicTask(VoidFunc&& func_, uint64_t interval_)
+    PeriodicTask(acc::VoidFunc&& func_, uint64_t interval_)
       : func(std::move(func_)),
         interval(interval_),
         stamp(0) {}
@@ -55,7 +55,7 @@ class PeriodicScheduler {
 
   std::shared_ptr<ThreadPoolExecutor> executor_;
   std::thread handle_;
-  Synchronized<std::vector<PeriodicTask>> tasks_;
+  acc::Synchronized<std::vector<PeriodicTask>> tasks_;
   std::atomic<bool> running_{false};
   uint64_t timestamp_{0};
 };

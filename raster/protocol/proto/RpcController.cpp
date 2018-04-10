@@ -64,7 +64,7 @@ void PBRpcController::NotifyOnCancel(google::protobuf::Closure* closure) {
   }
 }
 
-void PBRpcController::parseFrom(io::Cursor& in) {
+void PBRpcController::parseFrom(acc::io::Cursor& in) {
   canceled_ = (proto::readChar(in) == 'Y');
   failed_ = (proto::readChar(in) == 'Y');
   if (failed_) {
@@ -72,7 +72,7 @@ void PBRpcController::parseFrom(io::Cursor& in) {
   }
 }
 
-void PBRpcController::serializeTo(IOBufQueue& out) const {
+void PBRpcController::serializeTo(acc::IOBufQueue& out) const {
   proto::writeChar(canceled_ ? 'Y' : 'N', out);
   proto::writeChar(failed_ ? 'Y' : 'N', out);
   if (failed_) {
@@ -87,7 +87,7 @@ void PBRpcController::copyFrom(const PBRpcController& o) {
   canceled_ = o.canceled_;
 }
 
-void PBRpcController::setStartCancel(VoidFunc&& cancelFunc) {
+void PBRpcController::setStartCancel(acc::VoidFunc&& cancelFunc) {
   cancelFunc_ = std::move(cancelFunc);
 }
 

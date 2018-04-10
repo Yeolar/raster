@@ -16,11 +16,11 @@
 
 #include "raster/framework/Monitor.h"
 
-#include "raster/thread/ThreadUtil.h"
-#include "raster/util/Algorithm.h"
-#include "raster/util/Logging.h"
-#include "raster/util/MapUtil.h"
-#include "raster/util/Time.h"
+#include "accelerator/thread/ThreadUtil.h"
+#include "accelerator/Algorithm.h"
+#include "accelerator/Logging.h"
+#include "accelerator/MapUtil.h"
+#include "accelerator/Time.h"
 
 namespace rdd {
 
@@ -63,9 +63,9 @@ void Monitor::start() {
 }
 
 void Monitor::run() {
-  setCurrentThreadName("MonitorThread");
+  acc::setCurrentThreadName("MonitorThread");
   open_ = true;
-  CycleTimer timer(60000000); // 60s
+  acc::CycleTimer timer(60000000); // 60s
   while (open_) {
     if (timer.isExpired()) {
       MonMap data;
@@ -84,12 +84,12 @@ void Monitor::addToMonitor(const std::string& name, int type, int value) {
   }
   auto key = prefix_.empty() ? name : prefix_ + '.' + name;
   std::lock_guard<std::mutex> guard(lock_);
-  if (!contain(mvalues_, key)) {
+  if (!acc::contain(mvalues_, key)) {
     mvalues_.emplace(key, MonitorValue(type));
   }
-  auto mvalue = get_ptr(mvalues_, key);
+  auto mvalue = acc::get_ptr(mvalues_, key);
   if (mvalue->type() != type) {
-    RDDLOG(ERROR) << "not same type monitor";
+    ACCLOG(ERROR) << "not same type monitor";
   }
   else {
     mvalue->add(value);

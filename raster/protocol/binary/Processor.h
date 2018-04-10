@@ -26,13 +26,13 @@ class BinaryProcessor : public Processor {
   BinaryProcessor(Event* event) : Processor(event) {}
   ~BinaryProcessor() override {}
 
-  virtual void process(ByteRange& response, const ByteRange& request) = 0;
+  virtual void process(acc::ByteRange& response, const acc::ByteRange& request) = 0;
 
   void run() override;
 
  private:
-  ByteRange ibuf_;
-  ByteRange obuf_;
+  acc::ByteRange ibuf_;
+  acc::ByteRange obuf_;
 };
 
 template <class P>
@@ -42,7 +42,7 @@ class BinaryProcessorFactory : public ProcessorFactory {
   ~BinaryProcessorFactory() override {}
 
   std::unique_ptr<Processor> create(Event* event) override {
-    return make_unique<P>(event);
+    return acc::make_unique<P>(event);
   }
 };
 

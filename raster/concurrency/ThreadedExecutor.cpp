@@ -19,7 +19,7 @@
 
 #include <chrono>
 
-#include "raster/util/Logging.h"
+#include "accelerator/Logging.h"
 
 namespace rdd {
 
@@ -32,12 +32,12 @@ ThreadedExecutor::~ThreadedExecutor() {
   stopping_.store(true, std::memory_order_release);
   controlw_.notifyOne();
   controlt_.join();
-  RDDCHECK(running_.empty());
-  RDDCHECK(finished_.empty());
+  ACCCHECK(running_.empty());
+  ACCCHECK(finished_.empty());
 }
 
-void ThreadedExecutor::add(VoidFunc func) {
-  RDDCHECK(!stopping_.load(std::memory_order_acquire));
+void ThreadedExecutor::add(acc::VoidFunc func) {
+  ACCCHECK(!stopping_.load(std::memory_order_acquire));
   {
     std::unique_lock<std::mutex> lock(enqueuedm_);
     enqueued_.push_back(std::move(func));
@@ -50,7 +50,7 @@ std::shared_ptr<ThreadFactory> ThreadedExecutor::newDefaultThreadFactory() {
 }
 
 void ThreadedExecutor::control() {
-  setCurrentThreadName("ThreadedCtrl");
+  acc::setCurrentThreadName("ThreadedCtrl");
   constexpr auto kMaxWait = 10000000; // 10s
   auto looping = true;
   while (looping) {
@@ -59,7 +59,7 @@ void ThreadedExecutor::control() {
   }
 }
 
-void ThreadedExecutor::work(VoidFunc& func) {
+void ThreadedExecutor::work(acc::VoidFunc& func) {
   func();
   auto id = std::this_thread::get_id();
   {
@@ -82,7 +82,7 @@ void ThreadedExecutor::controlJoinFinishedThreads() {
 }
 
 void ThreadedExecutor::controlLaunchEnqueuedTasks() {
-  std::deque<VoidFunc> enqueuedt;
+  std::deque<acc::VoidFunc> enqueuedt;
   {
     std::unique_lock<std::mutex> lock(enqueuedm_);
     std::swap(enqueuedt, enqueued_);

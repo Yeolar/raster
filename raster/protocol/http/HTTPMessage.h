@@ -26,7 +26,7 @@
 #include "raster/protocol/http/HTTPHeaders.h"
 #include "raster/protocol/http/HTTPMethod.h"
 #include "raster/protocol/http/ParseURL.h"
-#include "raster/util/Logging.h"
+#include "accelerator/Logging.h"
 
 namespace rdd {
 
@@ -62,7 +62,7 @@ class HTTPMessage {
   const std::string& getLocalIp() const { return localIP_; }
 
   void setMethod(HTTPMethod method);
-  void setMethod(StringPiece method);
+  void setMethod(acc::StringPiece method);
   HTTPMethod getMethod() const;
   const std::string& getMethodString() const;
 
@@ -72,17 +72,17 @@ class HTTPMessage {
    */
   template <typename T> // T = string
   ParseURL setURL(T&& url) {
-    RDDLOG(V5) << "setURL: " << url;
+    ACCLOG(V5) << "setURL: " << url;
 
     // Set the URL, path, and query string parameters
     ParseURL u(url);
     if (u.valid()) {
-      RDDLOG(V5) << "set path: " << u.path() << " query:" << u.query();
+      ACCLOG(V5) << "set path: " << u.path() << " query:" << u.query();
       request().path_ = u.path().str();
       request().query_ = u.query().str();
       unparseQueryParams();
     } else {
-      RDDLOG(V4) << "Error in parsing URL: " << url;
+      ACCLOG(V4) << "Error in parsing URL: " << url;
     }
 
     request().url_ = std::forward<T>(url);
@@ -208,13 +208,13 @@ class HTTPMessage {
   /**
    * Get the cookie with the specified name.
    *
-   * Returns a StringPiece to the cookie value, or an empty StringPiece if
+   * Returns a acc::StringPiece to the cookie value, or an empty acc::StringPiece if
    * there is no cookie with the specified name.  The returned cookie is
    * only valid as long as the Cookie Header in HTTPMessage object exists.
    * Applications should make sure they call unparseCookies() when editing
-   * the Cookie Header, so that the StringPiece references are cleared.
+   * the Cookie Header, so that the acc::StringPiece references are cleared.
    */
-  const StringPiece getCookie(const std::string& name) const;
+  const acc::StringPiece getCookie(const std::string& name) const;
 
   void dumpMessage(int verbosity) const;
   void atomicDumpMessage(int verbosity) const;
@@ -281,7 +281,7 @@ class HTTPMessage {
       const std::string& input,
       char pairDelim,
       char valueDelim,
-      std::function<void(StringPiece, StringPiece)> callback);
+      std::function<void(acc::StringPiece, acc::StringPiece)> callback);
 
   static void splitNameValue(
       const std::string& input,
@@ -293,11 +293,11 @@ class HTTPMessage {
    * Form the URL from the individual components.
    * url -> {scheme}://{authority}{path}?{query}#{fragment}
    */
-  static std::string createUrl(const StringPiece scheme,
-                               const StringPiece authority,
-                               const StringPiece path,
-                               const StringPiece query,
-                               const StringPiece fragment);
+  static std::string createUrl(const acc::StringPiece scheme,
+                               const acc::StringPiece authority,
+                               const acc::StringPiece path,
+                               const acc::StringPiece query,
+                               const acc::StringPiece fragment);
 
   static std::string createQueryString(
       const std::map<std::string, std::string>& params, uint32_t maxSize);
@@ -361,8 +361,8 @@ class HTTPMessage {
    * These are mutable since we parse them lazily in getCookie() and
    * getQueryParam()
    */
-  mutable std::map<StringPiece, StringPiece> cookies_;
-  // TODO: use StringPiece for queryParams_ and delete splitNameValue()
+  mutable std::map<acc::StringPiece, acc::StringPiece> cookies_;
+  // TODO: use acc::StringPiece for queryParams_ and delete splitNameValue()
   mutable std::map<std::string, std::string> queryParams_;
 
   std::pair<uint8_t, uint8_t> version_;

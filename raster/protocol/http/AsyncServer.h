@@ -25,7 +25,7 @@ namespace rdd {
 
 class HTTPAsyncServer : public Service {
  public:
-  HTTPAsyncServer(StringPiece name) : Service(name) {}
+  HTTPAsyncServer(acc::StringPiece name) : Service(name) {}
   ~HTTPAsyncServer() override {}
 
   void makeChannel(int port, const TimeoutOption& timeoutOpt) override;

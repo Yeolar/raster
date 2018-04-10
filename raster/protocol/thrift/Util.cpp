@@ -4,7 +4,7 @@
 
 #include "raster/protocol/thrift/Util.h"
 
-#include "raster/util/Logging.h"
+#include "accelerator/Logging.h"
 
 namespace rdd {
 namespace thrift {
@@ -19,7 +19,7 @@ void setSeqId(::apache::thrift::transport::TMemoryBuffer* buf, int32_t seqid) {
   if (n >= i + sizeof(int32_t)) {
     *(int32_t*)((uint8_t*)p + i) = htonl(seqid);
   } else {
-    RDDLOG(WARN) << "invalid buf to set seqid";
+    ACCLOG(WARN) << "invalid buf to set seqid";
   }
 }
 
@@ -33,7 +33,7 @@ int32_t getSeqId(::apache::thrift::transport::TMemoryBuffer* buf) {
   if (n >= i + sizeof(int32_t)) {
     return ntohl(*(int32_t*)((uint8_t*)p + i));
   } else {
-    RDDLOG(WARN) << "invalid buf to get seqid";
+    ACCLOG(WARN) << "invalid buf to get seqid";
     return 0;
   }
 }

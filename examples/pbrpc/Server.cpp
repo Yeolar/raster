@@ -9,9 +9,9 @@
 #include "raster/framework/Signal.h"
 #include "raster/protocol/proto/AsyncClient.h"
 #include "raster/protocol/proto/AsyncServer.h"
-#include "raster/util/Logging.h"
-#include "raster/util/ScopeGuard.h"
-#include "raster/util/Uuid.h"
+#include "accelerator/Logging.h"
+#include "accelerator/ScopeGuard.h"
+#include "accelerator/Uuid.h"
 #include "Proxy.pb.h"
 
 static const char* VERSION = "1.1.0";
@@ -24,7 +24,7 @@ using namespace rdd::pbrpc;
 class ProxyServiceImpl : public ProxyService {
  public:
   ProxyServiceImpl() {
-    RDDLOG(DEBUG) << "ProxyService init";
+    ACCLOG(DEBUG) << "ProxyService init";
   }
 
   void run(::google::protobuf::RpcController* controller,
@@ -40,13 +40,13 @@ class ProxyServiceImpl : public ProxyService {
       return;
     }
 
-    if (!StringPiece(request->traceid()).startsWith("rdd")) {
+    if (!acc::StringPiece(request->traceid()).startsWith("rdd")) {
       response->set_code(ResultCode::E_SOURCE__UNTRUSTED);
-      RDDLOG(INFO) << "untrusted request: [" << request->traceid() << "]";
+      ACCLOG(INFO) << "untrusted request: [" << request->traceid() << "]";
     }
     if (!checkOK(response)) return;
 
-    response->set_traceid(generateUuid(request->traceid(), "rdde"));
+    response->set_traceid(acc::generateUuid(request->traceid(), "rdde"));
     response->set_code(ResultCode::OK);
 
     if (!request->forward().empty()) {
@@ -63,7 +63,7 @@ class ProxyServiceImpl : public ProxyService {
       }
     }
 
-    RDDTLOG(INFO, request->traceid()) << "query: \"" << request->query() << "\""
+    ACCTLOG(INFO, request->traceid()) << "query: \"" << request->query() << "\""
       << " code=" << response->code();
     if (!checkOK(response)) return;
   }
@@ -85,9 +85,9 @@ int main(int argc, char* argv[]) {
   setupShutdownSignal(SIGINT);
   setupShutdownSignal(SIGTERM);
 
-  auto service = make_unique<PBAsyncServer>("Proxy");
+  auto service = acc::make_unique<PBAsyncServer>("Proxy");
   service->addService(std::make_shared<ProxyServiceImpl>());
-  Singleton<HubAdaptor>::get()->addService(std::move(service));
+  acc::Singleton<HubAdaptor>::get()->addService(std::move(service));
 
   config(FLAGS_conf.c_str(), {
          {configLogging, "logging"},
@@ -98,8 +98,8 @@ int main(int argc, char* argv[]) {
          {configJobGraph, "job.graph"}
          });
 
-  RDDLOG(INFO) << "rdd start ... ^_^";
-  Singleton<HubAdaptor>::get()->startService();
+  ACCLOG(INFO) << "rdd start ... ^_^";
+  acc::Singleton<HubAdaptor>::get()->startService();
 
   google::ShutDownCommandLineFlags();
 

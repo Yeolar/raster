@@ -7,9 +7,9 @@
 #include "raster/concurrency/CPUThreadPoolExecutor.h"
 #include "raster/net/NetUtil.h"
 #include "raster/protocol/binary/SyncClient.h"
-#include "raster/util/Algorithm.h"
-#include "raster/util/Logging.h"
-#include "raster/util/Portability.h"
+#include "accelerator/Algorithm.h"
+#include "accelerator/Logging.h"
+#include "accelerator/Portability.h"
 #include "Helper.h"
 #include "table_generated.h"
 
@@ -36,8 +36,8 @@ bool request(const ClientOption& opt) {
     return false;
   }
   try {
-    ByteRange req(fbb.GetBufferPointer(), fbb.GetSize());
-    ByteRange data;
+    acc::ByteRange req(fbb.GetBufferPointer(), fbb.GetSize());
+    acc::ByteRange data;
     client.fetch(data, req);
     auto res = ::flatbuffers::GetRoot<Result>(data.data());
     DCHECK(verifyFlatbuffer(res, data));
@@ -77,26 +77,26 @@ int main(int argc, char* argv[]) {
 
   while (pool.getPoolStats().pendingTaskCount > 0) {
     sleep(1);
-    RDDRLOG(INFO) << "handled: " << count;
+    ACCRLOG(INFO) << "handled: " << count;
   }
   pool.join();
 
-  RDDRLOG(INFO) << "FINISH";
-  RDDRLOG(INFO) << "total: " << count;
+  ACCRLOG(INFO) << "FINISH";
+  ACCRLOG(INFO) << "total: " << count;
 
   if (count > 0) {
     std::sort(costs.begin(), costs.end());
     uint64_t cost10 = costs[count    /10];
     uint64_t cost50 = costs[count * 5/10];
     uint64_t cost90 = costs[count * 9/10];
-    uint64_t cost_sum = sum(costs);
+    uint64_t cost_sum = acc::sum(costs);
     uint64_t cost_avg = cost_sum / count;
 
-    RDDRLOG(INFO) << " cost10: " << cost10   / 1000.0 << " ms";
-    RDDRLOG(INFO) << " cost50: " << cost50   / 1000.0 << " ms";
-    RDDRLOG(INFO) << " cost90: " << cost90   / 1000.0 << " ms";
-    RDDRLOG(INFO) << "avgcost: " << cost_avg / 1000.0 << " ms";
-    RDDRLOG(INFO) << "    qps: " << 1000000. / cost_avg * FLAGS_threads;
+    ACCRLOG(INFO) << " cost10: " << cost10   / 1000.0 << " ms";
+    ACCRLOG(INFO) << " cost50: " << cost50   / 1000.0 << " ms";
+    ACCRLOG(INFO) << " cost90: " << cost90   / 1000.0 << " ms";
+    ACCRLOG(INFO) << "avgcost: " << cost_avg / 1000.0 << " ms";
+    ACCRLOG(INFO) << "    qps: " << 1000000. / cost_avg * FLAGS_threads;
   }
 
   gflags::ShutDownCommandLineFlags();

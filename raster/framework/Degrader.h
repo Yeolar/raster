@@ -21,8 +21,8 @@
 #include <memory>
 #include <mutex>
 
-#include "raster/thread/SpinLock.h"
-#include "raster/util/Algorithm.h"
+#include "accelerator/thread/SpinLock.h"
+#include "accelerator/Algorithm.h"
 
 namespace rdd {
 
@@ -45,7 +45,7 @@ class CountDegrader : public Degrader {
   uint32_t gap_{0};
   uint32_t count_{0};
   time_t ts_{0};
-  SpinLock lock_;
+  acc::SpinLock lock_;
 };
 
 class RateDegrader : public Degrader {
@@ -62,7 +62,7 @@ class RateDegrader : public Degrader {
   uint32_t limit_{0};
   uint32_t ticket_{0};
   time_t ts_{0};
-  SpinLock lock_;
+  acc::SpinLock lock_;
 };
 
 class DegraderManager {
@@ -82,7 +82,7 @@ class DegraderManager {
 template <class Deg, class ...Args>
 void DegraderManager::setupDegrader(const std::string& name, Args&&... args) {
   std::lock_guard<std::mutex> guard(lock_);
-  if (!contain(degraders_, name)) {
+  if (!acc::contain(degraders_, name)) {
     degraders_[name].reset(new Deg());
   }
   Degrader* d = degraders_[name].get();
@@ -92,5 +92,5 @@ void DegraderManager::setupDegrader(const std::string& name, Args&&... args) {
 } // namespace rdd
 
 #define RDDDEG_HIT(name) \
-  ::rdd::Singleton< ::rdd::DegraderManager>::get()->hit(name)
+  ::acc::Singleton< ::rdd::DegraderManager>::get()->hit(name)
 

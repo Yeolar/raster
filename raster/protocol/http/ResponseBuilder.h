@@ -17,11 +17,11 @@
 
 #pragma once
 
-#include "raster/io/IOBuf.h"
+#include "accelerator/io/IOBuf.h"
 #include "raster/protocol/http/HTTPMessage.h"
 #include "raster/protocol/http/Transport.h"
-#include "raster/util/Memory.h"
-#include "raster/util/ScopeGuard.h"
+#include "accelerator/Memory.h"
+#include "accelerator/ScopeGuard.h"
 
 namespace rdd {
 
@@ -72,7 +72,7 @@ class ResponseBuilder {
   }
 
   ResponseBuilder& status(uint16_t code, std::string message) {
-    headers_ = make_unique<HTTPMessage>();
+    headers_ = acc::make_unique<HTTPMessage>();
     headers_->setHTTPVersion(1, 1);
     headers_->setStatusCode(code);
     headers_->setStatusMessage(message);
@@ -85,19 +85,19 @@ class ResponseBuilder {
 
   template <typename T>
   ResponseBuilder& header(const std::string& headerIn, const T& value) {
-    RDDCHECK(headers_) << "You need to call `status` before adding headers";
+    ACCCHECK(headers_) << "You need to call `status` before adding headers";
     headers_->getHeaders().add(headerIn, value);
     return *this;
   }
 
   template <typename T>
   ResponseBuilder& header(HTTPHeaderCode code, const T& value) {
-    RDDCHECK(headers_) << "You need to call `status` before adding headers";
+    ACCCHECK(headers_) << "You need to call `status` before adding headers";
     headers_->getHeaders().add(code, value);
     return *this;
   }
 
-  ResponseBuilder& body(std::unique_ptr<IOBuf> bodyIn) {
+  ResponseBuilder& body(std::unique_ptr<acc::IOBuf> bodyIn) {
     if (bodyIn) {
       if (body_) {
         body_->prependChain(std::move(bodyIn));
@@ -110,7 +110,7 @@ class ResponseBuilder {
 
   template <typename T>
   ResponseBuilder& body(T&& t) {
-    return body(IOBuf::maybeCopyBuffer(to<std::string>(std::forward<T>(t))));
+    return body(acc::IOBuf::maybeCopyBuffer(acc::to<std::string>(std::forward<T>(t))));
   }
 
   ResponseBuilder& closeConnection() {
@@ -138,7 +138,7 @@ class ResponseBuilder {
           const auto len = body_ ? body_->computeChainDataLength() : 0;
           headers_->getHeaders().add(
               HTTP_HEADER_CONTENT_LENGTH,
-              to<std::string>(len));
+              acc::to<std::string>(len));
         }
       }
       transport_->sendHeaders(*headers_, nullptr);
@@ -160,7 +160,7 @@ class ResponseBuilder {
   }
 
   void rejectUpgradeRequest() {
-    headers_ = make_unique<HTTPMessage>();
+    headers_ = acc::make_unique<HTTPMessage>();
     headers_->constructDirectResponse({1, 1}, 400, "Bad Request");
     transport_->sendHeaders(*headers_, nullptr);
     transport_->sendEOM();
@@ -169,7 +169,7 @@ class ResponseBuilder {
  private:
   HTTPTransport* transport_{nullptr};
   std::unique_ptr<HTTPMessage> headers_;
-  std::unique_ptr<IOBuf> body_;
+  std::unique_ptr<acc::IOBuf> body_;
   bool sendEOM_{false};
 };
 

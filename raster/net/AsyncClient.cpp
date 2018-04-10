@@ -16,7 +16,7 @@
 
 #include "raster/net/AsyncClient.h"
 
-#include "raster/io/event/EventPool.h"
+#include "raster/event/EventPool.h"
 
 namespace rdd {
 
@@ -24,7 +24,7 @@ AsyncClient::AsyncClient(std::shared_ptr<NetHub> hub,
                          const Peer& peer,
                          const TimeoutOption& timeout)
   : hub_(hub), peer_(peer), timeout_(timeout) {
-  RDDLOG(DEBUG) << "AsyncClient: " << peer_ << ", timeout=" << timeout_;
+  ACCLOG(DEBUG) << "AsyncClient: " << peer_ << ", timeout=" << timeout_;
 }
 
 AsyncClient::AsyncClient(std::shared_ptr<NetHub> hub,
@@ -46,7 +46,7 @@ bool AsyncClient::connect() {
   if (!initConnection()) {
     return false;
   }
-  RDDLOG(V2) << *event() << " connect";
+  ACCLOG(V2) << *event() << " connect";
   Fiber::Task* task = getCurrentFiberTask();
   event_->setTask(task);
   task->blockCallbacks.push_back([&]() { hub_->addEvent(event()); });
@@ -55,13 +55,13 @@ bool AsyncClient::connect() {
 
 bool AsyncClient::initConnection() {
   if (keepalive_) {
-    auto pool = Singleton<EventPoolManager>::get()->getPool(peer_.port());
+    auto pool = acc::Singleton<EventPoolManager>::get()->getPool(peer_.port());
     auto event = pool->get(peer_);
     if (event && event->socket()->isConnected()) {
       event->reset();
       event->setState(Event::kToWrite);
       event_ = std::move(event);
-      RDDLOG(DEBUG) << "peer[" << peer_ << "]"
+      ACCLOG(DEBUG) << "peer[" << peer_ << "]"
         << " connect (keep-alive,seqid=" << event_->seqid() << ")";
       return true;
     }
@@ -70,10 +70,10 @@ bool AsyncClient::initConnection() {
   if (socket &&
       (!keepalive_ || socket->setKeepAlive()) &&
       socket->connect(peer_)) {
-    auto event = make_unique<Event>(channel_, std::move(socket));
+    auto event = acc::make_unique<Event>(channel_, std::move(socket));
     event->setState(Event::kConnect);
     event_ = std::move(event);
-    RDDLOG(DEBUG) << "peer[" << peer_ << "] connect";
+    ACCLOG(DEBUG) << "peer[" << peer_ << "] connect";
     return true;
   }
   return false;
@@ -81,7 +81,7 @@ bool AsyncClient::initConnection() {
 
 void AsyncClient::freeConnection() {
   if (keepalive_ && event_->state() != Event::kFail) {
-    auto pool = Singleton<EventPoolManager>::get()->getPool(peer_.port());
+    auto pool = acc::Singleton<EventPoolManager>::get()->getPool(peer_.port());
     pool->giveBack(std::move(event_));
   }
   event_ = nullptr;

@@ -16,7 +16,7 @@
 
 #include "raster/coroutine/FiberManager.h"
 
-#include "raster/util/Logging.h"
+#include "accelerator/Logging.h"
 
 namespace rdd {
 
@@ -47,7 +47,7 @@ void FiberManager::run(Fiber* fiber) {
       break;
     }
     default: {
-      RDDLOG(WARN) << *fiber << " status error";
+      ACCLOG(WARN) << *fiber << " status error";
       delete fiber;
       break;
     }

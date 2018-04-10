@@ -24,7 +24,7 @@ namespace rdd {
 void PBProcessor::run() {
   auto transport = event_->transport<BinaryTransport>();
   try {
-    io::Cursor in(transport->body.get());
+    acc::io::Cursor in(transport->body.get());
     int type = proto::readInt(in);
     switch (type) {
       case proto::REQUEST_MSG: {
@@ -42,12 +42,12 @@ void PBProcessor::run() {
         break;
       }
       default:
-        RDDLOG(FATAL) << "unknown message type: " << type;
+        ACCLOG(FATAL) << "unknown message type: " << type;
     }
   } catch (std::exception& e) {
-    RDDLOG(WARN) << "catch exception: " << e.what();
+    ACCLOG(WARN) << "catch exception: " << e.what();
   } catch (...) {
-    RDDLOG(WARN) << "catch unknown exception";
+    ACCLOG(WARN) << "catch unknown exception";
   }
 }
 
@@ -80,14 +80,14 @@ void PBProcessor::process(
 void PBProcessor::cancel(const std::string& callId) {
   std::shared_ptr<PBAsyncServer::Handle> handle =
     server_->removeHandle(callId);
-  RDDCHECK(handle) << "proto handle not available";
+  ACCCHECK(handle) << "proto handle not available";
   PBRpcController controller;
   controller.setCanceled();
   sendResponse(callId, &controller, nullptr);
 }
 
 void PBProcessor::finish(std::shared_ptr<PBAsyncServer::Handle> handle) {
-  RDDCHECK_EQ(handle, server_->removeHandle(handle->callId))
+  ACCCHECK_EQ(handle, server_->removeHandle(handle->callId))
     << "proto handle not available";
   sendResponse(handle->callId,
                handle->controller.get(),
@@ -98,7 +98,7 @@ void PBProcessor::sendResponse(
     const std::string& callId,
     PBRpcController* controller,
     google::protobuf::Message* response) {
-  IOBufQueue out(IOBufQueue::cacheChainLength());
+  acc::IOBufQueue out(acc::IOBufQueue::cacheChainLength());
   proto::serializeResponse(callId, *controller, response, out);
   auto buf = out.move();
   auto transport = event_->transport<BinaryTransport>();

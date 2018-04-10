@@ -18,7 +18,7 @@
 #include <gflags/gflags.h>
 
 #include "raster/framework/Config.h"
-#include "raster/util/Portability.h"
+#include "accelerator/Portability.h"
 
 DEFINE_bool(gen, false, "Generate default config");
 

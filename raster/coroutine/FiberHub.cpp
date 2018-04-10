@@ -18,7 +18,7 @@ namespace rdd {
 
 void FiberHub::execute(Fiber* fiber, int poolId) {
   auto executor = getCPUThreadPoolExecutor(poolId);
-  RDDLOG(V2) << executor->getThreadFactory()->namePrefix()
+  ACCLOG(V2) << executor->getThreadFactory()->namePrefix()
              << "* add " << *fiber;
   executor->add([&]() { FiberManager::run(fiber); });
 }
@@ -27,7 +27,7 @@ void FiberHub::execute(std::unique_ptr<Fiber::Task> task, int poolId) {
   Fiber* fiber = task->fiber;
   if (!fiber) {
     if (Fiber::count() >= FLAGS_fc_limit) {
-      RDDLOG(WARN) << "exceed fiber capacity";
+      ACCLOG(WARN) << "exceed fiber capacity";
       // still add fiber
     }
     fiber = new Fiber(FLAGS_fc_stack_size, std::move(task));

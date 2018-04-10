@@ -17,7 +17,7 @@
 #include "raster/coroutine/Fiber.h"
 
 #include "raster/coroutine/FiberManager.h"
-#include "raster/util/Logging.h"
+#include "accelerator/Logging.h"
 
 #define RDD_FIBER_STR(status) #status
 
@@ -42,7 +42,7 @@ Fiber::Fiber(int stackSize, std::unique_ptr<Task> task)
     stackSize_(stackSize),
     context_(std::bind(&Task::run, task_.get()), stackLimit_, stackSize_) {
   task_->fiber = this;
-  timestamps_.push_back(std::move(Timestamp(status_)));
+  timestamps_.push_back(std::move(acc::Timestamp(status_)));
   ++count_;
 }
 
@@ -53,7 +53,7 @@ Fiber::~Fiber() {
 
 void Fiber::setStatus(int status) {
   status_ = status;
-  timestamps_.push_back(std::move(Timestamp(status, cost())));
+  timestamps_.push_back(std::move(acc::Timestamp(status, cost())));
 }
 
 const char* Fiber::statusName() const {
@@ -63,14 +63,14 @@ const char* Fiber::statusName() const {
 void Fiber::execute() {
   assert(status_ == kRunable);
   setStatus(kRunning);
-  RDDLOG(V5) << *this << " execute";
+  ACCLOG(V5) << *this << " execute";
   context_.activate();
 }
 
 void Fiber::yield(int status) {
   assert(status_ == kRunning);
   setStatus(status);
-  RDDLOG(V5) << *this << " yield";
+  ACCLOG(V5) << *this << " yield";
   context_.deactivate();
 }
 
@@ -79,11 +79,11 @@ uint64_t Fiber::starttime() const {
 }
 
 uint64_t Fiber::cost() const {
-  return timePassed(starttime());
+  return acc::timePassed(starttime());
 }
 
 std::string Fiber::timestampStr() const {
-  return join("-", timestamps_);
+  return acc::join("-", timestamps_);
 }
 
 std::ostream& operator<<(std::ostream& os, const Fiber& fiber) {

@@ -7,20 +7,20 @@
 #include "raster/framework/HubAdaptor.h"
 #include "raster/protocol/binary/Transport.h"
 #include "raster/protocol/thrift/Util.h"
-#include "raster/util/Logging.h"
+#include "accelerator/Logging.h"
 
 namespace rdd {
 
 template <class C>
 TAsyncClient<C>::TAsyncClient(const ClientOption& option)
-  : AsyncClient(Singleton<HubAdaptor>::try_get(), option) {
+  : AsyncClient(acc::Singleton<HubAdaptor>::try_get(), option) {
   init();
 }
 
 template <class C>
 TAsyncClient<C>::TAsyncClient(const Peer& peer,
                            const TimeoutOption& timeout)
-  : AsyncClient(Singleton<HubAdaptor>::try_get(), peer, timeout) {
+  : AsyncClient(acc::Singleton<HubAdaptor>::try_get(), peer, timeout) {
   init();
 }
 
@@ -29,7 +29,7 @@ TAsyncClient<C>::TAsyncClient(const Peer& peer,
                            uint64_t ctimeout,
                            uint64_t rtimeout,
                            uint64_t wtimeout)
-  : AsyncClient(Singleton<HubAdaptor>::try_get(),
+  : AsyncClient(acc::Singleton<HubAdaptor>::try_get(),
                 peer, ctimeout, rtimeout, wtimeout) {
   init();
 }
@@ -47,7 +47,7 @@ bool TAsyncClient<C>::recv(void (C::*recvFunc)(Res&), Res& response) {
   if (keepalive_) {
     int32_t seqid = thrift::getSeqId(pibuf_.get());
     if (seqid != event_->seqid()) {
-      RDDLOG(ERROR) << "peer[" << peer_ << "]"
+      ACCLOG(ERROR) << "peer[" << peer_ << "]"
         << " recv unmatched seqid: " << seqid << "!=" << event_->seqid();
       event_->setState(Event::kFail);
     }
@@ -69,7 +69,7 @@ bool TAsyncClient<C>::recv(Res (C::*recvFunc)(void), Res& response) {
   if (keepalive_) {
     int32_t seqid = thrift::getSeqId(pibuf_.get());
     if (seqid != event_->seqid()) {
-      RDDLOG(ERROR) << "peer[" << peer_ << "]"
+      ACCLOG(ERROR) << "peer[" << peer_ << "]"
         << " recv unmatched seqid: " << seqid << "!=" << event_->seqid();
       event_->setState(Event::kFail);
     }
@@ -95,7 +95,7 @@ bool TAsyncClient<C>::send(
   pobuf_->getBuffer(&p, &n);
   auto transport = event_->transport<BinaryTransport>();
   transport->sendHeader(n);
-  transport->sendBody(IOBuf::copyBuffer(p, n));;
+  transport->sendBody(acc::IOBuf::copyBuffer(p, n));;
   return true;
 }
 
@@ -122,7 +122,7 @@ bool TAsyncClient<C>::fetch(
 template <class C>
 std::shared_ptr<Channel> TAsyncClient<C>::makeChannel() {
   return std::make_shared<Channel>(
-      peer_, timeout_, make_unique<BinaryTransportFactory>());
+      peer_, timeout_, acc::make_unique<BinaryTransportFactory>());
 }
 
 template <class C>
@@ -132,7 +132,7 @@ void TAsyncClient<C>::init() {
   piprot_.reset(new apache::thrift::protocol::TBinaryProtocol(pibuf_));
   poprot_.reset(new apache::thrift::protocol::TBinaryProtocol(pobuf_));
 
-  client_ = make_unique<C>(piprot_, poprot_);
+  client_ = acc::make_unique<C>(piprot_, poprot_);
   channel_ = makeChannel();
 }
 

@@ -5,13 +5,13 @@
 #pragma once
 
 #include "flatbuffers/flatbuffers.h"
-#include "raster/util/Range.h"
+#include "accelerator/Range.h"
 
 namespace rdd {
 namespace fbs {
 
 template <class T>
-bool verifyFlatbuffer(T* object, const ByteRange& range) {
+bool verifyFlatbuffer(T* object, const acc::ByteRange& range) {
   flatbuffers::Verifier verifier(range.data(), range.size());
   return object->Verify(verifier);
 }

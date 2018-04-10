@@ -15,20 +15,20 @@
  */
 
 #include "raster/ssl/OpenSSLHash.h"
-#include "raster/io/IOBuf.h"
+#include "raster/io/acc::IOBuf.h"
 #include <gtest/gtest.h>
 
 using namespace rdd;
 
 TEST(OpenSSLHashTest, sha256) {
-  IOBuf buf;
-  buf.prependChain(IOBuf::wrapBuffer(ByteRange(StringPiece("foo"))));
-  buf.prependChain(IOBuf::wrapBuffer(ByteRange(StringPiece("bar"))));
+  acc::IOBuf buf;
+  buf.prependChain(acc::IOBuf::wrapBuffer(ByteRange(acc::StringPiece("foo"))));
+  buf.prependChain(acc::IOBuf::wrapBuffer(ByteRange(acc::StringPiece("bar"))));
   EXPECT_EQ(3, buf.countChainElements());
   EXPECT_EQ(6, buf.computeChainDataLength());
 
   auto expected = std::vector<uint8_t>(32);
-  auto combined = ByteRange(StringPiece("foobar"));
+  auto combined = ByteRange(acc::StringPiece("foobar"));
   SHA256(combined.data(), combined.size(), expected.data());
 
   auto out = std::vector<uint8_t>(32);
@@ -41,7 +41,7 @@ TEST(OpenSSLHashTest, sha256_hashcopy) {
 
   OpenSSLHash::Digest digest;
   digest.hash_init(EVP_sha256());
-  digest.hash_update(ByteRange(StringPiece("foobar")));
+  digest.hash_update(ByteRange(acc::StringPiece("foobar")));
 
   OpenSSLHash::Digest copy(digest);
 
@@ -56,12 +56,12 @@ TEST(OpenSSLHashTest, sha256_hashcopy_intermediate) {
 
   OpenSSLHash::Digest digest;
   digest.hash_init(EVP_sha256());
-  digest.hash_update(ByteRange(StringPiece("foo")));
+  digest.hash_update(ByteRange(acc::StringPiece("foo")));
 
   OpenSSLHash::Digest copy(digest);
 
-  digest.hash_update(ByteRange(StringPiece("bar")));
-  copy.hash_update(ByteRange(StringPiece("bar")));
+  digest.hash_update(ByteRange(acc::StringPiece("bar")));
+  copy.hash_update(ByteRange(acc::StringPiece("bar")));
 
   digest.hash_final(range(expected));
   copy.hash_final(range(actual));
@@ -70,16 +70,16 @@ TEST(OpenSSLHashTest, sha256_hashcopy_intermediate) {
 }
 
 TEST(OpenSSLHashTest, hmac_sha256) {
-  auto key = ByteRange(StringPiece("qwerty"));
+  auto key = ByteRange(acc::StringPiece("qwerty"));
 
-  IOBuf buf;
-  buf.prependChain(IOBuf::wrapBuffer(ByteRange(StringPiece("foo"))));
-  buf.prependChain(IOBuf::wrapBuffer(ByteRange(StringPiece("bar"))));
+  acc::IOBuf buf;
+  buf.prependChain(acc::IOBuf::wrapBuffer(ByteRange(acc::StringPiece("foo"))));
+  buf.prependChain(acc::IOBuf::wrapBuffer(ByteRange(acc::StringPiece("bar"))));
   EXPECT_EQ(3, buf.countChainElements());
   EXPECT_EQ(6, buf.computeChainDataLength());
 
   auto expected = std::vector<uint8_t>(32);
-  auto combined = ByteRange(StringPiece("foobar"));
+  auto combined = ByteRange(acc::StringPiece("foobar"));
   HMAC(
       EVP_sha256(),
       key.data(),

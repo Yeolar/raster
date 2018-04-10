@@ -19,8 +19,8 @@
 #include <vector>
 
 #include "raster/protocol/http/HTTPException.h"
-#include "raster/util/Conv.h"
-#include "raster/thread/UnionBasedStatic.h"
+#include "accelerator/Conv.h"
+#include "accelerator/thread/UnionBasedStatic.h"
 
 #define HTTP_METHOD_STR(method) #method
 
@@ -43,7 +43,7 @@ void initMethodStrings() {
 
 namespace rdd {
 
-HTTPMethod stringToMethod(StringPiece method) {
+HTTPMethod stringToMethod(acc::StringPiece method) {
   int index = 0;
   for (auto& cur : s_methodStrings.data) {
     if (caseInsensitiveEqual(cur, method)) {

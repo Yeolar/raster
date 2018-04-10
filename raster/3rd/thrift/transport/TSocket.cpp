@@ -30,7 +30,7 @@
 
 #include "TSocket.h"
 #include "TTransportException.h"
-#include "raster/util/Logging.h"
+#include "accelerator/Logging.h"
 
 template <class T>
 inline const void* const_cast_sockopt(const T* v) {
@@ -171,7 +171,7 @@ bool TSocket::peek() {
         if (errno == EINTR && (retries++ < maxRecvRetries_)) {
           continue;
         }
-        RDDPLOG(ERROR) << "TSocket::peek() poll()";
+        ACCPLOG(ERROR) << "TSocket::peek() poll()";
         throw TTransportException(TTransportException::UNKNOWN, "Unknown", errno);
       } else if (ret > 0) {
         // Check the interruptListener
@@ -201,7 +201,7 @@ bool TSocket::peek() {
       return false;
     }
 #endif
-    RDDPLOG(ERROR) << "TSocket::peek() recv() " << getSocketInfo();
+    ACCPLOG(ERROR) << "TSocket::peek() recv() " << getSocketInfo();
     throw TTransportException(TTransportException::UNKNOWN, "recv()", errno);
   }
   return (r > 0);
@@ -220,7 +220,7 @@ void TSocket::openConnection(struct addrinfo* res) {
   }
 
   if (socket_ == -1) {
-    RDDPLOG(ERROR) << "TSocket::open() socket() " << getSocketInfo();
+    ACCPLOG(ERROR) << "TSocket::open() socket() " << getSocketInfo();
     throw TTransportException(TTransportException::NOT_OPEN, "socket()", errno);
   }
 
@@ -263,12 +263,12 @@ void TSocket::openConnection(struct addrinfo* res) {
   int flags = fcntl(socket_, F_GETFL, 0);
   if (connTimeout_ > 0) {
     if (-1 == fcntl(socket_, F_SETFL, flags | O_NONBLOCK)) {
-      RDDPLOG(ERROR) << "TSocket::open() fcntl() " << getSocketInfo();
+      ACCPLOG(ERROR) << "TSocket::open() fcntl() " << getSocketInfo();
       throw TTransportException(TTransportException::NOT_OPEN, "fcntl() failed", errno);
     }
   } else {
     if (-1 == fcntl(socket_, F_SETFL, flags & ~O_NONBLOCK)) {
-      RDDPLOG(ERROR) << "TSocket::open() fcntl " << getSocketInfo();
+      ACCPLOG(ERROR) << "TSocket::open() fcntl " << getSocketInfo();
       throw TTransportException(TTransportException::NOT_OPEN, "fcntl() failed", errno);
     }
   }
@@ -278,7 +278,7 @@ void TSocket::openConnection(struct addrinfo* res) {
   if (!path_.empty()) {
     size_t len = path_.size() + 1;
     if (len > sizeof(((sockaddr_un*)NULL)->sun_path)) {
-      RDDPLOG(ERROR) << "TSocket::open() Unix Domain socket path too long";
+      ACCPLOG(ERROR) << "TSocket::open() Unix Domain socket path too long";
       throw TTransportException(TTransportException::NOT_OPEN, " Unix Domain socket path too long");
     }
 
@@ -297,7 +297,7 @@ void TSocket::openConnection(struct addrinfo* res) {
   }
 
   if ((errno != EINPROGRESS) && (errno != EWOULDBLOCK)) {
-    RDDPLOG(ERROR) << "TSocket::open() connect() " << getSocketInfo();
+    ACCPLOG(ERROR) << "TSocket::open() connect() " << getSocketInfo();
     throw TTransportException(TTransportException::NOT_OPEN, "connect() failed", errno);
   }
 
@@ -314,23 +314,23 @@ void TSocket::openConnection(struct addrinfo* res) {
     lon = sizeof(int);
     int ret2 = getsockopt(socket_, SOL_SOCKET, SO_ERROR, cast_sockopt(&val), &lon);
     if (ret2 == -1) {
-      RDDPLOG(ERROR) << "TSocket::open() getsockopt() " << getSocketInfo();
+      ACCPLOG(ERROR) << "TSocket::open() getsockopt() " << getSocketInfo();
       throw TTransportException(TTransportException::NOT_OPEN, "getsockopt()", errno);
     }
     // no errors on socket, go to town
     if (val == 0) {
       goto done;
     }
-    RDDLOG(ERROR) << "TSocket::open() error on socket (after poll) "
-      << getSocketInfo() << rdd::errnoStr(val);
+    ACCLOG(ERROR) << "TSocket::open() error on socket (after poll) "
+      << getSocketInfo() << acc::errnoStr(val);
     throw TTransportException(TTransportException::NOT_OPEN, "socket open() error", val);
   } else if (ret == 0) {
     // socket timed out
-    RDDLOG(ERROR) << "TSocket::open() timed out " << getSocketInfo();
+    ACCLOG(ERROR) << "TSocket::open() timed out " << getSocketInfo();
     throw TTransportException(TTransportException::NOT_OPEN, "open() timed out");
   } else {
     // error on poll()
-    RDDPLOG(ERROR) << "TSocket::open() poll() " + getSocketInfo();
+    ACCPLOG(ERROR) << "TSocket::open() poll() " + getSocketInfo();
     throw TTransportException(TTransportException::NOT_OPEN, "poll() failed", errno);
   }
 
@@ -385,7 +385,7 @@ void TSocket::local_open() {
   error = getaddrinfo(host_.c_str(), port, &hints, &res0);
 
   if (error) {
-    RDDLOG(ERROR) << "TSocket::open() getaddrinfo() "
+    ACCLOG(ERROR) << "TSocket::open() getaddrinfo() "
       << getSocketInfo() << gai_strerror(error);
     close();
     throw TTransportException(TTransportException::NOT_OPEN,
@@ -474,7 +474,7 @@ try_again:
       if (errno == EINTR && (retries++ < maxRecvRetries_)) {
         goto try_again;
       }
-      RDDPLOG(ERROR) << "TSocket::read() poll()";
+      ACCPLOG(ERROR) << "TSocket::read() poll()";
       throw TTransportException(TTransportException::UNKNOWN, "Unknown", errno);
     } else if (ret > 0) {
       // Check the interruptListener
@@ -538,7 +538,7 @@ try_again:
     }
 
     // Now it's not a try again case, but a real probblez
-    RDDPLOG(ERROR) << "TSocket::read() recv() " << getSocketInfo();
+    ACCPLOG(ERROR) << "TSocket::read() recv() " << getSocketInfo();
 
     // Some other error, whatevz
     throw TTransportException(TTransportException::UNKNOWN, "Unknown", errno);
@@ -582,7 +582,7 @@ uint32_t TSocket::write_partial(const uint8_t* buf, uint32_t len) {
       return 0;
     }
     // Fail on a send error
-    RDDPLOG(ERROR) << "TSocket::write_partial() send() " << getSocketInfo();
+    ACCPLOG(ERROR) << "TSocket::write_partial() send() " << getSocketInfo();
 
     if (errno == EPIPE || errno == ECONNRESET || errno == ENOTCONN) {
       close();
@@ -625,7 +625,7 @@ void TSocket::setLinger(bool on, int linger) {
   struct linger l = {(lingerOn_ ? 1 : 0), lingerVal_};
   int ret = setsockopt(socket_, SOL_SOCKET, SO_LINGER, cast_sockopt(&l), sizeof(l));
   if (ret == -1) {
-    RDDPLOG(ERROR) << "TSocket::setLinger() setsockopt() " << getSocketInfo();
+    ACCPLOG(ERROR) << "TSocket::setLinger() setsockopt() " << getSocketInfo();
   }
 }
 
@@ -639,7 +639,7 @@ void TSocket::setNoDelay(bool noDelay) {
   int v = noDelay_ ? 1 : 0;
   int ret = setsockopt(socket_, IPPROTO_TCP, TCP_NODELAY, cast_sockopt(&v), sizeof(v));
   if (ret == -1) {
-    RDDPLOG(ERROR) << "TSocket::setNoDelay() setsockopt() " << getSocketInfo();
+    ACCPLOG(ERROR) << "TSocket::setNoDelay() setsockopt() " << getSocketInfo();
   }
 }
 
@@ -649,7 +649,7 @@ void TSocket::setConnTimeout(int ms) {
 
 void setGenericTimeout(int s, int timeout_ms, int optname) {
   if (timeout_ms < 0) {
-    RDDLOG(ERROR) << "TSocket::setGenericTimeout with negative input: " << timeout_ms;
+    ACCLOG(ERROR) << "TSocket::setGenericTimeout with negative input: " << timeout_ms;
     return;
   }
 
@@ -660,7 +660,7 @@ void setGenericTimeout(int s, int timeout_ms, int optname) {
   struct timeval platform_time = {(int)(timeout_ms / 1000), (int)((timeout_ms % 1000) * 1000)};
   int ret = setsockopt(s, SOL_SOCKET, optname, cast_sockopt(&platform_time), sizeof(platform_time));
   if (ret == -1) {
-    RDDPLOG(ERROR) << "TSocket::setGenericTimeout() setsockopt()";
+    ACCPLOG(ERROR) << "TSocket::setGenericTimeout() setsockopt()";
   }
 }
 
@@ -686,7 +686,7 @@ void TSocket::setKeepAlive(bool keepAlive) {
       = setsockopt(socket_, SOL_SOCKET, SO_KEEPALIVE, const_cast_sockopt(&value), sizeof(value));
 
   if (ret == -1) {
-    RDDPLOG(ERROR) << "TSocket::setKeepAlive() setsockopt() " << getSocketInfo();
+    ACCPLOG(ERROR) << "TSocket::setKeepAlive() setsockopt() " << getSocketInfo();
   }
 }
 

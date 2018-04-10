@@ -20,7 +20,7 @@
 #include <atomic>
 
 #include "raster/concurrency/ThreadPoolExecutor.h"
-#include "raster/io/event/EventLoopManager.h"
+#include "raster/event/EventLoopManager.h"
 
 namespace rdd {
 
@@ -41,10 +41,10 @@ class IOThreadPoolExecutor : public ThreadPoolExecutor {
 
   ~IOThreadPoolExecutor() override;
 
-  void add(VoidFunc func) override;
-  void add(VoidFunc func,
+  void add(acc::VoidFunc func) override;
+  void add(acc::VoidFunc func,
            uint64_t expiration,
-           VoidFunc expireCallback = nullptr) override;
+           acc::VoidFunc expireCallback = nullptr) override;
 
   uint64_t getPendingTaskCount() override;
 
@@ -55,7 +55,7 @@ class IOThreadPoolExecutor : public ThreadPoolExecutor {
   EventLoopManager* getEventLoopManager();
 
  private:
-  struct RDD_ALIGN_TO_AVOID_FALSE_SHARING IOThread : public Thread {
+  struct ACC_ALIGN_TO_AVOID_FALSE_SHARING IOThread : public Thread {
     IOThread(IOThreadPoolExecutor* pool)
         : Thread(pool), shouldRun(true), pendingTasks(0) {}
     std::atomic<bool> shouldRun;
@@ -70,7 +70,7 @@ class IOThreadPoolExecutor : public ThreadPoolExecutor {
   void stopThreads(size_t n) override;
 
   std::atomic<size_t> nextThread_;
-  ThreadLocal<std::shared_ptr<IOThread>> thisThread_;
+  acc::ThreadLocal<std::shared_ptr<IOThread>> thisThread_;
   EventLoopManager* eventLoopManager_;
 };
 

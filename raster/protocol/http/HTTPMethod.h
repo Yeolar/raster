@@ -18,7 +18,7 @@
 
 #include <string>
 
-#include "raster/util/Range.h"
+#include "accelerator/Range.h"
 
 namespace rdd {
 
@@ -44,7 +44,7 @@ enum class HTTPMethod {
 
 #undef HTTP_METHOD_ENUM
 
-HTTPMethod stringToMethod(StringPiece method);
+HTTPMethod stringToMethod(acc::StringPiece method);
 
 const std::string& methodToString(HTTPMethod method);
 

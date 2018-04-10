@@ -21,7 +21,7 @@
 #include <vector>
 #include <assert.h>
 
-#include "raster/thread/SharedMutex.h"
+#include "accelerator/thread/SharedMutex.h"
 
 namespace rdd {
 
@@ -45,7 +45,7 @@ class Group {
   size_t capacity_;
   std::vector<int> groupCounts_;
   std::stack<Key> groupKeys_; // available group ids
-  SharedMutex lock_;
+  acc::SharedMutex lock_;
 };
 
 } // namespace rdd

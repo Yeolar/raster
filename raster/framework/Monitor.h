@@ -22,7 +22,7 @@
 #include <string>
 #include <thread>
 
-#include "raster/util/Singleton.h"
+#include "accelerator/Singleton.h"
 
 namespace rdd {
 
@@ -97,7 +97,7 @@ class Monitor {
 } // namespace rdd
 
 #define RDDMON(name, type, value) \
-  ::rdd::Singleton< ::rdd::Monitor>::get()->addToMonitor( \
+  ::acc::Singleton< ::rdd::Monitor>::get()->addToMonitor( \
     name, ::rdd::MonitorValue::MON_##type, value)
 #define RDDMON_CNT(name)        RDDMON(name, CNT, 0)
 #define RDDMON_AVG(name, value) RDDMON(name, AVG, value)

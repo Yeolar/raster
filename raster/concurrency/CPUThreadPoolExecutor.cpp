@@ -17,7 +17,7 @@
 
 #include "raster/concurrency/CPUThreadPoolExecutor.h"
 
-#include "raster/thread/BlockingQueue.h"
+#include "accelerator/thread/BlockingQueue.h"
 
 namespace rdd {
 
@@ -25,7 +25,7 @@ const size_t CPUThreadPoolExecutor::kDefaultMaxQueueSize = 1 << 14;
 
 CPUThreadPoolExecutor::CPUThreadPoolExecutor(
     size_t numThreads,
-    std::unique_ptr<BlockingQueue<CPUTask>> taskQueue,
+    std::unique_ptr<acc::BlockingQueue<CPUTask>> taskQueue,
     std::shared_ptr<ThreadFactory> threadFactory)
     : ThreadPoolExecutor(numThreads, std::move(threadFactory)),
       taskQueue_(std::move(taskQueue)) {
@@ -37,7 +37,7 @@ CPUThreadPoolExecutor::CPUThreadPoolExecutor(
     std::shared_ptr<ThreadFactory> threadFactory)
     : CPUThreadPoolExecutor(
           numThreads,
-          make_unique<MPMCBlockingQueue<CPUTask>>(
+          acc::make_unique<acc::MPMCBlockingQueue<CPUTask>>(
               CPUThreadPoolExecutor::kDefaultMaxQueueSize),
           std::move(threadFactory)) {}
 
@@ -47,23 +47,23 @@ CPUThreadPoolExecutor::CPUThreadPoolExecutor(
     std::shared_ptr<ThreadFactory> threadFactory)
     : CPUThreadPoolExecutor(
           numThreads,
-          make_unique<MPMCBlockingQueue<CPUTask>>(
+          acc::make_unique<acc::MPMCBlockingQueue<CPUTask>>(
               maxQueueSize),
           std::move(threadFactory)) {}
 
 CPUThreadPoolExecutor::~CPUThreadPoolExecutor() {
   stop();
-  RDDCHECK(threadsToStop_ == 0);
+  ACCCHECK(threadsToStop_ == 0);
 }
 
-void CPUThreadPoolExecutor::add(VoidFunc func) {
+void CPUThreadPoolExecutor::add(acc::VoidFunc func) {
   add(std::move(func), 0);
 }
 
 void CPUThreadPoolExecutor::add(
-    VoidFunc func,
+    acc::VoidFunc func,
     uint64_t expiration,
-    VoidFunc expireCallback) {
+    acc::VoidFunc expireCallback) {
   // TODO handle enqueue failure, here and in other add() callsites
   taskQueue_->add(
       CPUTask(std::move(func), expiration, std::move(expireCallback)));
@@ -74,11 +74,11 @@ void CPUThreadPoolExecutor::threadRun(std::shared_ptr<Thread> thread) {
   while (true) {
     auto task = taskQueue_->take();
     if (UNLIKELY(task.poison)) {
-      RDDCHECK(threadsToStop_-- > 0);
+      ACCCHECK(threadsToStop_-- > 0);
       for (auto& o : observers_) {
         o->threadStopped(thread.get());
       }
-      rdd::RWSpinLock::WriteHolder w{&threadListLock_};
+      acc::RWSpinLock::WriteHolder w{&threadListLock_};
       threadList_.remove(thread);
       stoppedThreads_.add(thread);
       return;
@@ -88,7 +88,7 @@ void CPUThreadPoolExecutor::threadRun(std::shared_ptr<Thread> thread) {
 
     if (UNLIKELY(threadsToStop_ > 0 && !isJoin_)) {
       if (--threadsToStop_ >= 0) {
-        rdd::RWSpinLock::WriteHolder w{&threadListLock_};
+        acc::RWSpinLock::WriteHolder w{&threadListLock_};
         threadList_.remove(thread);
         stoppedThreads_.add(thread);
         return;

@@ -69,12 +69,12 @@ int main(int argc, char* argv[]) {
 
   while (pool.getPoolStats().pendingTaskCount > 0) {
     sleep(1);
-    RDDRLOG(INFO) << "handled: " << count;
+    ACCRLOG(INFO) << "handled: " << count;
   }
   pool.join();
 
-  RDDRLOG(INFO) << "FINISH";
-  RDDRLOG(INFO) << "total: " << count;
+  ACCRLOG(INFO) << "FINISH";
+  ACCRLOG(INFO) << "total: " << count;
 
   if (count > 0) {
     std::sort(costs.begin(), costs.end());
@@ -84,11 +84,11 @@ int main(int argc, char* argv[]) {
     uint64_t cost_sum = sum(costs);
     uint64_t cost_avg = cost_sum / count;
 
-    RDDRLOG(INFO) << " cost10: " << cost10   / 1000.0 << " ms";
-    RDDRLOG(INFO) << " cost50: " << cost50   / 1000.0 << " ms";
-    RDDRLOG(INFO) << " cost90: " << cost90   / 1000.0 << " ms";
-    RDDRLOG(INFO) << "avgcost: " << cost_avg / 1000.0 << " ms";
-    RDDRLOG(INFO) << "    qps: " << 1000000. / cost_avg * FLAGS_threads;
+    ACCRLOG(INFO) << " cost10: " << cost10   / 1000.0 << " ms";
+    ACCRLOG(INFO) << " cost50: " << cost50   / 1000.0 << " ms";
+    ACCRLOG(INFO) << " cost90: " << cost90   / 1000.0 << " ms";
+    ACCRLOG(INFO) << "avgcost: " << cost_avg / 1000.0 << " ms";
+    ACCRLOG(INFO) << "    qps: " << 1000000. / cost_avg * FLAGS_threads;
   }
 
   gflags::ShutDownCommandLineFlags();
