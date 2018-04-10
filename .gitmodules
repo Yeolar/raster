@@ -1,0 +1,3 @@
+[submodule "accelerator"]
+	path = accelerator
+	url = https://github.com/Yeolar/accelerator
