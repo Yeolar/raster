@@ -107,7 +107,6 @@ add_subdirectory(raster/protocol/http)
 add_subdirectory(raster/protocol/proto)
 add_subdirectory(raster/protocol/thrift)
 add_subdirectory(raster/serializer)
-add_subdirectory(raster/ssl)
 
 add_library(raster_static STATIC
     $<TARGET_OBJECTS:httpparser>
@@ -122,7 +121,6 @@ add_library(raster_static STATIC
     $<TARGET_OBJECTS:raster_protocol_http>
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_protocol_thrift>
-    $<TARGET_OBJECTS:raster_ssl>
 )
 set_target_properties(raster_static PROPERTIES OUTPUT_NAME raster)
 add_library(raster_shared SHARED
@@ -138,7 +136,6 @@ add_library(raster_shared SHARED
     $<TARGET_OBJECTS:raster_protocol_http>
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_protocol_thrift>
-    $<TARGET_OBJECTS:raster_ssl>
 )
 set_target_properties(raster_shared PROPERTIES OUTPUT_NAME raster)
 
@@ -167,18 +164,12 @@ add_subdirectory(examples/proxy)
 if(GTEST_FOUND)
     enable_testing()
 #    add_subdirectory(raster/concurrency/test)
-#    add_subdirectory(raster/enc/test)
+#    add_subdirectory(raster/event/test)
 #    add_subdirectory(raster/framework/test)
 #    add_subdirectory(raster/gen/test)
-#    add_subdirectory(raster/io/test)
-#    add_subdirectory(raster/io/compression/test)
-#    add_subdirectory(raster/io/event/test)
 #    add_subdirectory(raster/parallel/test)
 #    add_subdirectory(raster/protocol/http/test)
 #    add_subdirectory(raster/serializer/test)
-#    add_subdirectory(raster/ssl/test)
-#    add_subdirectory(raster/thread/test)
-#    add_subdirectory(raster/util/test)
 endif()
 
 # Pack
