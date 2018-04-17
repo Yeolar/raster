@@ -21,7 +21,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "raster/event/Event.h"
+#include "raster/net/Event.h"
 #include "raster/net/NetUtil.h"
 
 namespace rdd {

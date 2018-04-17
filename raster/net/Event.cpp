@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-#include "raster/event/Event.h"
+#include "raster/net/Event.h"
 
 #include "raster/coroutine/FiberManager.h"
-#include "raster/event/EventTask.h"
 #include "raster/net/Channel.h"
-
-#define RDD_IO_EVENT_STR(state) #state
-
-namespace {
-  static const char* stateStrings[] = {
-    RDD_IO_EVENT_GEN(RDD_IO_EVENT_STR)
-  };
-}
+#include "raster/net/EventTask.h"
 
 namespace rdd {
 
@@ -39,24 +31,16 @@ std::atomic<uint64_t> Event::globalSeqid_(1);
 
 Event::Event(std::shared_ptr<Channel> channel,
              std::unique_ptr<Socket> socket)
-  : channel_(channel)
-  , socket_(std::move(socket))
-  , timeoutOpt_(channel->timeoutOption()) {
+  : EventBase({}),
+    channel_(channel),
+    socket_(std::move(socket)) {
+//  , timeoutOpt_(channel->timeoutOption()) {
   reset();
   ACCLOG(V2) << *this << " +";
 }
 
 Event::~Event() {
   ACCLOG(V2) << *this << " -";
-}
-
-void Event::restart() {
-  if (!timestamps_.empty()) {
-    ACCLOG(V2) << *this << " restart";
-    timestamps_.clear();
-  }
-  state_ = kInit;
-  timestamps_.push_back(acc::Timestamp(kInit));
 }
 
 void Event::reset() {
@@ -75,19 +59,6 @@ void Event::reset() {
       transport_->setPeerAddress(socket_->peer());
       transport_->setLocalAddress(channel_->peer());
     }
-  }
-}
-
-void Event::setState(State state) {
-  state_ = state;
-  timestamps_.push_back(acc::Timestamp(state, acc::timePassed(starttime())));
-}
-
-const char* Event::stateName() const {
-  if (state_ < kInit || state_ >= kUnknown) {
-    return stateStrings[kUnknown];
-  } else {
-    return stateStrings[state_];
   }
 }
 

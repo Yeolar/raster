@@ -27,7 +27,7 @@ HubAdaptor::HubAdaptor()
 void HubAdaptor::configThreads(const std::string& name, size_t threadCount) {
   if (name == "io") {
     auto factory = std::make_shared<acc::ThreadFactory>("IOThreadPool_");
-    ioPool_.reset(new IOThreadPoolExecutor(threadCount, factory));
+    ioPool_.reset(new acc::IOThreadPoolExecutor(threadCount, factory));
   } else {
     auto factory = std::make_shared<acc::ThreadFactory>("CPUThreadPool" + name + "_");
     cpuPoolMap_.emplace(
@@ -69,7 +69,7 @@ HubAdaptor::getSharedCPUThreadPoolExecutor(int poolId) {
   return nullptr;
 }
 
-EventLoop* HubAdaptor::getEventLoop() {
+acc::EventLoop* HubAdaptor::getEventLoop() {
   ioPool_->getEventLoop();
 }
 

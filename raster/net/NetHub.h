@@ -4,9 +4,11 @@
 
 #pragma once
 
+#include "accelerator/event/EventLoop.h"
 #include "raster/coroutine/FiberHub.h"
-#include "raster/event/EventLoop.h"
+#include "raster/net/Event.h"
 #include "raster/net/Group.h"
+#include "raster/net/NetUtil.h"
 
 namespace rdd {
 
@@ -18,7 +20,7 @@ struct ForwardTarget {
 
 class NetHub : public FiberHub {
  public:
-  virtual EventLoop* getEventLoop() = 0;
+  virtual acc::EventLoop* getEventLoop() = 0;
 
   void execute(Event* event);
 

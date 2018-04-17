@@ -4,6 +4,8 @@ set(RASTER_NET_SRCS
     Acceptor.cpp
     AsyncClient.cpp
     ErrorEnum.cpp
+    Event.cpp
+    EventHandler.cpp
     Group.cpp
     NetHub.cpp
     NetUtil.cpp
@@ -18,6 +20,8 @@ install(FILES
     AsyncClient.h
     Channel.h
     ErrorEnum.h
+    Event.h
+    EventHandler.h
     Exception.h
     Group.h
     NetHub.h

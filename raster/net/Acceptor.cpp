@@ -19,7 +19,7 @@
 namespace rdd {
 
 Acceptor::Acceptor(std::shared_ptr<NetHub> hub)
-  : hub_(hub), loop_(acc::make_unique<EventLoop>()) {
+  : hub_(hub), loop_(acc::make_unique<acc::EventLoop>()) {
 }
 
 void Acceptor::addService(std::unique_ptr<Service> service) {

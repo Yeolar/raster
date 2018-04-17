@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "raster/event/EventLoop.h"
+#include "accelerator/event/EventLoop.h"
 #include "raster/net/NetHub.h"
 #include "raster/net/Service.h"
 
@@ -40,7 +40,7 @@ class Acceptor {
   void listen(Service* service, int backlog = 64);
 
   std::shared_ptr<NetHub> hub_;
-  std::unique_ptr<EventLoop> loop_;
+  std::unique_ptr<acc::EventLoop> loop_;
   std::map<std::string, std::unique_ptr<Service>> services_;
 };
 

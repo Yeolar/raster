@@ -16,29 +16,28 @@
 
 #pragma once
 
-#include "raster/coroutine/Fiber.h"
-#include "raster/event/Event.h"
-#include "raster/net/Processor.h"
+#include "accelerator/event/EventHandlerBase.h"
+#include "accelerator/event/EventLoop.h"
 
 namespace rdd {
 
-class EventTask : public Fiber::Task {
+class EventHandler : public acc::EventHandlerBase {
  public:
-  EventTask(Event* event) : event_(event) {
-    event_->setTask(this);
-  }
+  EventHandler(acc::EventLoop* loop) : loop_(loop) {}
+  virtual ~EventHandler() {}
 
-  ~EventTask() override {}
-
-  void handle() override {
-    event_->processor()->run();
-    event_->setState(Event::kToWrite);
-  }
-
-  Event* event() const { return event_; }
+  void onConnect(acc::EventBase* event) override;
+  void onListen(acc::EventBase* event) override;
+  void onRead(acc::EventBase* event) override;
+  void onWrite(acc::EventBase* event) override;
+  void onTimeout(acc::EventBase* event) override;
+  void close(acc::EventBase* event) override;
 
  private:
-  Event* event_;
+  void onComplete(acc::EventBase* event);
+  void onError(acc::EventBase* event);
+
+  acc::EventLoop* loop_;
 };
 
 } // namespace rdd

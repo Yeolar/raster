@@ -16,42 +16,29 @@
 
 #pragma once
 
-#include <iostream>
-#include <utility>
-#include <sys/epoll.h>
+#include "raster/coroutine/Fiber.h"
+#include "raster/net/Event.h"
+#include "raster/net/Processor.h"
 
 namespace rdd {
 
-class EPoll {
+class EventTask : public Fiber::Task {
  public:
-  enum : uint32_t {
-    kRead = EPOLLIN,
-    kWrite = EPOLLOUT,
-    kError = EPOLLERR | EPOLLHUP,
-  };
-
-  explicit EPoll(int size = kMaxEvents);
-
-  ~EPoll();
-
-  void add(int fd, uint32_t events);
-  void modify(int fd, uint32_t events);
-  void remove(int fd);
-
-  int wait(int timeout);
-
-  struct epoll_event get(int i) const {
-    return events_[i];
+  EventTask(Event* event) : event_(event) {
+    event_->setTask(this);
   }
 
-  static constexpr int kMaxEvents = 1024;
+  ~EventTask() override {}
+
+  void handle() override {
+    event_->processor()->run();
+    event_->setState(Event::kToWrite);
+  }
+
+  Event* event() const { return event_; }
 
  private:
-  void control(int op, int fd, uint32_t events);
-
-  int fd_;
-  int size_;
-  epoll_event* events_;
+  Event* event_;
 };
 
 } // namespace rdd

@@ -97,10 +97,8 @@ configure_file(
 add_subdirectory(raster/3rd/http_parser)
 add_subdirectory(raster/3rd/thrift)
 
-add_subdirectory(raster/concurrency)
 add_subdirectory(raster/coroutine)
 add_subdirectory(raster/framework)
-add_subdirectory(raster/event)
 add_subdirectory(raster/net)
 add_subdirectory(raster/plugins/flume)
 add_subdirectory(raster/protocol/binary)
@@ -112,10 +110,8 @@ add_subdirectory(raster/serializer)
 add_library(raster_static STATIC
     $<TARGET_OBJECTS:httpparser>
     $<TARGET_OBJECTS:thrift>
-    $<TARGET_OBJECTS:raster_concurrency>
     $<TARGET_OBJECTS:raster_coroutine>
     $<TARGET_OBJECTS:raster_framework>
-    $<TARGET_OBJECTS:raster_event>
     $<TARGET_OBJECTS:raster_net>
     $<TARGET_OBJECTS:raster_plugins_flume>
     $<TARGET_OBJECTS:raster_protocol_binary>
@@ -127,10 +123,8 @@ set_target_properties(raster_static PROPERTIES OUTPUT_NAME raster)
 add_library(raster_shared SHARED
     $<TARGET_OBJECTS:httpparser>
     $<TARGET_OBJECTS:thrift>
-    $<TARGET_OBJECTS:raster_concurrency>
     $<TARGET_OBJECTS:raster_coroutine>
     $<TARGET_OBJECTS:raster_framework>
-    $<TARGET_OBJECTS:raster_event>
     $<TARGET_OBJECTS:raster_net>
     $<TARGET_OBJECTS:raster_plugins_flume>
     $<TARGET_OBJECTS:raster_protocol_binary>
@@ -164,8 +158,6 @@ add_subdirectory(examples/proxy)
 # Test
 if(GTEST_FOUND)
     enable_testing()
-#    add_subdirectory(raster/concurrency/test)
-#    add_subdirectory(raster/event/test)
 #    add_subdirectory(raster/framework/test)
 #    add_subdirectory(raster/gen/test)
 #    add_subdirectory(raster/parallel/test)

@@ -20,7 +20,7 @@
 #include <string>
 #include <google/protobuf/service.h>
 
-#include "raster/event/Event.h"
+#include "raster/net/Event.h"
 #include "raster/net/NetUtil.h"
 #include "raster/net/Socket.h"
 #include "raster/protocol/binary/Transport.h"
