@@ -24,10 +24,10 @@
 #include "raster/framework/Degrader.h"
 #include "raster/framework/FalconSender.h"
 #include "raster/framework/HubAdaptor.h"
-#include "raster/framework/Monitor.h"
+#include "accelerator/stats/Monitor.h"
 #include "raster/framework/Sampler.h"
 #include "accelerator/io/FileUtil.h"
-#include "accelerator/parallel/ParallelScheduler.h"
+#include "accelerator/scheduler/ParallelScheduler.h"
 #include "accelerator/thread/ThreadUtil.h"
 #include "accelerator/Logging.h"
 #include "accelerator/ProcessUtil.h"
@@ -175,14 +175,14 @@ void configMonitor(const dynamic& j, bool reload) {
   }
   ACCLOG(INFO) << "config monitor";
   if (acc::json::get(j, "open", false)) {
-    acc::Singleton<Monitor>::get()->setPrefix(acc::json::get(j, "prefix", "rdd"));
+    acc::Singleton<acc::Monitor>::get()->setPrefix(acc::json::get(j, "prefix", "rdd"));
     if (acc::json::get(j, "sender", "falcon") == "falcon") {
-      acc::Singleton<Monitor>::get()->setSender(
-          std::unique_ptr<Monitor::Sender>(new FalconSender()));
+      acc::Singleton<acc::Monitor>::get()->setSender(
+          std::unique_ptr<acc::Monitor::Sender>(new FalconSender()));
     }
-    acc::Singleton<Monitor>::get()->start();
+    acc::Singleton<acc::Monitor>::get()->start();
   } else {
-    acc::Singleton<Monitor>::get()->stop();
+    acc::Singleton<acc::Monitor>::get()->stop();
   }
 }
 

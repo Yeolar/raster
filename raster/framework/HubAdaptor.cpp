@@ -16,7 +16,7 @@
 
 #include "raster/framework/HubAdaptor.h"
 
-#include "raster/framework/Monitor.h"
+#include "accelerator/stats/Monitor.h"
 
 namespace rdd {
 
@@ -26,13 +26,13 @@ HubAdaptor::HubAdaptor()
 
 void HubAdaptor::configThreads(const std::string& name, size_t threadCount) {
   if (name == "io") {
-    auto factory = std::make_shared<ThreadFactory>("IOThreadPool_");
+    auto factory = std::make_shared<acc::ThreadFactory>("IOThreadPool_");
     ioPool_.reset(new IOThreadPoolExecutor(threadCount, factory));
   } else {
-    auto factory = std::make_shared<ThreadFactory>("CPUThreadPool" + name + "_");
+    auto factory = std::make_shared<acc::ThreadFactory>("CPUThreadPool" + name + "_");
     cpuPoolMap_.emplace(
         acc::to<int>(name),
-        acc::make_unique<CPUThreadPoolExecutor>(threadCount, factory));
+        acc::make_unique<acc::CPUThreadPoolExecutor>(threadCount, factory));
   }
 }
 
@@ -49,7 +49,7 @@ void HubAdaptor::startService() {
   acceptor_.start();
 }
 
-CPUThreadPoolExecutor*
+acc::CPUThreadPoolExecutor*
 HubAdaptor::getCPUThreadPoolExecutor(int poolId) {
   auto it = cpuPoolMap_.find(poolId);
   if (it != cpuPoolMap_.end()) {
@@ -59,7 +59,7 @@ HubAdaptor::getCPUThreadPoolExecutor(int poolId) {
   return nullptr;
 }
 
-std::shared_ptr<CPUThreadPoolExecutor>
+std::shared_ptr<acc::CPUThreadPoolExecutor>
 HubAdaptor::getSharedCPUThreadPoolExecutor(int poolId) {
   auto it = cpuPoolMap_.find(poolId);
   if (it != cpuPoolMap_.end()) {

@@ -4,14 +4,14 @@
 
 #pragma once
 
-#include "raster/concurrency/CPUThreadPoolExecutor.h"
+#include "accelerator/concurrency/CPUThreadPoolExecutor.h"
 #include "raster/coroutine/Fiber.h"
 
 namespace rdd {
 
 class FiberHub {
  public:
-  virtual CPUThreadPoolExecutor* getCPUThreadPoolExecutor(int poolId) = 0;
+  virtual acc::CPUThreadPoolExecutor* getCPUThreadPoolExecutor(int poolId) = 0;
 
   void execute(Fiber* fiber, int poolId);
   void execute(std::unique_ptr<Fiber::Task> task, int poolId);

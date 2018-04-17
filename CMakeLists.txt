@@ -35,9 +35,12 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11 -fPIC -msse4.2 -mpclmul")   # memcheck: -fsanitize=address
 
+include(accelerator)
+
 # Link libraries
 link_libraries(
     ${CMAKE_THREAD_LIBS_INIT}
+    ${CMAKE_DL_LIBS}
     ${Boost_LIBRARIES}
     ${CURL_LIBRARIES}
     ${GFLAGS_LIBRARIES}
@@ -46,11 +49,11 @@ link_libraries(
     ${OPENSSL_LIBRARIES}
     ${PROTOBUF_LIBRARIES}
     ${ZLIB_LIBRARIES}
-    dl
+    ${accelerator_STATIC_LIBRARIES}
 )
 
 include_directories(
-    ${PROJECT_SOURCE_DIR}/accelerator
+    ${accelerator_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}/raster/3rd
     ${PROJECT_SOURCE_DIR}
 )
@@ -91,8 +94,6 @@ configure_file(
 )
 
 # Work on all sub directories
-add_subdirectory(accelerator)
-
 add_subdirectory(raster/3rd/http_parser)
 add_subdirectory(raster/3rd/thrift)
 

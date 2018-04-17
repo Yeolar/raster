@@ -16,9 +16,8 @@
 
 #include "raster/event/EventLoop.h"
 
-#include "raster/framework/Monitor.h"
-#include "raster/net/Channel.h"
 #include "accelerator/ScopeGuard.h"
+#include "accelerator/stats/Monitor.h"
 
 namespace rdd {
 
@@ -103,13 +102,13 @@ void EventLoop::loopBody(bool once) {
           }
         }
       }
-      RDDMON_AVG("loopevent", n);
-      RDDMON_MAX("loopevent.max", n);
+      ACCMON_AVG("loopevent", n);
+      ACCMON_MAX("loopevent.max", n);
     }
 
     uint64_t cost = acc::timePassed(t0) / 1000;
-    RDDMON_AVG("loopcost", cost);
-    RDDMON_MAX("loopcost.max", cost);
+    ACCMON_AVG("loopcost", cost);
+    ACCMON_MAX("loopcost.max", cost);
 
     if (once) {
       break;

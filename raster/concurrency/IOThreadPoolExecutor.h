@@ -19,7 +19,7 @@
 
 #include <atomic>
 
-#include "raster/concurrency/ThreadPoolExecutor.h"
+#include "accelerator/concurrency/ThreadPoolExecutor.h"
 #include "raster/event/EventLoopManager.h"
 
 namespace rdd {
@@ -31,12 +31,12 @@ namespace rdd {
  * outstanding tasks belong to the event base and will be executed upon its
  * destruction.
  */
-class IOThreadPoolExecutor : public ThreadPoolExecutor {
+class IOThreadPoolExecutor : public acc::ThreadPoolExecutor {
  public:
   explicit IOThreadPoolExecutor(
       size_t numThreads,
-      std::shared_ptr<ThreadFactory> threadFactory =
-          std::make_shared<ThreadFactory>("IOThreadPool"),
+      std::shared_ptr<acc::ThreadFactory> threadFactory =
+          std::make_shared<acc::ThreadFactory>("IOThreadPool"),
       EventLoopManager* ebm = EventLoopManager::get());
 
   ~IOThreadPoolExecutor() override;
@@ -50,7 +50,7 @@ class IOThreadPoolExecutor : public ThreadPoolExecutor {
 
   EventLoop* getEventLoop();
 
-  static EventLoop* getEventLoop(ThreadPoolExecutor::ThreadHandle*);
+  static EventLoop* getEventLoop(acc::ThreadPoolExecutor::ThreadHandle*);
 
   EventLoopManager* getEventLoopManager();
 

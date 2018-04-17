@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "raster/concurrency/CPUThreadPoolExecutor.h"
+#include "accelerator/concurrency/CPUThreadPoolExecutor.h"
 #include "raster/concurrency/IOThreadPoolExecutor.h"
 #include "raster/net/Acceptor.h"
 #include "raster/net/NetHub.h"
@@ -41,16 +41,16 @@ class HubAdaptor : public NetHub {
   void startService();
 
   // FiberHub
-  CPUThreadPoolExecutor* getCPUThreadPoolExecutor(int poolId) override;
+  acc::CPUThreadPoolExecutor* getCPUThreadPoolExecutor(int poolId) override;
   // NetHub
   EventLoop* getEventLoop() override;
 
-  std::shared_ptr<CPUThreadPoolExecutor>
+  std::shared_ptr<acc::CPUThreadPoolExecutor>
     getSharedCPUThreadPoolExecutor(int poolId);
 
  private:
   std::unique_ptr<IOThreadPoolExecutor> ioPool_;
-  std::map<int, std::shared_ptr<CPUThreadPoolExecutor>> cpuPoolMap_;
+  std::map<int, std::shared_ptr<acc::CPUThreadPoolExecutor>> cpuPoolMap_;
 
   Acceptor acceptor_;
 };

@@ -16,7 +16,7 @@
 
 #include "raster/event/EventHandler.h"
 
-#include "raster/framework/Monitor.h"
+#include "accelerator/stats/Monitor.h"
 #include "raster/event/EventLoop.h"
 
 namespace rdd {
@@ -158,8 +158,8 @@ void EventHandler::onComplete(Event* event) {
 
     // on result
     if (event->socket()->isClient()) {
-      RDDMON_CNT("conn.success-" + event->label());
-      RDDMON_AVG("conn.cost-" + event->label(), event->cost() / 1000);
+      ACCMON_CNT("conn.success-" + event->label());
+      ACCMON_AVG("conn.cost-" + event->label(), event->cost() / 1000);
     }
     if (!event->isForward()) {
       event->callbackOnComplete();  // execute
@@ -180,8 +180,8 @@ void EventHandler::onComplete(Event* event) {
 
     // server: wait next; client: wait response
     if (event->socket()->isServer()) {
-      RDDMON_CNT("conn.success-" + event->label());
-      RDDMON_AVG("conn.cost-" + event->label(), event->cost() / 1000);
+      ACCMON_CNT("conn.success-" + event->label());
+      ACCMON_AVG("conn.cost-" + event->label(), event->cost() / 1000);
       event->reset();
       event->setState(Event::kNext);
     } else {
@@ -195,14 +195,14 @@ void EventHandler::onComplete(Event* event) {
 void EventHandler::onTimeout(Event *event) {
   assert(event->state() == Event::kTimeout);
 
-  RDDMON_CNT("conn.timeout-" + event->label());
+  ACCMON_CNT("conn.timeout-" + event->label());
   closePeer(event);
 }
 
 void EventHandler::onError(Event* event) {
   assert(event->state() == Event::kError);
 
-  RDDMON_CNT("conn.error-" + event->label());
+  ACCMON_CNT("conn.error-" + event->label());
   closePeer(event);
 }
 

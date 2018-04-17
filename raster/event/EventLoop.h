@@ -20,11 +20,11 @@
 #include <map>
 #include <vector>
 
+#include "accelerator/TimedHeap.h"
 #include "accelerator/io/Waker.h"
 #include "raster/event/EPoll.h"
 #include "raster/event/Event.h"
 #include "raster/event/EventHandler.h"
-#include "accelerator/TimedHeap.h"
 
 namespace rdd {
 

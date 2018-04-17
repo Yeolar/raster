@@ -19,11 +19,11 @@
 #include <map>
 #include <string>
 
-#include "raster/framework/Monitor.h"
+#include "accelerator/stats/Monitor.h"
 
 namespace rdd {
 
-class FalconSender : public Monitor::Sender {
+class FalconSender : public acc::Monitor::Sender {
  public:
   static const char* URL;
 
@@ -31,7 +31,7 @@ class FalconSender : public Monitor::Sender {
 
   ~FalconSender();
 
-  bool send(const Monitor::MonMap& value) override;
+  bool send(const acc::Monitor::MonMap& value) override;
 
  private:
   bool post(const std::string& data);

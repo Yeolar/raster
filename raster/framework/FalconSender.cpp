@@ -39,7 +39,7 @@ FalconSender::~FalconSender() {
 
 // ts=`date +%s`; curl -X POST -d "[{\"metric\": \"metric.demo\", \"endpoint\": \"qd-open-falcon-judge01.hd\", \"timestamp\": $ts,\"step\": 60,\"value\": 9,\"counterType\": \"GAUGE\",\"tags\": \"project=falcon,module=judge\"}]" http://127.0.0.1:1988/v1/push
 
-bool FalconSender::send(const Monitor::MonMap& value) {
+bool FalconSender::send(const acc::Monitor::MonMap& value) {
   if (value.empty()) {
     return false;
   }

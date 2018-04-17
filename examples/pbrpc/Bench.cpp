@@ -4,7 +4,7 @@
 
 #include <gflags/gflags.h>
 
-#include "raster/concurrency/CPUThreadPoolExecutor.h"
+#include "accelerator/concurrency/CPUThreadPoolExecutor.h"
 #include "raster/net/NetUtil.h"
 #include "raster/protocol/proto/SyncClient.h"
 #include "accelerator/Algorithm.h"
@@ -18,6 +18,7 @@ DEFINE_string(forward, "", "HOST:PORT");
 DEFINE_int32(threads, 8, "concurrent threads");
 DEFINE_int32(count, 100, "request count");
 
+using namespace acc;
 using namespace rdd;
 using namespace rdd::pbrpc;
 
@@ -82,7 +83,7 @@ int main(int argc, char* argv[]) {
     uint64_t cost10 = costs[count    /10];
     uint64_t cost50 = costs[count * 5/10];
     uint64_t cost90 = costs[count * 9/10];
-    uint64_t cost_sum = acc::sum(costs);
+    uint64_t cost_sum = sum(costs);
     uint64_t cost_avg = cost_sum / count;
 
     ACCRLOG(INFO) << " cost10: " << cost10   / 1000.0 << " ms";

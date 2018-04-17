@@ -16,8 +16,8 @@
 
 #include "raster/coroutine/Fiber.h"
 
-#include "raster/coroutine/FiberManager.h"
 #include "accelerator/Logging.h"
+#include "raster/coroutine/FiberManager.h"
 
 #define RDD_FIBER_STR(status) #status
 

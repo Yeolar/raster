@@ -4,7 +4,7 @@
 
 #include <gflags/gflags.h>
 
-#include "raster/concurrency/CPUThreadPoolExecutor.h"
+#include "accelerator/concurrency/CPUThreadPoolExecutor.h"
 #include "raster/net/NetUtil.h"
 #include "raster/protocol/http/SyncClient.h"
 #include "accelerator/Algorithm.h"
@@ -18,6 +18,7 @@ DEFINE_string(forward, "", "HOST:PORT");
 DEFINE_int32(threads, 8, "concurrent threads");
 DEFINE_int32(count, 100, "request count");
 
+using namespace acc;
 using namespace rdd;
 
 bool request(const ClientOption& opt) {
@@ -28,7 +29,7 @@ bool request(const ClientOption& opt) {
   }
   try {
     HTTPMessage headers;
-    auto body = acc::IOBuf::maybeCopyBuffer("");
+    auto body = IOBuf::maybeCopyBuffer("");
     client.fetch(headers, std::move(body));
     if (client.headers()->getStatusCode() != 200) {
       return false;
@@ -78,7 +79,7 @@ int main(int argc, char* argv[]) {
     uint64_t cost10 = costs[count    /10];
     uint64_t cost50 = costs[count * 5/10];
     uint64_t cost90 = costs[count * 9/10];
-    uint64_t cost_sum = acc::sum(costs);
+    uint64_t cost_sum = sum(costs);
     uint64_t cost_avg = cost_sum / count;
 
     ACCRLOG(INFO) << " cost10: " << cost10   / 1000.0 << " ms";

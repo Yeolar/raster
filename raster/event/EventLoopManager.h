@@ -20,8 +20,8 @@
 #include <set>
 #include <stdexcept>
 
-#include "raster/event/EventLoop.h"
 #include "accelerator/thread/ThreadUtil.h"
+#include "raster/event/EventLoop.h"
 
 namespace rdd {
 

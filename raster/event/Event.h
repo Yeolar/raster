@@ -22,11 +22,11 @@
 #include <memory>
 #include <arpa/inet.h>
 
-#include "raster/coroutine/Fiber.h"
+#include "accelerator/AnyPtr.h"
 #include "accelerator/io/IOBuf.h"
+#include "raster/coroutine/Fiber.h"
 #include "raster/net/Socket.h"
 #include "raster/net/Transport.h"
-#include "accelerator/DynamicPtr.h"
 
 namespace rdd {
 
@@ -164,7 +164,8 @@ class Event {
 
   template <class T, class... Args>
   void setUserContext(Args&&... args) {
-    userCtx_.set(new T(std::forward<Args>(args)...));
+    userCtx_ = acc::UniqueAnyPtr(
+        acc::make_unique<T>(std::forward<Args>(args)...));
   }
 
   template <class T>
@@ -201,7 +202,7 @@ class Event {
   std::function<void(Event*)> completeCallback_;
   std::function<void(Event*)> closeCallback_;
 
-  acc::DynamicPtr userCtx_;
+  acc::UniqueAnyPtr userCtx_;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Event& event) {

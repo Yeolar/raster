@@ -5,8 +5,6 @@ set(RASTER_FRAMEWORK_SRCS
     Degrader.cpp
     FalconSender.cpp
     HubAdaptor.cpp
-    Monitor.cpp
-    PeriodicScheduler.cpp
     Sampler.cpp
     Signal.cpp
 )
@@ -17,8 +15,6 @@ install(FILES
     Degrader.h
     FalconSender.h
     HubAdaptor.h
-    Monitor.h
-    PeriodicScheduler.h
     Sampler.h
     Signal.h
     DESTINATION include/raster/framework)
@@ -27,5 +23,4 @@ add_executable(configutil
     ConfigUtil.cpp
 )
 target_link_libraries(configutil
-    raster_static
-    accelerator_static)
+    raster_static)

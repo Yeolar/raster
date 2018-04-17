@@ -21,7 +21,7 @@ namespace rdd {
 
 IOThreadPoolExecutor::IOThreadPoolExecutor(
     size_t numThreads,
-    std::shared_ptr<ThreadFactory> threadFactory,
+    std::shared_ptr<acc::ThreadFactory> threadFactory,
     EventLoopManager* ebm)
     : ThreadPoolExecutor(numThreads, std::move(threadFactory)),
       nextThread_(0),
@@ -95,7 +95,7 @@ EventLoopManager* IOThreadPoolExecutor::getEventLoopManager() {
   return eventLoopManager_;
 }
 
-std::shared_ptr<ThreadPoolExecutor::Thread> IOThreadPoolExecutor::makeThread() {
+std::shared_ptr<acc::ThreadPoolExecutor::Thread> IOThreadPoolExecutor::makeThread() {
   return std::make_shared<IOThread>(this);
 }
 
