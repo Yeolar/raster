@@ -9,6 +9,7 @@ set(RASTER_FRAMEWORK_SRCS
     Signal.cpp
 )
 add_library(raster_framework OBJECT ${RASTER_FRAMEWORK_SRCS})
+add_dependencies(raster_framework accelerator)
 
 install(FILES
     Config.h

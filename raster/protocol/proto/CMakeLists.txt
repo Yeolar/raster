@@ -9,6 +9,7 @@ set(RASTER_PROTOCOL_PROTO_SRCS
     RpcController.cpp
 )
 add_library(raster_protocol_proto OBJECT ${RASTER_PROTOCOL_PROTO_SRCS})
+add_dependencies(raster_protocol_proto accelerator)
 
 install(FILES
     AsyncClient.h

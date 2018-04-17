@@ -8,6 +8,7 @@ set(RASTER_PROTOCOL_BINARY_SRCS
     Transport.cpp
 )
 add_library(raster_protocol_binary OBJECT ${RASTER_PROTOCOL_BINARY_SRCS})
+add_dependencies(raster_protocol_binary accelerator)
 
 install(FILES
     AsyncClient.h

@@ -11,6 +11,7 @@ set(THRIFT_SRCS
     transport/TTransportException.cpp
 )
 add_library(thrift OBJECT ${THRIFT_SRCS})
+add_dependencies(thrift accelerator)
 
 install(FILES
     cxxfunctional.h

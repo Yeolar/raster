@@ -6,6 +6,7 @@ set(RASTER_NET_SRCS
     ErrorEnum.cpp
     Event.cpp
     EventHandler.cpp
+    EventPool.cpp
     Group.cpp
     NetHub.cpp
     NetUtil.cpp
@@ -14,6 +15,7 @@ set(RASTER_NET_SRCS
     Transport.cpp
 )
 add_library(raster_net OBJECT ${RASTER_NET_SRCS})
+add_dependencies(raster_net accelerator)
 
 install(FILES
     Acceptor.h
@@ -22,6 +24,8 @@ install(FILES
     ErrorEnum.h
     Event.h
     EventHandler.h
+    EventPool.h
+    EventTask.h
     Exception.h
     Group.h
     NetHub.h

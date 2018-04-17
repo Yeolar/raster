@@ -120,6 +120,7 @@ add_library(raster_static STATIC
     $<TARGET_OBJECTS:raster_protocol_thrift>
 )
 set_target_properties(raster_static PROPERTIES OUTPUT_NAME raster)
+
 add_library(raster_shared SHARED
     $<TARGET_OBJECTS:httpparser>
     $<TARGET_OBJECTS:thrift>

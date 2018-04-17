@@ -1,6 +1,6 @@
 # Copyright 2018 Yeolar
 
-include (ExternalProject)
+include(ExternalProject)
 
 set(accelerator_URL https://github.com/Yeolar/accelerator.git)
 set(accelerator_TAG f758fb05a573c6167d8d3ce3ae87d46cccaec40c)

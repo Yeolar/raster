@@ -5,6 +5,7 @@ set(RASTER_PROTOCOL_THRIFT_SRCS
     Util.cpp
 )
 add_library(raster_protocol_thrift OBJECT ${RASTER_PROTOCOL_THRIFT_SRCS})
+add_dependencies(raster_protocol_thrift accelerator)
 
 install(FILES
     AsyncClient.h

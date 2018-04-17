@@ -6,6 +6,7 @@ set(RASTER_COROUTINE_SRCS
     FiberManager.cpp
 )
 add_library(raster_coroutine OBJECT ${RASTER_COROUTINE_SRCS})
+add_dependencies(raster_coroutine accelerator)
 
 install(FILES
     BoostContext.h

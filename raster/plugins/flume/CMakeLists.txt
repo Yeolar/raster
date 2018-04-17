@@ -7,6 +7,7 @@ set(RASTER_PLUGINS_FLUME_SRCS
     FlumeClient.cpp
 )
 add_library(raster_plugins_flume OBJECT ${RASTER_PLUGINS_FLUME_SRCS})
+add_dependencies(raster_plugins_flume accelerator)
 
 install(FILES
     FlumeClient.h
