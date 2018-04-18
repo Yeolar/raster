@@ -20,9 +20,9 @@
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/service.h>
 
+#include "accelerator/thread/LockedMap.h"
 #include "raster/net/Service.h"
 #include "raster/protocol/proto/RpcController.h"
-#include "accelerator/thread/LockedMap.h"
 
 namespace rdd {
 

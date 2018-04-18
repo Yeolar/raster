@@ -16,14 +16,14 @@
 
 #include "raster/protocol/http/Util.h"
 
-#include "raster/protocol/http/HTTPMessage.h"
-#include "raster/protocol/http/ParseURL.h"
-#include "accelerator/thread/ThreadUtil.h"
-#include "accelerator/thread/UnionBasedStatic.h"
 #include "accelerator/Algorithm.h"
 #include "accelerator/Logging.h"
 #include "accelerator/MapUtil.h"
 #include "accelerator/String.h"
+#include "accelerator/thread/ThreadUtil.h"
+#include "accelerator/thread/UnionBasedStatic.h"
+#include "raster/protocol/http/HTTPMessage.h"
+#include "raster/protocol/http/ParseURL.h"
 
 namespace rdd {
 

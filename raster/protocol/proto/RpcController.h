@@ -21,8 +21,8 @@
 #include <string>
 #include <google/protobuf/service.h>
 
-#include "accelerator/io/Cursor.h"
 #include "accelerator/Function.h"
+#include "accelerator/io/Cursor.h"
 
 namespace rdd {
 

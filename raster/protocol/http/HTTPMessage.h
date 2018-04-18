@@ -22,11 +22,11 @@
 #include <string>
 #include <boost/variant.hpp>
 
+#include "accelerator/Logging.h"
 #include "raster/net/NetUtil.h"
 #include "raster/protocol/http/HTTPHeaders.h"
 #include "raster/protocol/http/HTTPMethod.h"
 #include "raster/protocol/http/ParseURL.h"
-#include "accelerator/Logging.h"
 
 namespace rdd {
 

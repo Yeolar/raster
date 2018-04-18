@@ -18,11 +18,11 @@
 
 #include <memory>
 
+#include "accelerator/Memory.h"
 #include "accelerator/io/IOBuf.h"
 #include "raster/net/ErrorEnum.h"
 #include "raster/net/Exception.h"
 #include "raster/protocol/http/HTTPMessage.h"
-#include "accelerator/Memory.h"
 
 namespace rdd {
 

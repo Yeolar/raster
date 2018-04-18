@@ -16,10 +16,10 @@
 
 #pragma once
 
+#include "accelerator/Memory.h"
 #include "accelerator/compression/ZlibStreamCompressor.h"
 #include "accelerator/compression/ZlibStreamDecompressor.h"
 #include "raster/net/Transport.h"
-#include "accelerator/Memory.h"
 
 namespace rdd {
 

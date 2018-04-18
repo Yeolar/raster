@@ -22,11 +22,11 @@
 #include <netdb.h>
 #include <netinet/tcp.h>
 
-#include "accelerator/io/FileUtil.h"
 #include "accelerator/Conv.h"
-#include "accelerator/Memory.h"
 #include "accelerator/Logging.h"
+#include "accelerator/Memory.h"
 #include "accelerator/Time.h"
+#include "accelerator/io/FileUtil.h"
 
 DEFINE_uint64(net_conn_limit, 100000,
               "Limit # of net connection.");

@@ -18,9 +18,9 @@
 
 #include <vector>
 
-#include "raster/protocol/http/HTTPException.h"
 #include "accelerator/Conv.h"
 #include "accelerator/thread/UnionBasedStatic.h"
+#include "raster/protocol/http/HTTPException.h"
 
 #define HTTP_METHOD_STR(method) #method
 

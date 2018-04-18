@@ -20,9 +20,9 @@
 #include <string>
 #include <vector>
 
+#include "accelerator/thread/AtomicLinkedList.h"
 #include "raster/plugins/flume/gen-cpp/scribe_types.h"
 #include "raster/protocol/thrift/SyncClient.h"
-#include "accelerator/thread/AtomicLinkedList.h"
 
 namespace rdd {
 

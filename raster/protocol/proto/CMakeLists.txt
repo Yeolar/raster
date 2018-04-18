@@ -1,4 +1,4 @@
-# Copyright (C) 2017, Yeolar
+# Copyright 2017 Yeolar
 
 set(RASTER_PROTOCOL_PROTO_SRCS
     AsyncServer.cpp

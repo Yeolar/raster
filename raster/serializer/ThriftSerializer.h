@@ -20,11 +20,11 @@
 #include <type_traits>
 #include <arpa/inet.h>
 
+#include "accelerator/String.h"
+#include "accelerator/Traits.h"
 #include "raster/3rd/thrift/protocol/TBinaryProtocol.h"
 #include "raster/3rd/thrift/protocol/TJSONProtocol.h"
 #include "raster/3rd/thrift/transport/TBufferTransports.h"
-#include "accelerator/String.h"
-#include "accelerator/Traits.h"
 
 namespace rdd {
 

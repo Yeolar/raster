@@ -18,9 +18,9 @@
 
 #include <curl/curl.h>
 
-#include "raster/net/NetUtil.h"
 #include "accelerator/json.h"
 #include "accelerator/Logging.h"
+#include "raster/net/NetUtil.h"
 
 namespace rdd {
 

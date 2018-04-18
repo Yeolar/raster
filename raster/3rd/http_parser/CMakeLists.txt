@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2015, Yeolar
+# Copyright 2015 Yeolar
 #
 
 set(HTTPPARSER_SRCS

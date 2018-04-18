@@ -18,8 +18,8 @@
 
 #include <fstream>
 
-#include "raster/plugins/flume/gen-cpp/Scribe.h"
 #include "accelerator/Time.h"
+#include "raster/plugins/flume/gen-cpp/Scribe.h"
 
 namespace rdd {
 

@@ -16,13 +16,13 @@
 
 #include "raster/framework/Signal.h"
 
-#include "raster/framework/Config.h"
 #include "accelerator/Backtrace.h"
 #include "accelerator/Exception.h"
 #include "accelerator/Logging.h"
 #include "accelerator/MemoryProtect.h"
 #include "accelerator/ProcessUtil.h"
 #include "accelerator/Singleton.h"
+#include "raster/framework/Config.h"
 
 namespace rdd {
 

@@ -18,9 +18,9 @@
 
 #include <sstream>
 
+#include "accelerator/Uuid.h"
 #include "raster/protocol/proto/Message.h"
 #include "raster/protocol/proto/RpcController.h"
-#include "accelerator/Uuid.h"
 
 namespace rdd {
 
