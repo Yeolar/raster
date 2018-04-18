@@ -31,10 +31,9 @@ std::atomic<uint64_t> Event::globalSeqid_(1);
 
 Event::Event(std::shared_ptr<Channel> channel,
              std::unique_ptr<Socket> socket)
-  : EventBase({}),
+  : EventBase(channel->timeoutOption()),
     channel_(channel),
     socket_(std::move(socket)) {
-//  , timeoutOpt_(channel->timeoutOption()) {
   reset();
   ACCLOG(V2) << *this << " +";
 }

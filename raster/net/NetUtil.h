@@ -18,17 +18,12 @@
 
 #include <string>
 
+#include "accelerator/event/EventUtil.h"
 #include "raster/net/Peer.h"
 
 namespace rdd {
 
-struct TimeoutOption {
-  uint64_t ctimeout;    // connect timeout
-  uint64_t rtimeout;    // read timeout
-  uint64_t wtimeout;    // write timeout
-};
-
-std::ostream& operator<<(std::ostream& os, const TimeoutOption& timeout);
+typedef acc::TimeoutOption TimeoutOption;
 
 struct ClientOption {
   Peer peer;

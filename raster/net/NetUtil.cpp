@@ -24,13 +24,6 @@
 
 namespace rdd {
 
-std::ostream& operator<<(std::ostream& os, const TimeoutOption& timeout) {
-  os << "{" << timeout.ctimeout
-     << "," << timeout.rtimeout
-     << "," << timeout.wtimeout << "}";
-  return os;
-}
-
 std::string getNodeName() {
   struct utsname buf;
   if (uname(&buf) != -1) {
