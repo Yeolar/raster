@@ -31,6 +31,11 @@
 *.out
 *.app
 
+###
+
+*.pb.h
+*.pb.cc
+
 /build/
 /docs/_build/
 /raster/raster-config.h
