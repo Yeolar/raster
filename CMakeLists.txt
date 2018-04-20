@@ -35,6 +35,7 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11 -fPIC -msse4.2 -mpclmul")   # memcheck: -fsanitize=address
 
+# Add external
 include(accelerator)
 
 # Link libraries
@@ -54,8 +55,9 @@ link_libraries(
 
 include_directories(
     ${accelerator_INCLUDE_DIR}
-    ${PROJECT_SOURCE_DIR}/raster/3rd
+    ${accelerator_INCLUDE_DIR}/accelerator/3rd
     ${PROJECT_SOURCE_DIR}
+    ${PROJECT_SOURCE_DIR}/raster/3rd
 )
 
 # Check and setup configurations

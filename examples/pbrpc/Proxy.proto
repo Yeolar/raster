@@ -1,5 +1,6 @@
 // Copyright (C) 2017, Yeolar
 
+syntax = "proto2";
 option cc_generic_services = true;
 
 package rdd.pbrpc;

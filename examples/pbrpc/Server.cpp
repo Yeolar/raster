@@ -10,6 +10,7 @@
 #include "raster/protocol/proto/AsyncClient.h"
 #include "raster/protocol/proto/AsyncServer.h"
 #include "accelerator/Logging.h"
+#include "accelerator/Portability.h"
 #include "accelerator/ScopeGuard.h"
 #include "accelerator/Uuid.h"
 #include "Proxy.pb.h"
@@ -77,9 +78,9 @@ class ProxyServiceImpl : public ProxyService {
 };
 
 int main(int argc, char* argv[]) {
-  google::SetVersionString(VERSION);
-  google::SetUsageMessage("Usage : ./pbrpc");
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::SetVersionString(VERSION);
+  gflags::SetUsageMessage("Usage : ./pbrpc");
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   setupIgnoreSignal(SIGPIPE);
   setupShutdownSignal(SIGINT);
@@ -101,7 +102,7 @@ int main(int argc, char* argv[]) {
   ACCLOG(INFO) << "rdd start ... ^_^";
   acc::Singleton<HubAdaptor>::get()->startService();
 
-  google::ShutDownCommandLineFlags();
+  gflags::ShutDownCommandLineFlags();
 
   return 0;
 }

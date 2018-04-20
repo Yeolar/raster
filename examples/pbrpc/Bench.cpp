@@ -9,6 +9,7 @@
 #include "raster/protocol/proto/SyncClient.h"
 #include "accelerator/Algorithm.h"
 #include "accelerator/Logging.h"
+#include "accelerator/Portability.h"
 #include "Proxy.pb.h"
 
 static const char* VERSION = "1.1.0";
@@ -46,9 +47,9 @@ bool request(const ClientOption& opt) {
 }
 
 int main(int argc, char* argv[]) {
-  google::SetVersionString(VERSION);
-  google::SetUsageMessage("Usage : ./pbrpc-bench");
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::SetVersionString(VERSION);
+  gflags::SetUsageMessage("Usage : ./pbrpc-bench");
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   CPUThreadPoolExecutor pool(FLAGS_threads);
   std::atomic<size_t> count(0);
@@ -93,6 +94,6 @@ int main(int argc, char* argv[]) {
     ACCRLOG(INFO) << "    qps: " << 1000000. / cost_avg * FLAGS_threads;
   }
 
-  google::ShutDownCommandLineFlags();
+  gflags::ShutDownCommandLineFlags();
   return 0;
 }
