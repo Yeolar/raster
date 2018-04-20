@@ -3,7 +3,7 @@
 include(ExternalProject)
 
 set(accelerator_URL https://github.com/Yeolar/accelerator.git)
-set(accelerator_TAG v1.0.0)
+set(accelerator_TAG e2538b5ede1f77c89f4142a77d06ee0a5030d151)
 set(accelerator_BUILD ${CMAKE_CURRENT_BINARY_DIR}/accelerator/)
 set(accelerator_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/accelerator/src/accelerator)
 set(accelerator_STATIC_LIBRARIES ${CMAKE_CURRENT_BINARY_DIR}/accelerator/src/accelerator/libaccelerator.a)
