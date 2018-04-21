@@ -37,6 +37,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11 -fPIC -msse4.2 -mpclmu
 
 # Add external
 include(accelerator)
+include(flatbuffers)
 
 # Link libraries
 link_libraries(
@@ -51,11 +52,12 @@ link_libraries(
     ${PROTOBUF_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${accelerator_STATIC_LIBRARIES}
+    ${flatbuffers_STATIC_LIBRARIES}
 )
 
 include_directories(
     ${accelerator_INCLUDE_DIR}
-    ${accelerator_INCLUDE_DIR}/accelerator/3rd
+    ${flatbuffers_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/raster/3rd
 )
@@ -152,7 +154,7 @@ install(TARGETS raster_shared
 
 # Binary
 add_subdirectory(examples/empty)
-add_subdirectory(examples/flatbuffers)
+#add_subdirectory(examples/flatbuffers)
 add_subdirectory(examples/http)
 #add_subdirectory(examples/parallel)
 add_subdirectory(examples/pbrpc)
