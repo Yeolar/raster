@@ -41,6 +41,8 @@ include(flatbuffers)
 
 # Link libraries
 link_libraries(
+    ${accelerator_STATIC_LIBRARIES}
+    ${flatbuffers_STATIC_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
     ${CMAKE_DL_LIBS}
     ${Boost_LIBRARIES}
@@ -51,8 +53,6 @@ link_libraries(
     ${OPENSSL_LIBRARIES}
     ${PROTOBUF_LIBRARIES}
     ${ZLIB_LIBRARIES}
-    ${accelerator_STATIC_LIBRARIES}
-    ${flatbuffers_STATIC_LIBRARIES}
 )
 
 include_directories(
