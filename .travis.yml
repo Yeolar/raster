@@ -21,15 +21,16 @@ addons:
       - g++-4.9
       - cmake
       - libboost-all-dev
-      - libcurl3
+      - libdouble-conversion-dev
       - libgflags-dev
+      - libgtest-dev
       - libicu-dev
-      - openssl
       - libprotobuf-dev
       - zlib1g-dev
+      - libcurl3
+      - openssl
       - protobuf-compiler
       - thrift-compiler
-      - libgtest-dev
 
 before_install:
   - sudo wget https://github.com/google/googletest/archive/release-1.7.0.tar.gz
