@@ -7,14 +7,14 @@
 # Define project
 project(raster)
 
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 3.2)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake-scripts")
 
 # Set project version
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 2)
-set(VERSION_PATCH 0)
+set(VERSION_PATCH 1)
 
 # Required packages
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
@@ -31,9 +31,12 @@ find_package(ZLIB REQUIRED)
 find_package(GTest)
 
 # Setup environment
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)   # Debug: -g; Release: -O3 -DNDEBUG
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2 -mpclmul")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")    # memcheck
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11 -fPIC -msse4.2 -mpclmul")   # memcheck: -fsanitize=address
 
 # Add external
 include(accelerator)
@@ -41,8 +44,6 @@ include(flatbuffers)
 
 # Link libraries
 link_libraries(
-    ${accelerator_STATIC_LIBRARIES}
-    ${flatbuffers_STATIC_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
     ${CMAKE_DL_LIBS}
     ${Boost_LIBRARIES}
@@ -123,6 +124,9 @@ add_library(raster_static STATIC
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_protocol_thrift>
 )
+target_link_libraries(raster_static
+    ${accelerator_STATIC_LIBRARIES}
+)
 set_target_properties(raster_static PROPERTIES OUTPUT_NAME raster)
 
 add_library(raster_shared SHARED
@@ -136,6 +140,9 @@ add_library(raster_shared SHARED
     $<TARGET_OBJECTS:raster_protocol_http>
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_protocol_thrift>
+)
+target_link_libraries(raster_static
+    ${accelerator_STATIC_LIBRARIES}
 )
 set_target_properties(raster_shared PROPERTIES OUTPUT_NAME raster)
 

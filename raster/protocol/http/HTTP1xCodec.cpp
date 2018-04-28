@@ -18,13 +18,10 @@
 #include "raster/protocol/http/HTTP1xCodec.h"
 
 #include "accelerator/io/Cursor.h"
+#include "raster/raster-config.h"
 #include "raster/protocol/http/Util.h"
 
 namespace {
-
-const char VERSION[] =
-#include "raster/VERSION"
-;
 
 const char CRLF[] = "\r\n";
 
@@ -393,7 +390,7 @@ void HTTP1xCodec::generateHeader(acc::IOBufQueue& writeBuf,
   }
   if (downstream && !hasServerHeader) {
     appendLiteral(writeBuf, len, "Server: Raster/");
-    appendLiteral(writeBuf, len, VERSION);
+    appendLiteral(writeBuf, len, RDD_VERSION);
     appendLiteral(writeBuf, len, CRLF);
   }
   if (downstream && !hasDateHeader) {
