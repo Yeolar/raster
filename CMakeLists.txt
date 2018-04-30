@@ -44,6 +44,7 @@ include(flatbuffers)
 
 # Link libraries
 link_libraries(
+    ${accelerator_STATIC_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
     ${CMAKE_DL_LIBS}
     ${Boost_LIBRARIES}
@@ -124,9 +125,6 @@ add_library(raster_static STATIC
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_protocol_thrift>
 )
-target_link_libraries(raster_static
-    ${accelerator_STATIC_LIBRARIES}
-)
 set_target_properties(raster_static PROPERTIES OUTPUT_NAME raster)
 
 add_library(raster_shared SHARED
@@ -140,9 +138,6 @@ add_library(raster_shared SHARED
     $<TARGET_OBJECTS:raster_protocol_http>
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_protocol_thrift>
-)
-target_link_libraries(raster_shared
-    ${accelerator_STATIC_LIBRARIES}
 )
 set_target_properties(raster_shared PROPERTIES OUTPUT_NAME raster)
 
