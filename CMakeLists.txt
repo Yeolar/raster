@@ -141,7 +141,7 @@ add_library(raster_shared SHARED
     $<TARGET_OBJECTS:raster_protocol_proto>
     $<TARGET_OBJECTS:raster_protocol_thrift>
 )
-target_link_libraries(raster_static
+target_link_libraries(raster_shared
     ${accelerator_STATIC_LIBRARIES}
 )
 set_target_properties(raster_shared PROPERTIES OUTPUT_NAME raster)
