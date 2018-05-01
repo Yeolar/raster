@@ -44,17 +44,15 @@ flags = [
 # For a C project, you would set this to 'c' instead of 'c++'.
 '-x',
 'c++',
-'-isystem',
-'/usr/include',
-'-isystem',
-'/usr/include/c++/4.9.2',
-'-isystem',
-'/usr/local/include',
 
 '-isystem', ROOT,
-'-isystem', os.path.join(ROOT, 'build/accelerator/src/accelerator'),
 '-isystem', os.path.join(ROOT, 'raster/3rd'),
-'-isystem', os.path.join(ROOT, 'raster/3rd/thrift'),
+'-isystem', os.path.join(ROOT, 'build/accelerator/src/accelerator'),
+'-isystem', os.path.join(ROOT, 'build/flatbuffers/src/flatbuffers/include'),
+'-isystem', '/usr/local/include',
+'-isystem', '/usr/include',
+'-isystem', '/usr/include/c++/4.9.2',
+'-isystem', '/usr/lib/gcc/x86_64-linux-gnu/4.9/include',
 ]
 
 
