@@ -30,7 +30,6 @@ struct CommentHolder {
   virtual ~CommentHolder() {}
   virtual std::string GetLeadingComments(const std::string prefix) const = 0;
   virtual std::string GetTrailingComments(const std::string prefix) const = 0;
-  virtual std::vector<std::string> GetAllComments() const = 0;
 };
 
 // An abstract interface representing a method.
@@ -41,14 +40,6 @@ struct Method : public CommentHolder {
 
   virtual std::string input_type_name() const = 0;
   virtual std::string output_type_name() const = 0;
-
-  virtual bool get_module_and_message_path_input(
-      std::string* str, std::string generator_file_name,
-      bool generate_in_pb2_rpc, std::string import_prefix) const = 0;
-  virtual bool get_module_and_message_path_output(
-      std::string* str, std::string generator_file_name,
-      bool generate_in_pb2_rpc, std::string import_prefix) const = 0;
-
   virtual std::string get_input_type_name() const = 0;
   virtual std::string get_output_type_name() const = 0;
   virtual bool NoStreaming() const = 0;

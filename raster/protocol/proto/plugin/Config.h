@@ -19,37 +19,13 @@
 #include <string>
 #include <vector>
 
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/compiler/code_generator.h>
 #include <google/protobuf/compiler/plugin.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/printer.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
-
-namespace rdd {
-namespace protobuf {
-
-namespace compiler {
-typedef ::google::protobuf::compiler::CodeGenerator CodeGenerator;
-typedef ::google::protobuf::compiler::GeneratorContext GeneratorContext;
-static inline int PluginMain(int argc, char* argv[],
-                             const CodeGenerator* generator) {
-  return ::google::protobuf::compiler::PluginMain(argc, argv, generator);
-}
-static inline void ParseGeneratorParameter(
-    const std::string& parameter,
-    std::vector<std::pair<std::string, std::string>>* options) {
-  ::google::protobuf::compiler::ParseGeneratorParameter(parameter, options);
-}
-} // namespace compiler
-
-namespace io {
-typedef ::google::protobuf::io::Printer Printer;
-typedef ::google::protobuf::io::CodedOutputStream CodedOutputStream;
-typedef ::google::protobuf::io::StringOutputStream StringOutputStream;
-} // namespace io
-
-} // namespace protobuf
-} // namespace rdd
 
 namespace rpc_generator {
 

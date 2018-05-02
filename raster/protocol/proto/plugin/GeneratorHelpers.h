@@ -56,7 +56,7 @@ inline std::string StripProto(std::string filename) {
 }
 
 inline std::string StringReplace(std::string str, const std::string& from,
-                                  const std::string& to, bool replace_all) {
+                                 const std::string& to, bool replace_all) {
   size_t pos = 0;
 
   do {
@@ -72,12 +72,12 @@ inline std::string StringReplace(std::string str, const std::string& from,
 }
 
 inline std::string StringReplace(std::string str, const std::string& from,
-                                  const std::string& to) {
+                                 const std::string& to) {
   return StringReplace(str, from, to, true);
 }
 
 inline std::vector<std::string> tokenize(const std::string& input,
-                                          const std::string& delimiters) {
+                                         const std::string& delimiters) {
   std::vector<std::string> tokens;
   size_t pos, last_pos = 0;
 
@@ -90,7 +90,8 @@ inline std::vector<std::string> tokenize(const std::string& input,
     }
 
     tokens.push_back(input.substr(last_pos, pos - last_pos));
-    if (done) return tokens;
+    if (done)
+      return tokens;
 
     last_pos = pos + 1;
   }
@@ -122,7 +123,7 @@ inline std::string LowerUnderscoreToUpperCamel(std::string str) {
 }
 
 inline std::string FileNameInUpperCamel(
-    const rpc::protobuf::FileDescriptor* file, bool include_package_path) {
+    const ::google::protobuf::FileDescriptor* file, bool include_package_path) {
   std::vector<std::string> tokens = tokenize(StripProto(file->name()), "/");
   std::string result = "";
   if (include_package_path) {
@@ -135,7 +136,7 @@ inline std::string FileNameInUpperCamel(
 }
 
 inline std::string FileNameInUpperCamel(
-    const rpc::protobuf::FileDescriptor* file) {
+    const ::google::protobuf::FileDescriptor* file) {
   return FileNameInUpperCamel(file, true);
 }
 
@@ -146,8 +147,7 @@ enum MethodType {
   METHODTYPE_BIDI_STREAMING
 };
 
-inline MethodType GetMethodType(
-    const rpc::protobuf::MethodDescriptor* method) {
+inline MethodType GetMethodType(const ::google::protobuf::MethodDescriptor* method) {
   if (method->client_streaming()) {
     if (method->server_streaming()) {
       return METHODTYPE_BIDI_STREAMING;
@@ -182,14 +182,14 @@ enum CommentType {
 template <typename DescriptorType>
 inline void GetComment(const DescriptorType* desc, CommentType type,
                        std::vector<std::string>* out) {
-  rpc::protobuf::SourceLocation location;
+  ::google::protobuf::SourceLocation location;
   if (!desc->GetSourceLocation(&location)) {
     return;
   }
   if (type == COMMENTTYPE_LEADING || type == COMMENTTYPE_TRAILING) {
     const std::string& comments = type == COMMENTTYPE_LEADING
-                                       ? location.leading_comments
-                                       : location.trailing_comments;
+                                      ? location.leading_comments
+                                      : location.trailing_comments;
     Split(comments, '\n', out);
   } else if (type == COMMENTTYPE_LEADING_DETACHED) {
     for (unsigned int i = 0; i < location.leading_detached_comments.size();
@@ -207,14 +207,14 @@ inline void GetComment(const DescriptorType* desc, CommentType type,
 // For file level leading and detached leading comments, we return comments
 // above syntax line. Return nothing for trailing comments.
 template <>
-inline void GetComment(const rpc::protobuf::FileDescriptor* desc,
+inline void GetComment(const ::google::protobuf::FileDescriptor* desc,
                        CommentType type, std::vector<std::string>* out) {
   if (type == COMMENTTYPE_TRAILING) {
     return;
   }
-  rpc::protobuf::SourceLocation location;
+  ::google::protobuf::SourceLocation location;
   std::vector<int> path;
-  path.push_back(rpc::protobuf::FileDescriptorProto::kSyntaxFieldNumber);
+  path.push_back(::google::protobuf::FileDescriptorProto::kSyntaxFieldNumber);
   if (!desc->GetSourceLocation(path, &location)) {
     return;
   }
@@ -251,22 +251,53 @@ inline std::string GenerateCommentsWithPrefix(
 }
 
 template <typename DescriptorType>
-inline std::string GetPrefixedComments(const DescriptorType* desc,
-                                        bool leading,
-                                        const std::string& prefix) {
+inline std::string GetPrefixedComments(const DescriptorType* desc, bool leading,
+                                       const std::string& prefix) {
   std::vector<std::string> out;
   if (leading) {
-    rpc_generator::GetComment(
-        desc, rpc_generator::COMMENTTYPE_LEADING_DETACHED, &out);
+    rpc_generator::GetComment(desc, rpc_generator::COMMENTTYPE_LEADING_DETACHED,
+                              &out);
     std::vector<std::string> leading;
     rpc_generator::GetComment(desc, rpc_generator::COMMENTTYPE_LEADING,
-                               &leading);
+                              &leading);
     out.insert(out.end(), leading.begin(), leading.end());
   } else {
-    rpc_generator::GetComment(desc, rpc_generator::COMMENTTYPE_TRAILING,
-                               &out);
+    rpc_generator::GetComment(desc, rpc_generator::COMMENTTYPE_TRAILING, &out);
   }
   return GenerateCommentsWithPrefix(out, prefix);
 }
 
-}  // namespace rpc_generator
+inline std::string DotsToColons(const std::string& name) {
+  return rpc_generator::StringReplace(name, ".", "::");
+}
+
+inline std::string DotsToUnderscores(const std::string& name) {
+  return rpc_generator::StringReplace(name, ".", "_");
+}
+
+inline std::string ClassName(const ::google::protobuf::Descriptor* descriptor,
+                             bool qualified) {
+  // Find "outer", the descriptor of the top-level message in which
+  // "descriptor" is embedded.
+  const ::google::protobuf::Descriptor* outer = descriptor;
+  while (outer->containing_type() != NULL)
+    outer = outer->containing_type();
+
+  const std::string& outer_name = outer->full_name();
+  std::string inner_name = descriptor->full_name().substr(outer_name.size());
+
+  if (qualified) {
+    return "::" + DotsToColons(outer_name) + DotsToUnderscores(inner_name);
+  } else {
+    return outer->name() + DotsToUnderscores(inner_name);
+  }
+}
+
+// Get leading or trailing comments in a string. Comment lines start with "// ".
+// Leading detached comments are put in in front of leading comments.
+template <typename DescriptorType>
+inline std::string GetCppComments(const DescriptorType* desc, bool leading) {
+  return rpc_generator::GetPrefixedComments(desc, leading, "//");
+}
+
+} // namespace rpc_generator

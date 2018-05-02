@@ -23,3 +23,11 @@ install(FILES
     SyncClient.h
     SyncClient-inl.h
     DESTINATION include/raster/protocol/proto)
+
+add_executable(pbrpc_plugin
+    plugin/RpcGenerator.cpp
+    plugin/RpcPlugin.cpp
+)
+target_link_libraries(pbrpc_plugin
+    ${Protobuf_PROTOC_LIBRARIES}
+)

@@ -9,6 +9,11 @@ foreach(proto ${EXAMPLES_PBRPC_PROTOS})
         protoc --cpp_out=${PROJECT_SOURCE_DIR}
                --proto_path=${PROJECT_SOURCE_DIR}
                ${PROJECT_SOURCE_DIR}/examples/pbrpc/${proto})
+#    execute_process(COMMAND
+#        protoc --plugin=protoc-gen-pbrpc_plugin=${PROJECT_BINARY_DIR}/raster/protocol/proto/pbrpc_plugin
+#               --pbrpc_plugin_out=${PROJECT_SOURCE_DIR}
+#               --proto_path=${PROJECT_SOURCE_DIR}
+#               ${PROJECT_SOURCE_DIR}/examples/pbrpc/${proto})
 endforeach()
 
 add_executable(pbrpc

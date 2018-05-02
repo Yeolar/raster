@@ -33,10 +33,6 @@ struct Parameters {
   bool use_system_headers;
   // Prefix to any rpc include
   std::string rpc_search_path;
-  // Generate Google Mock code to facilitate unit testing.
-  bool generate_mock_code;
-  // Google Mock search path, when non-empty, local includes will be used.
-  std::string gmock_search_path;
   // *EXPERIMENTAL* Additional include files in rpc.pb.h
   std::vector<std::string> additional_header_includes;
 };
@@ -72,37 +68,5 @@ std::string GetSourceServices(rpc_generator::File* file,
 // Return the epilogue of the generated source file.
 std::string GetSourceEpilogue(rpc_generator::File* file,
                               const Parameters& params);
-
-// Return the prologue of the generated mock file.
-std::string GetMockPrologue(rpc_generator::File* file,
-                            const Parameters& params);
-
-// Return the includes needed for generated mock file.
-std::string GetMockIncludes(rpc_generator::File* file,
-                            const Parameters& params);
-
-// Return the services for generated mock file.
-std::string GetMockServices(rpc_generator::File* file,
-                            const Parameters& params);
-
-// Return the epilogue of generated mock file.
-std::string GetMockEpilogue(rpc_generator::File* file,
-                            const Parameters& params);
-
-// Return the prologue of the generated mock file.
-std::string GetMockPrologue(rpc_generator::File* file,
-                            const Parameters& params);
-
-// Return the includes needed for generated mock file.
-std::string GetMockIncludes(rpc_generator::File* file,
-                            const Parameters& params);
-
-// Return the services for generated mock file.
-std::string GetMockServices(rpc_generator::File* file,
-                            const Parameters& params);
-
-// Return the epilogue of generated mock file.
-std::string GetMockEpilogue(rpc_generator::File* file,
-                            const Parameters& params);
 
 } // namespace rpc_generator

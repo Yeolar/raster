@@ -19,30 +19,28 @@
 #include <vector>
 
 #include "raster/protocol/proto/plugin/Config.h"
-#include "raster/protocol/proto/plugin/RpcGeneratorHelpers.h"
+#include "raster/protocol/proto/plugin/GeneratorHelpers.h"
 #include "raster/protocol/proto/plugin/SchemaInterface.h"
-#include "src/compiler/python_generator_helpers.h"
-#include "src/compiler/python_private_generator.h"
 
 // Get leading or trailing comments in a string.
 template <typename DescriptorType>
 inline std::string GetCommentsHelper(const DescriptorType* desc, bool leading,
-                                      const std::string& prefix) {
+                                     const std::string& prefix) {
   return rpc_generator::GetPrefixedComments(desc, leading, prefix);
 }
 
 class ProtoBufMethod : public rpc_generator::Method {
  public:
-  ProtoBufMethod(const rpc::protobuf::MethodDescriptor* method)
+  ProtoBufMethod(const ::google::protobuf::MethodDescriptor* method)
       : method_(method) {}
 
   std::string name() const { return method_->name(); }
 
   std::string input_type_name() const {
-    return rpc_cpp_generator::ClassName(method_->input_type(), true);
+    return rpc_generator::ClassName(method_->input_type(), true);
   }
   std::string output_type_name() const {
-    return rpc_cpp_generator::ClassName(method_->output_type(), true);
+    return rpc_generator::ClassName(method_->output_type(), true);
   }
 
   std::string get_input_type_name() const {
@@ -50,24 +48,6 @@ class ProtoBufMethod : public rpc_generator::Method {
   }
   std::string get_output_type_name() const {
     return method_->output_type()->file()->name();
-  }
-
-  bool get_module_and_message_path_input(std::string* str,
-                                         std::string generator_file_name,
-                                         bool generate_in_pb2_rpc,
-                                         std::string import_prefix) const {
-    return rpc_python_generator::GetModuleAndMessagePath(
-        method_->input_type(), str, generator_file_name, generate_in_pb2_rpc,
-        import_prefix);
-  }
-
-  bool get_module_and_message_path_output(std::string* str,
-                                          std::string generator_file_name,
-                                          bool generate_in_pb2_rpc,
-                                          std::string import_prefix) const {
-    return rpc_python_generator::GetModuleAndMessagePath(
-        method_->output_type(), str, generator_file_name, generate_in_pb2_rpc,
-        import_prefix);
   }
 
   bool NoStreaming() const {
@@ -90,17 +70,13 @@ class ProtoBufMethod : public rpc_generator::Method {
     return GetCommentsHelper(method_, false, prefix);
   }
 
-  vector<std::string> GetAllComments() const {
-    return rpc_python_generator::get_all_comments(method_);
-  }
-
  private:
-  const rpc::protobuf::MethodDescriptor* method_;
+  const ::google::protobuf::MethodDescriptor* method_;
 };
 
 class ProtoBufService : public rpc_generator::Service {
  public:
-  ProtoBufService(const rpc::protobuf::ServiceDescriptor* service)
+  ProtoBufService(const ::google::protobuf::ServiceDescriptor* service)
       : service_(service) {}
 
   std::string name() const { return service_->name(); }
@@ -119,12 +95,8 @@ class ProtoBufService : public rpc_generator::Service {
     return GetCommentsHelper(service_, false, prefix);
   }
 
-  vector<std::string> GetAllComments() const {
-    return rpc_python_generator::get_all_comments(service_);
-  }
-
  private:
-  const rpc::protobuf::ServiceDescriptor* service_;
+  const ::google::protobuf::ServiceDescriptor* service_;
 };
 
 class ProtoBufPrinter : public rpc_generator::Printer {
@@ -143,13 +115,13 @@ class ProtoBufPrinter : public rpc_generator::Printer {
   void Outdent() { printer_.Outdent(); }
 
  private:
-  rpc::protobuf::io::StringOutputStream output_stream_;
-  rpc::protobuf::io::Printer printer_;
+  ::google::protobuf::io::StringOutputStream output_stream_;
+  ::google::protobuf::io::Printer printer_;
 };
 
 class ProtoBufFile : public rpc_generator::File {
  public:
-  ProtoBufFile(const rpc::protobuf::FileDescriptor* file) : file_(file) {}
+  ProtoBufFile(const ::google::protobuf::FileDescriptor* file) : file_(file) {}
 
   std::string filename() const { return file_->name(); }
   std::string filename_without_ext() const {
@@ -182,11 +154,7 @@ class ProtoBufFile : public rpc_generator::File {
     return GetCommentsHelper(file_, false, prefix);
   }
 
-  vector<std::string> GetAllComments() const {
-    return rpc_python_generator::get_all_comments(file_);
-  }
-
  private:
-  const rpc::protobuf::FileDescriptor* file_;
+  const ::google::protobuf::FileDescriptor* file_;
 };
 
