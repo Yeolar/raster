@@ -28,6 +28,7 @@ add_executable(pbrpc_plugin
     plugin/RpcGenerator.cpp
     plugin/RpcPlugin.cpp
 )
+add_dependencies(pbrpc_plugin accelerator)
 target_link_libraries(pbrpc_plugin
     ${Protobuf_PROTOC_LIBRARIES}
 )

@@ -11,6 +11,6 @@ add_executable(httpparser_test
     test.c
     http_parser.c
 )
-add_test(httpparser_test httpparser_test CONFIGURATIONS ${CMAKE_BUILD_TYPE})
 add_dependencies(httpparser_test accelerator)
+add_test(httpparser_test httpparser_test CONFIGURATIONS ${CMAKE_BUILD_TYPE})
 

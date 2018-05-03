@@ -52,9 +52,11 @@ public:
     INTERNAL_ERROR = 7
   };
 
-  TTransportException() : apache::thrift::TException(), type_(UNKNOWN) {}
+  TTransportException()
+    : apache::thrift::TException(), type_(UNKNOWN) {}
 
-  TTransportException(TTransportExceptionType type) : apache::thrift::TException(), type_(type) {}
+  TTransportException(TTransportExceptionType type)
+    : apache::thrift::TException(), type_(type) {}
 
   TTransportException(const std::string& message)
     : apache::thrift::TException(message), type_(UNKNOWN) {}
@@ -62,8 +64,12 @@ public:
   TTransportException(TTransportExceptionType type, const std::string& message)
     : apache::thrift::TException(message), type_(type) {}
 
-  TTransportException(TTransportExceptionType type, const std::string& message, int errno_copy)
-    : apache::thrift::TException(message + ": " + acc::errnoStr(errno_copy)), type_(type) {}
+  TTransportException(TTransportExceptionType type,
+                      const std::string& message,
+                      int errno_copy)
+    : apache::thrift::TException(
+        acc::to<std::string>(message, ": ", acc::errnoStr(errno_copy))),
+      type_(type) {}
 
   virtual ~TTransportException() throw() {}
 
