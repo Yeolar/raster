@@ -22,7 +22,6 @@ find_package(Threads REQUIRED)
 find_package(Boost REQUIRED COMPONENTS context regex)
 find_package(CURL REQUIRED)
 find_package(GFlags REQUIRED)
-find_package(ICU REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -50,8 +49,6 @@ link_libraries(
     ${Boost_LIBRARIES}
     ${CURL_LIBRARIES}
     ${GFLAGS_LIBRARIES}
-    ${ICU_LIBRARIES}
-    ${ICU_I18N_LIBRARIES}
     ${OPENSSL_LIBRARIES}
     ${PROTOBUF_LIBRARIES}
     ${ZLIB_LIBRARIES}
