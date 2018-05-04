@@ -15,7 +15,7 @@ raster是一个完整的高性能C++协程服务框架，项目初衷是可以�
 - 支持并行计算
 - 支持监控统计、存储、数据库等扩展功能
 
-依赖包括 Boost CURL GFlags ICU OpenSSL Protobuf ZLIB。
+依赖包括 Boost CURL GFlags OpenSSL Protobuf ZLIB。
 
 编译安装
 
