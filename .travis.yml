@@ -52,4 +52,5 @@ script:
   - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
   - make -j4
   - make test
+  - make package
 

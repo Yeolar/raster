@@ -1,17 +1,9 @@
 # Copyright 2017 Yeolar
 
-set(RASTER_COROUTINE_SRCS
-    Fiber.cpp
-    FiberHub.cpp
-    FiberManager.cpp
-)
+file(GLOB RASTER_COROUTINE_SRCS *.cpp)
+file(GLOB RASTER_COROUTINE_HDRS *.h)
+
 add_library(raster_coroutine OBJECT ${RASTER_COROUTINE_SRCS})
 add_dependencies(raster_coroutine accelerator)
 
-install(FILES
-    BoostContext.h
-    Context.h
-    Fiber.h
-    FiberHub.h
-    FiberManager.h
-    DESTINATION include/raster/coroutine)
+install(FILES ${RASTER_COROUTINE_HDRS} DESTINATION include/raster/coroutine)

@@ -6,9 +6,9 @@ option cc_generic_services = true;
 package rdd.pbrpc;
 
 message Query {
-  string traceid = 1;
-  string query = 2;
-  string forward = 3;
+  optional string traceid = 1;
+  optional string query = 2;
+  optional string forward = 3;
 }
 
 enum ResultCode {
@@ -22,8 +22,8 @@ enum ResultCode {
 }
 
 message Result {
-  string traceid = 1;
-  ResultCode code = 2;
+  optional string traceid = 1;
+  optional ResultCode code = 2;
 }
 
 service ProxyService {

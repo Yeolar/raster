@@ -1,7 +1,5 @@
 # Copyright 2017 Yeolar
 
-install(FILES
-    BinarySerializer.h
-    Serializer.h
-    ThriftSerializer.h
-    DESTINATION include/raster/serializer)
+file(GLOB RASTER_SERIALIZER_HDRS *.h)
+
+install(FILES ${RASTER_SERIALIZER_HDRS} DESTINATION include/raster/serializer)

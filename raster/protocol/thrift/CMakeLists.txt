@@ -1,18 +1,9 @@
 # Copyright 2017 Yeolar
 
-set(RASTER_PROTOCOL_THRIFT_SRCS
-    Processor.cpp
-    Util.cpp
-)
+file(GLOB RASTER_PROTOCOL_THRIFT_SRCS *.cpp)
+file(GLOB RASTER_PROTOCOL_THRIFT_HDRS *.h)
+
 add_library(raster_protocol_thrift OBJECT ${RASTER_PROTOCOL_THRIFT_SRCS})
 add_dependencies(raster_protocol_thrift accelerator)
 
-install(FILES
-    AsyncClient.h
-    AsyncClient-inl.h
-    AsyncServer.h
-    Processor.h
-    SyncClient.h
-    SyncClient-inl.h
-    Util.h
-    DESTINATION include/raster/protocol/thrift)
+install(FILES ${RASTER_PROTOCOL_THRIFT_HDRS} DESTINATION include/raster/protocol/thrift)

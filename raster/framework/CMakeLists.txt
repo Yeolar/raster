@@ -1,24 +1,12 @@
 # Copyright 2017 Yeolar
 
-set(RASTER_FRAMEWORK_SRCS
-    Config.cpp
-    Degrader.cpp
-    FalconSender.cpp
-    HubAdaptor.cpp
-    Sampler.cpp
-    Signal.cpp
-)
+file(GLOB RASTER_FRAMEWORK_SRCS *.cpp)
+file(GLOB RASTER_FRAMEWORK_HDRS *.h)
+
 add_library(raster_framework OBJECT ${RASTER_FRAMEWORK_SRCS})
 add_dependencies(raster_framework accelerator)
 
-install(FILES
-    Config.h
-    Degrader.h
-    FalconSender.h
-    HubAdaptor.h
-    Sampler.h
-    Signal.h
-    DESTINATION include/raster/framework)
+install(FILES ${RASTER_FRAMEWORK_HDRS} DESTINATION include/raster/framework)
 
 add_executable(configutil
     ConfigUtil.cpp
