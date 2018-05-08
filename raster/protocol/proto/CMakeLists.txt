@@ -14,5 +14,5 @@ add_executable(pbrpc_plugin
 )
 add_dependencies(pbrpc_plugin accelerator)
 target_link_libraries(pbrpc_plugin
-    ${Protobuf_PROTOC_LIBRARIES}
+    ${PROTOBUF_PROTOC_LIBRARIES}
 )
