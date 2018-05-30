@@ -9,7 +9,7 @@ project(raster)
 
 cmake_minimum_required(VERSION 3.2)
 
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake-scripts")
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-scripts)
 
 # Set project version
 set(VERSION_MAJOR 1)
@@ -25,6 +25,7 @@ find_package(GFlags REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(Accelerator REQUIRED)
 
 # Optional packages
 find_package(GTest)
@@ -37,13 +38,8 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
-# Add external
-include(accelerator)
-include(flatbuffers)
-
 # Link libraries
 link_libraries(
-    ${accelerator_STATIC_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
     ${CMAKE_DL_LIBS}
     ${Boost_LIBRARIES}
@@ -52,13 +48,13 @@ link_libraries(
     ${OPENSSL_LIBRARIES}
     ${PROTOBUF_LIBRARIES}
     ${ZLIB_LIBRARIES}
+    ${ACCELERATOR_LIBRARY}
 )
 
 include_directories(
-    ${accelerator_INCLUDE_DIR}
-    ${flatbuffers_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/raster/3rd
+    ${ACCELERATOR_INCLUDE_DIR}
 )
 
 # Check and setup configurations
@@ -92,8 +88,8 @@ if(GFLAGS_FOUND)
 endif()
 
 configure_file(
-    "${PROJECT_SOURCE_DIR}/raster/raster-config.h.in"
-    "${PROJECT_SOURCE_DIR}/raster/raster-config.h"
+    ${PROJECT_SOURCE_DIR}/raster/raster-config.h.in
+    ${PROJECT_SOURCE_DIR}/raster/raster-config.h
 )
 
 # Work on all sub directories
@@ -171,12 +167,13 @@ endif()
 
 # Pack
 include(InstallRequiredSystemLibraries)
+set(CPACK_GENERATOR "DEB;TXZ")
 set(CPACK_PACKAGE_VERSION_MAJOR "${VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${VERSION_PATCH}")
-set(CPACK_GENERATOR "DEB")
-set(CPACK_SOURCE_GENERATOR "TGZ")
-set(CPACK_PACKAGE_DESCRIPTION "raster: network and server framework of rddoc.")
 set(CPACK_PACKAGE_CONTACT "rdd@rddoc.com")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "raster: network and server framework of rddoc.")
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-all-dev,libgflags-dev,libssl-dev,zlib1g-dev,accelerator")
 include(CPack)
 

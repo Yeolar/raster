@@ -1,0 +1,10 @@
+# bunder config
+
+project:
+    raster
+
+build:
+    path: './build'
+
+depend:
+    - accelerator-1.2.3
