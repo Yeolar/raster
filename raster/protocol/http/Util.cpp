@@ -158,7 +158,7 @@ std::string urlJoin(const std::string& base, const std::string& url) {
   if (segments.back() == ".") {
     segments.back() = "";
   }
-  remove(segments, ".");
+  acc::remove(segments, ".");
   while (true) {
     int i = 1;
     int n = segments.size() - 1;

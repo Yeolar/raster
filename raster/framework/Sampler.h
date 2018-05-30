@@ -60,7 +60,7 @@ class SamplerManager {
 template <class Sam, class ...Args>
 void SamplerManager::setupSampler(const std::string& name, Args&&... args) {
   std::lock_guard<std::mutex> guard(lock_);
-  if (!acc::contain(samplers_, name)) {
+  if (!acc::containKey(samplers_, name)) {
     samplers_[name].reset(new Sam());
   }
   Sampler* d = samplers_[name].get();

@@ -82,7 +82,7 @@ class DegraderManager {
 template <class Deg, class ...Args>
 void DegraderManager::setupDegrader(const std::string& name, Args&&... args) {
   std::lock_guard<std::mutex> guard(lock_);
-  if (!acc::contain(degraders_, name)) {
+  if (!acc::containKey(degraders_, name)) {
     degraders_[name].reset(new Deg());
   }
   Degrader* d = degraders_[name].get();
