@@ -26,6 +26,7 @@ find_package(OpenSSL REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Accelerator REQUIRED)
+find_package(Flatbuffers REQUIRED)
 
 # Optional packages
 find_package(GTest)
@@ -49,12 +50,14 @@ link_libraries(
     ${PROTOBUF_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${ACCELERATOR_LIBRARY}
+    ${FLATBUFFERS_LIBRARY}
 )
 
 include_directories(
     ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/raster/3rd
     ${ACCELERATOR_INCLUDE_DIR}
+    ${FLATBUFFERS_INCLUDE_DIR}
 )
 
 # Check and setup configurations
@@ -166,6 +169,15 @@ if(GTEST_FOUND)
 endif()
 
 # Pack
+set(CPACK_SYSTEM_NAME "amd64")
+find_program(DPKG_CMD dpkg)
+if(DPKG_CMD)
+    execute_process(
+        COMMAND "${DPKG_CMD}" --print-architecture
+        OUTPUT_VARIABLE CPACK_SYSTEM_NAME
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
+
 include(InstallRequiredSystemLibraries)
 set(CPACK_GENERATOR "DEB;TXZ")
 set(CPACK_PACKAGE_VERSION_MAJOR "${VERSION_MAJOR}")
@@ -173,7 +185,6 @@ set(CPACK_PACKAGE_VERSION_MINOR "${VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${VERSION_PATCH}")
 set(CPACK_PACKAGE_CONTACT "rdd@rddoc.com")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "raster: network and server framework of rddoc.")
-set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-all-dev,libgflags-dev,libssl-dev,zlib1g-dev,accelerator")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-all-dev,libgflags-dev,libssl-dev,zlib1g-dev,accelerator,flatbuffers")
 include(CPack)
 

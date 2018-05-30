@@ -6,6 +6,5 @@ file(GLOB_RECURSE RASTER_PLUGINS_FLUME_HDRS *.h)
 list(REMOVE_ITEM RASTER_PLUGINS_FLUME_SRCS ${RASTER_PLUGINS_FLUME_SRCS_EX})
 
 add_library(raster_plugins_flume OBJECT ${RASTER_PLUGINS_FLUME_SRCS})
-add_dependencies(raster_plugins_flume accelerator)
 
 install(FILES ${RASTER_PLUGINS_FLUME_HDRS} DESTINATION include/raster/plugins/flume)

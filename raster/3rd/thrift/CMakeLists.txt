@@ -6,7 +6,6 @@ file(GLOB THRIFT_PROTOCOL_HDRS protocol/*.h protocol/*.tcc)
 file(GLOB THRIFT_TRANSPORT_HDRS transport/*.h)
 
 add_library(thrift OBJECT ${THRIFT_SRCS})
-add_dependencies(thrift accelerator)
 
 install(FILES ${THRIFT_HDRS} DESTINATION include/raster/3rd/thrift)
 install(FILES ${THRIFT_PROTOCOL_HDRS} DESTINATION include/raster/3rd/thrift/protocol)

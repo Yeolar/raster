@@ -48,7 +48,7 @@ flags = [
 '-isystem', ROOT,
 '-isystem', os.path.join(ROOT, 'raster/3rd'),
 '-isystem', os.path.join(ROOT, 'build/accelerator/accelerator/include'),
-'-isystem', os.path.join(ROOT, 'build/flatbuffers/src/flatbuffers/include'),
+'-isystem', os.path.join(ROOT, 'build/flatbuffers/flatbuffers/include'),
 '-isystem', '/usr/local/include',
 '-isystem', '/usr/include',
 '-isystem', '/usr/include/c++/4.9.2',

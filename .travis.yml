@@ -33,6 +33,7 @@ addons:
       - protobuf-compiler
       - thrift-compiler
       - accelerator
+      - flatbuffers
 
 before_install:
   - sudo wget https://github.com/google/googletest/archive/release-1.7.0.tar.gz
