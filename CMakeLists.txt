@@ -99,6 +99,7 @@ configure_file(
 add_subdirectory(raster/3rd/http_parser)
 add_subdirectory(raster/3rd/thrift)
 
+add_subdirectory(raster)
 add_subdirectory(raster/coroutine)
 add_subdirectory(raster/framework)
 add_subdirectory(raster/net)
