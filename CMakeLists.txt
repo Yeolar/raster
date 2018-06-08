@@ -14,7 +14,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-scripts)
 # Set project version
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 2)
-set(VERSION_PATCH 2)
+set(VERSION_PATCH 3)
 
 # Required packages
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
