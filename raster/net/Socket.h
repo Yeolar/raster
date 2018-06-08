@@ -20,8 +20,8 @@
 #include <memory>
 #include <string>
 #include <unistd.h>
-#include <gflags/gflags.h>
 
+#include "raster/Portability.h"
 #include "raster/net/NetUtil.h"
 
 DECLARE_uint64(net_conn_limit);
