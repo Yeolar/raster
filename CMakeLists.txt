@@ -1,9 +1,5 @@
 # Copyright (C) 2017, Yeolar
 
-# Setup compiler
-#set(CMAKE_C_COMPILER gcc)
-#set(CMAKE_CXX_COMPILER g++)
-
 # Define project
 project(raster)
 
