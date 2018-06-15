@@ -13,9 +13,15 @@ if(FLATBUFFERS_INCLUDE_DIR)
   set(FLATBUFFERS_FIND_QUIETLY TRUE)
 endif()
 
-find_program(FLATBUFFERS_FLATC flatc PATHS ${PROJECT_BINARY_DIR}/flatbuffers/flatbuffers/bin)
-find_path(FLATBUFFERS_INCLUDE_DIR flatbuffers/flatbuffers.h PATHS ${PROJECT_BINARY_DIR}/flatbuffers/flatbuffers/include)
-find_library(FLATBUFFERS_LIBRARY flatbuffers PATHS ${PROJECT_BINARY_DIR}/flatbuffers/flatbuffers/lib)
+find_program(FLATBUFFERS_FLATC flatc PATHS
+    ${PROJECT_BINARY_DIR}/flatbuffers/flatbuffers/bin
+    ${PROJECT_BINARY_DIR}-deps/flatbuffers/flatbuffers/bin)
+find_path(FLATBUFFERS_INCLUDE_DIR flatbuffers/flatbuffers.h PATHS
+    ${PROJECT_BINARY_DIR}/flatbuffers/flatbuffers/include
+    ${PROJECT_BINARY_DIR}-deps/flatbuffers/flatbuffers/include)
+find_library(FLATBUFFERS_LIBRARY flatbuffers PATHS
+    ${PROJECT_BINARY_DIR}/flatbuffers/flatbuffers/lib
+    ${PROJECT_BINARY_DIR}-deps/flatbuffers/flatbuffers/lib)
 
 # handle the QUIETLY and REQUIRED arguments and set FLATBUFFERS_FOUND to TRUE 
 # if all listed variables are TRUE

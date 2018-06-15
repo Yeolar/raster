@@ -7,18 +7,21 @@
 find_package(PkgConfig)
 pkg_check_modules(RASTER QUIET raster)
 
-IF (RASTER_INCLUDE_DIR)
+if(RASTER_INCLUDE_DIR)
   # Already in cache, be silent
-  SET(RASTER_FIND_QUIETLY TRUE)
-ENDIF ()
+  set(RASTER_FIND_QUIETLY TRUE)
+endif()
 
-FIND_PATH(RASTER_INCLUDE_DIR raster/framework/Config.h)
-
-FIND_LIBRARY(RASTER_LIBRARY raster)
+find_path(RASTER_INCLUDE_DIR raster/raster-config.h PATHS
+    ${PROJECT_BINARY_DIR}/raster/raster/include
+    ${PROJECT_BINARY_DIR}-deps/raster/raster/include)
+find_library(RASTER_LIBRARY raster PATHS
+    ${PROJECT_BINARY_DIR}/raster/raster/lib
+    ${PROJECT_BINARY_DIR}-deps/raster/raster/lib)
 
 # handle the QUIETLY and REQUIRED arguments and set RASTER_FOUND to TRUE 
 # if all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(RASTER DEFAULT_MSG RASTER_LIBRARY RASTER_INCLUDE_DIR)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(RASTER DEFAULT_MSG RASTER_LIBRARY RASTER_INCLUDE_DIR)
 
-MARK_AS_ADVANCED(RASTER_LIBRARY RASTER_INCLUDE_DIR)
+mark_as_advanced(RASTER_LIBRARY RASTER_INCLUDE_DIR)
