@@ -4,20 +4,15 @@
 #  ACCELERATOR_LIBRARY     - List of libraries when using accelerator.
 #  ACCELERATOR_FOUND       - True if accelerator found.
 
-find_package(PkgConfig)
-pkg_check_modules(ACCELERATOR QUIET accelerator)
-
 if(ACCELERATOR_INCLUDE_DIR)
   # Already in cache, be silent
   set(ACCELERATOR_FIND_QUIETLY TRUE)
 endif()
 
 find_path(ACCELERATOR_INCLUDE_DIR accelerator/accelerator-config.h PATHS
-    ${PROJECT_BINARY_DIR}/accelerator/accelerator/include
-    ${PROJECT_BINARY_DIR}-deps/accelerator/accelerator/include)
+    ${PROJECT_BINARY_DIR}/../deps/usr/local/include)
 find_library(ACCELERATOR_LIBRARY accelerator PATHS
-    ${PROJECT_BINARY_DIR}/accelerator/accelerator/lib
-    ${PROJECT_BINARY_DIR}-deps/accelerator/accelerator/lib)
+    ${PROJECT_BINARY_DIR}/../deps/usr/local/lib)
 
 # handle the QUIETLY and REQUIRED arguments and set ACCELERATOR_FOUND to TRUE 
 # if all listed variables are TRUE
