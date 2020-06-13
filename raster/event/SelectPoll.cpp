@@ -58,14 +58,14 @@ bool SelectPoll::modify(int fd, int mask) {
     ACCLOG(ERROR) << "fd exceed: " << fd << ">=" << FLAGS_peer_max_count;
     return false;
   }
-  if (eventMap_[fd] & kRead != mask & kRead) {
+  if ((eventMap_[fd] & kRead) != (mask & kRead)) {
     if (mask & kRead) {
       FD_SET(fd, &rfds_);
     } else {
       FD_CLR(fd, &rfds_);
     }
   }
-  if (eventMap_[fd] & kWrite != mask & kWrite) {
+  if ((eventMap_[fd] & kWrite) != (mask & kWrite)) {
     if (mask & kWrite) {
       FD_SET(fd, &wfds_);
     } else {
