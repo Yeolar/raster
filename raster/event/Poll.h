@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "raster/Portability.h"
+#include "raster/event/EventBase.h"
 
 DECLARE_int32(peer_max_count);
 
@@ -27,13 +28,7 @@ namespace raster {
 
 class Poll {
  public:
-  enum {
-    kNone = 0,
-    kRead = 1,
-    kWrite = 2,
-  };
-
-  struct Event {
+  struct FdMask {
     int fd;
     int mask;
   };
@@ -49,14 +44,15 @@ class Poll {
 
   virtual int wait(int timeout) = 0;
 
-  const Event* firedEvents() const;
+  const FdMask* firedFds() const;
+  EventBase*& event(int i);
 
   static constexpr int kMaxEvents = 1024;
 
  protected:
   int size_;
-  std::vector<Event> fired_;
-  std::vector<int8_t> eventMap_;
+  std::vector<FdMask> fired_;
+  std::vector<EventBase*> eventMap_;
 };
 
 }  // namespace raster

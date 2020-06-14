@@ -39,8 +39,12 @@ Poll::Poll(int size) : size_(size) {
   eventMap_.resize(FLAGS_peer_max_count);
 }
 
-const Poll::Event* Poll::firedEvents() const {
+const Poll::FdMask* Poll::firedFds() const {
   return fired_.data();
+}
+
+EventBase*& Poll::event(int i) {
+  return eventMap_[i];
 }
 
 } // namespace raster

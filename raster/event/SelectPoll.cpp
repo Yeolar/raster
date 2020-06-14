@@ -43,13 +43,13 @@ bool SelectPoll::add(int fd, int mask) {
     ACCLOG(ERROR) << "fd exceed: " << fd << ">=" << FLAGS_peer_max_count;
     return false;
   }
-  if (mask & kRead) {
+  if (mask & EventBase::kRead) {
     FD_SET(fd, &rfds_);
   }
-  if (mask & kWrite) {
+  if (mask & EventBase::kWrite) {
     FD_SET(fd, &wfds_);
   }
-  eventMap_[fd] = mask;
+  eventMap_[fd]->setMask(mask);
   return true;
 }
 
@@ -58,21 +58,23 @@ bool SelectPoll::modify(int fd, int mask) {
     ACCLOG(ERROR) << "fd exceed: " << fd << ">=" << FLAGS_peer_max_count;
     return false;
   }
-  if ((eventMap_[fd] & kRead) != (mask & kRead)) {
-    if (mask & kRead) {
+  if ((eventMap_[fd]->mask() & EventBase::kRead)
+      != (mask & EventBase::kRead)) {
+    if (mask & EventBase::kRead) {
       FD_SET(fd, &rfds_);
     } else {
       FD_CLR(fd, &rfds_);
     }
   }
-  if ((eventMap_[fd] & kWrite) != (mask & kWrite)) {
-    if (mask & kWrite) {
+  if ((eventMap_[fd]->mask() & EventBase::kWrite)
+      != (mask & EventBase::kWrite)) {
+    if (mask & EventBase::kWrite) {
       FD_SET(fd, &wfds_);
     } else {
       FD_CLR(fd, &wfds_);
     }
   }
-  eventMap_[fd] = mask;
+  eventMap_[fd]->setMask(mask);
   return true;
 }
 
@@ -81,13 +83,13 @@ bool SelectPoll::remove(int fd) {
     ACCLOG(ERROR) << "fd exceed: " << fd << ">=" << FLAGS_peer_max_count;
     return false;
   }
-  if (eventMap_[fd] & kRead) {
+  if (eventMap_[fd]->mask() & EventBase::kRead) {
     FD_CLR(fd, &rfds_);
   }
-  if (eventMap_[fd] & kWrite) {
+  if (eventMap_[fd]->mask() & EventBase::kWrite) {
     FD_CLR(fd, &wfds_);
   }
-  eventMap_[fd] = kNone;
+  eventMap_[fd]->setMask(EventBase::kNone);
   return true;
 }
 
@@ -109,13 +111,14 @@ int SelectPoll::wait(int timeout) {
   if (r > 0) {
     for (int i = 0; i < size_; i++) {
       int mask = 0;
-      if (eventMap_[i] == kNone) {
+      if (eventMap_[i] == nullptr ||
+          eventMap_[i]->mask() == EventBase::kNone) {
         continue;
       }
-      if ((eventMap_[i] & kRead) && FD_ISSET(i, &rfds))
-        mask |= kRead;
-      if ((eventMap_[i] & kWrite) && FD_ISSET(i, &wfds))
-        mask |= kWrite;
+      if (FD_ISSET(i, &rfds) && (eventMap_[i]->mask() & EventBase::kRead))
+        mask |= EventBase::kRead;
+      if (FD_ISSET(i, &wfds) && (eventMap_[i]->mask() & EventBase::kWrite))
+        mask |= EventBase::kWrite;
       fired_[n].fd = i;
       fired_[n].mask = mask;
       n++;

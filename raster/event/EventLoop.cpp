@@ -18,7 +18,6 @@
 
 #include <accelerator/Logging.h>
 #include <accelerator/Monitor.h>
-#include <accelerator/ScopeGuard.h>
 
 namespace raster {
 
@@ -31,12 +30,34 @@ namespace raster {
 
 ACCMON_KEY(EventMonitorKey, ACC_EVENT_MONKEY_GEN);
 
+class WakerEvent : public EventBase {
+ public:
+  WakerEvent(int fd) : EventBase(TimeoutOption()), fd_(fd) {}
+
+  int fd() const override {
+    return fd_;
+  }
+
+  std::string str() const override {
+    return acc::to<std::string>("Waker(", fd_, ")");
+  }
+
+ private:
+  int fd_;
+};
+
 EventLoop::EventLoop(int pollSize, int pollTimeout)
-  : timeout_(pollTimeout),
-    stop_(false),
-    loopThread_() {
+    : timeout_(pollTimeout),
+      stop_(false),
+      loopThread_() {
+  int fd = waker_.fd();
   poll_ = Poll::create(pollSize);
-  poll_->add(waker_.fd(), Poll::kRead);
+  poll_->event(fd) = new WakerEvent(fd);
+  poll_->add(fd, EventBase::kRead);
+}
+
+EventLoop::~EventLoop() {
+  delete poll_->event(waker_.fd());
 }
 
 void EventLoop::registerHandler(std::unique_ptr<EventHandlerBase> handler) {
@@ -59,37 +80,27 @@ void EventLoop::loopBody(bool once) {
   while (!stop_.load(std::memory_order_acquire)) {
     uint64_t t0 = acc::timestampNow();
 
-    std::vector<EventBase*> events;
-    {
-      std::lock_guard<std::mutex> guard(eventsLock_);
-      events.swap(events_);
-    }
-    for (auto& ev : events) {
+    events_.sweep([&](EventBase* ev) {
       ACCLOG(V2) << *ev << " add event";
       pushEvent(ev);
       dispatchEvent(ev);
-    }
+    });
 
-    std::vector<VoidFunc> callbacks;
-    {
-      std::lock_guard<std::mutex> guard(callbacksLock_);
-      callbacks.swap(callbacks_);
-    }
-    for (auto& cb : callbacks) {
+    callbacks_.sweep([&](VoidFunc cb) {
       cb();
-    }
+    });
 
     checkTimeoutEvents();
 
     int n = poll_->wait(timeout_);
     if (n > 0) {
-      const Poll::Event* p = poll_->firedEvents();
+      const Poll::FdMask* p = poll_->firedFds();
       for (int i = 0; i < n; ++i) {
         int fd = p[i].fd;
         if (fd == waker_.fd()) {
           waker_.consume();
         } else {
-          EventBase* event = fdEvents_[fd];
+          EventBase* event = poll_->event(fd);
           if (event) {
             ACCLOG(V2) << *event << " on event, type=" << p[i].mask;
             switch (event->state()) {
@@ -142,26 +153,41 @@ void EventLoop::stop() {
 }
 
 void EventLoop::addEvent(EventBase* event) {
-  {
-    std::lock_guard<std::mutex> guard(eventsLock_);
-    events_.push_back(event);
-  }
+  events_.insertHead(event);
   waker_.wake();
 }
 
 void EventLoop::addCallback(VoidFunc&& callback) {
-  {
-    std::lock_guard<std::mutex> guard(callbacksLock_);
-    callbacks_.push_back(std::move(callback));
-  }
+  callbacks_.insertHead(std::move(callback));
   waker_.wake();
+}
+
+void EventLoop::pushEvent(EventBase* event) {
+  poll_->event(event->fd()) = event;
+}
+
+void EventLoop::popEvent(EventBase* event) {
+  ACCLOG(V2) << *event << " remove deadline";
+  deadlineHeap_.erase(event);
+
+  ACCLOG(V2) << *event << " remove event";
+  poll_->remove(event->fd());
+  poll_->event(event->fd()) = nullptr;
+}
+
+void EventLoop::updateEvent(EventBase *event, int mask) {
+  ACCLOG(V2) << *event << " remove deadline";
+  deadlineHeap_.erase(event);
+
+  ACCLOG(V2) << *event << " update event";
+  poll_->modify(event->fd(), mask);
 }
 
 void EventLoop::dispatchEvent(EventBase* event) {
   switch (event->state()) {
     case EventBase::kListen: {
       listenFds_.push_back(event->fd());
-      poll_->add(event->fd(), Poll::kRead);
+      poll_->add(event->fd(), EventBase::kRead);
       break;
     }
     case EventBase::kNext:
@@ -177,21 +203,13 @@ void EventLoop::dispatchEvent(EventBase* event) {
       ACCLOG(V2) << *event << " add c/wdeadline";
       deadlineHeap_.push(event->state() == EventBase::kConnect ?
                          event->cdeadline() : event->wdeadline());
-      poll_->add(event->fd(), Poll::kWrite);
+      poll_->add(event->fd(), EventBase::kWrite);
       break;
     }
     default:
       ACCLOG(ERROR) << *event << " cannot add event";
       return;
   }
-}
-
-void EventLoop::updateEvent(EventBase *event, uint32_t events) {
-  ACCLOG(V2) << *event << " remove deadline";
-  deadlineHeap_.erase(event);
-
-  ACCLOG(V2) << *event << " update event";
-  poll_->modify(event->fd(), events);
 }
 
 void EventLoop::restartEvent(EventBase* event) {
@@ -202,19 +220,6 @@ void EventLoop::restartEvent(EventBase* event) {
 
   ACCLOG(V2) << *event << " add rdeadline";
   deadlineHeap_.push(event->rdeadline());
-}
-
-void EventLoop::pushEvent(EventBase* event) {
-  fdEvents_[event->fd()] = event;
-}
-
-void EventLoop::popEvent(EventBase* event) {
-  ACCLOG(V2) << *event << " remove deadline";
-  deadlineHeap_.erase(event);
-
-  ACCLOG(V2) << *event << " remove event";
-  poll_->remove(event->fd());
-  fdEvents_[event->fd()] = nullptr;
 }
 
 void EventLoop::checkTimeoutEvents() {
@@ -234,7 +239,7 @@ void EventLoop::checkTimeoutEvents() {
       ACCLOG(V2) << *event << " pop deadline";
       event->setState(EventBase::kTimeout);
       ACCLOG(WARN) << *event << " remove timeout event: >"
-        << timeout.deadline - event->starttime();
+        << timeout.deadline - event->startTime();
       handler_->onTimeout(event);
     }
   }

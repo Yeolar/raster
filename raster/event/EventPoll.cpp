@@ -48,15 +48,15 @@ bool EventPoll::add(int fd, int mask) {
   struct epoll_event ee;
   ee.data.fd = fd;
   ee.events = 0;
-  if (mask & kRead)
+  if (mask & EventBase::kRead)
     ee.events |= EPOLLIN;
-  if (mask & kWrite)
+  if (mask & EventBase::kWrite)
     ee.events |= EPOLLOUT;
   if (epoll_ctl(fd_, EPOLL_CTL_ADD, fd, &ee) == -1) {
     ACCPLOG(ERROR) << "epoll_ctl(ADD," << fd << "," << mask << ") failed";
     return false;
   }
-  eventMap_[fd] = mask;
+  eventMap_[fd]->setMask(mask);
   return true;
 }
 
@@ -68,15 +68,15 @@ bool EventPoll::modify(int fd, int mask) {
   struct epoll_event ee;
   ee.data.fd = fd;
   ee.events = 0;
-  if (mask & kRead)
+  if (mask & EventBase::kRead)
     ee.events |= EPOLLIN;
-  if (mask & kWrite)
+  if (mask & EventBase::kWrite)
     ee.events |= EPOLLOUT;
   if (epoll_ctl(fd_, EPOLL_CTL_MOD, fd, &ee) == -1) {
     ACCPLOG(ERROR) << "epoll_ctl(MOD," << fd << "," << mask << ") failed";
     return false;
   }
-  eventMap_[fd] = mask;
+  eventMap_[fd]->setMask(mask);
   return true;
 }
 
@@ -92,7 +92,7 @@ bool EventPoll::remove(int fd) {
     ACCPLOG(ERROR) << "epoll_ctl(DEL," << fd << ") failed";
     return false;
   }
-  eventMap_[fd] = kNone;
+  eventMap_[fd]->setMask(EventBase::kNone);
   return true;
 }
 
@@ -109,11 +109,11 @@ int EventPoll::wait(int timeout) {
       if (ee.events & EPOLLIN ||
           ee.events & EPOLLERR ||
           ee.events & EPOLLHUP)
-        mask |= kRead;
+        mask |= EventBase::kRead;
       if (ee.events & EPOLLOUT ||
           ee.events & EPOLLERR ||
           ee.events & EPOLLHUP)
-        mask |= kWrite;
+        mask |= EventBase::kWrite;
       fired_[i].fd = ee.data.fd;
       fired_[i].mask = mask;
     }

@@ -24,6 +24,7 @@
 #include <vector>
 
 #include <accelerator/Waker.h>
+#include <accelerator/thread/AtomicLinkedList.h>
 
 #include "raster/event/EventBase.h"
 #include "raster/event/EventHandlerBase.h"
@@ -38,7 +39,7 @@ class EventLoop {
   EventLoop(int pollSize = Poll::kMaxEvents,
             int pollTimeout = 1000/* 1s */);
 
-  ~EventLoop() {}
+  ~EventLoop();
 
   void registerHandler(std::unique_ptr<EventHandlerBase> handler);
 
@@ -50,9 +51,12 @@ class EventLoop {
   void addEvent(EventBase* event);
   void addCallback(VoidFunc&& callback);
 
+ private:
+  friend class EventHandlerBase;
+
   void pushEvent(EventBase* event);
   void popEvent(EventBase* event);
-  void updateEvent(EventBase* event, uint32_t events);
+  void updateEvent(EventBase* event, int mask);
   void dispatchEvent(EventBase* event);
 
  private:
@@ -70,13 +74,10 @@ class EventLoop {
 
   std::vector<int> listenFds_;
   acc::Waker waker_;
-  std::map<int, EventBase*> fdEvents_;
   std::unique_ptr<EventHandlerBase> handler_;
 
-  std::vector<EventBase*> events_;
-  std::mutex eventsLock_;
-  std::vector<VoidFunc> callbacks_;
-  std::mutex callbacksLock_;
+  acc::AtomicLinkedList<EventBase*> events_;
+  acc::AtomicLinkedList<VoidFunc> callbacks_;
 
   TimedHeap<EventBase> deadlineHeap_;
 };

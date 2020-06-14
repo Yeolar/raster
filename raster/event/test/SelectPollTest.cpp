@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 #include <accelerator/Waker.h>
 #include "raster/event/SelectPoll.h"
+#include "raster/event/test/EventBaseTest.h"
 
 using namespace raster;
 
@@ -24,13 +25,14 @@ TEST(SelectPoll, all) {
   SelectPoll poll(64);
   acc::Waker waker;
 
-  poll.add(waker.fd(), Poll::kRead);
+  poll.event(waker.fd()) = new Event(waker.fd());
+  poll.add(waker.fd(), EventBase::kRead);
   int n = 0;
 
   waker.wake();
   n = poll.wait(1);
   EXPECT_EQ(1, n);
-  EXPECT_EQ(waker.fd(), poll.firedEvents()[0].fd);
+  EXPECT_EQ(waker.fd(), poll.firedFds()[0].fd);
 
   waker.consume();
   n = poll.wait(1);

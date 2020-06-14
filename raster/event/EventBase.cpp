@@ -21,24 +21,22 @@ DEFINE_uint64(event_lp_timeout, 600000000, "Long-polling timeout # of event.");
 #define RASTER_EVENT_STR(state) #state
 
 namespace {
-  static const char* stateStrings[] = {
-    RASTER_EVENT_GEN(RASTER_EVENT_STR)
-  };
+
+static const char* stateStrings[] = {
+  RASTER_EVENT_GEN(RASTER_EVENT_STR)
+};
+
 }
 
 namespace raster {
 
 void EventBase::setState(State state) {
   state_ = state;
-  timestamps_.push_back(acc::StageTimestamp(state, acc::elapsed(starttime())));
+  timestamps_.push_back(acc::StageTimestamp(state, acc::elapsed(startTime())));
 }
 
 const char* EventBase::stateName() const {
-  if (state_ < kInit || state_ >= kUnknown) {
-    return stateStrings[kUnknown];
-  } else {
-    return stateStrings[state_];
-  }
+  return stateStrings[state_];
 }
 
 void EventBase::restart() {

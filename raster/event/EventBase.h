@@ -48,6 +48,12 @@ namespace raster {
 
 class EventBase {
  public:
+  enum {
+    kNone = 0,
+    kRead = 1,
+    kWrite = 2,
+  };
+
   enum State {
     RASTER_EVENT_GEN(RASTER_EVENT_ENUM)
   };
@@ -56,6 +62,13 @@ class EventBase {
     : timeoutOpt_(timeoutOpt) {}
 
   virtual ~EventBase() {}
+
+  /*
+   * Event mask
+   */
+
+  int mask() const;
+  void setMask(int mask);
 
   /*
    * Event state
@@ -72,7 +85,7 @@ class EventBase {
 
   void restart();
 
-  uint64_t starttime() const;
+  uint64_t startTime() const;
   uint64_t cost() const;
 
   std::string timestampStr() const;
@@ -97,6 +110,7 @@ class EventBase {
   virtual std::string str() const = 0;
 
  protected:
+  int mask_;
   State state_;
   std::vector<acc::StageTimestamp> timestamps_;
   TimeoutOption timeoutOpt_;
@@ -111,16 +125,24 @@ inline std::ostream& operator<<(std::ostream& os, const EventBase& event) {
 
 //////////////////////////////////////////////////////////////////////
 
+inline int EventBase::mask() const {
+  return mask_;
+}
+
+inline void EventBase::setMask(int mask) {
+  mask_ = mask;
+}
+
 inline EventBase::State EventBase::state() const {
   return state_;
 }
 
-inline uint64_t EventBase::starttime() const {
+inline uint64_t EventBase::startTime() const {
   return timestamps_.front().stamp;
 }
 
 inline uint64_t EventBase::cost() const {
-  return acc::elapsed(starttime());
+  return acc::elapsed(startTime());
 }
 
 inline const TimeoutOption& EventBase::timeoutOption() const {
@@ -128,19 +150,19 @@ inline const TimeoutOption& EventBase::timeoutOption() const {
 }
 
 inline Timeout<EventBase> EventBase::edeadline() {
-  return Timeout<EventBase>(this, starttime() + FLAGS_event_lp_timeout, true);
+  return Timeout<EventBase>(this, startTime() + FLAGS_event_lp_timeout, true);
 }
 
 inline Timeout<EventBase> EventBase::cdeadline() {
-  return Timeout<EventBase>(this, starttime() + timeoutOpt_.ctimeout);
+  return Timeout<EventBase>(this, startTime() + timeoutOpt_.ctimeout);
 }
 
 inline Timeout<EventBase> EventBase::rdeadline() {
-  return Timeout<EventBase>(this, starttime() + timeoutOpt_.rtimeout);
+  return Timeout<EventBase>(this, startTime() + timeoutOpt_.rtimeout);
 }
 
 inline Timeout<EventBase> EventBase::wdeadline() {
-  return Timeout<EventBase>(this, starttime() + timeoutOpt_.wtimeout);
+  return Timeout<EventBase>(this, startTime() + timeoutOpt_.wtimeout);
 }
 
 inline bool EventBase::isConnectTimeout() const {

@@ -15,26 +15,20 @@
  */
 
 #include <gtest/gtest.h>
-#include <accelerator/Waker.h>
-#include "raster/event/Poll.h"
 #include "raster/event/test/EventBaseTest.h"
 
 using namespace raster;
 
 TEST(Poll, all) {
-  std::unique_ptr<Poll> poll = Poll::create(64);
-  acc::Waker waker;
+  Event event(1);
 
-  poll->event(waker.fd()) = new Event(waker.fd());
-  poll->add(waker.fd(), EventBase::kRead);
-  int n = 0;
+  event.restart();
 
-  waker.wake();
-  n = poll->wait(1);
-  EXPECT_EQ(1, n);
-  EXPECT_EQ(waker.fd(), poll->firedFds()[0].fd);
-
-  waker.consume();
-  n = poll->wait(1);
-  EXPECT_EQ(0, n);
+  event.setState(Event::State::kConnect);
+  event.setState(Event::State::kToRead);
+  event.setState(Event::State::kReading);
+  event.setState(Event::State::kReaded);
+  event.setState(Event::State::kToWrite);
+  event.setState(Event::State::kWriting);
+  event.setState(Event::State::kWrited);
 }

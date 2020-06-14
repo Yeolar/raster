@@ -79,13 +79,13 @@ bool KqueuePoll::add(int fd, int mask) {
     return false;
   }
   struct kevent ke;
-  if (mask & kRead) {
+  if (mask & EventBase::kRead) {
     addRead(&ke, fd, fd_);
   }
-  if (mask & kWrite) {
+  if (mask & EventBase::kWrite) {
     addWrite(&ke, fd, fd_);
   }
-  eventMap_[fd] = mask;
+  eventMap_[fd]->setMask(mask);
   return true;
 }
 
@@ -95,21 +95,23 @@ bool KqueuePoll::modify(int fd, int mask) {
     return false;
   }
   struct kevent ke;
-  if ((eventMap_[fd] & kRead) != (mask & kRead)) {
-    if (mask & kRead) {
+  if ((eventMap_[fd]->mask() & EventBase::kRead)
+      != (mask & EventBase::kRead)) {
+    if (mask & EventBase::kRead) {
       addRead(&ke, fd, fd_);
     } else {
       delRead(&ke, fd, fd_);
     }
   }
-  if ((eventMap_[fd] & kWrite) != (mask & kWrite)) {
-    if (mask & kWrite) {
+  if ((eventMap_[fd]->mask() & EventBase::kWrite)
+      != (mask & EventBase::kWrite)) {
+    if (mask & EventBase::kWrite) {
       addWrite(&ke, fd, fd_);
     } else {
       delWrite(&ke, fd, fd_);
     }
   }
-  eventMap_[fd] = mask;
+  eventMap_[fd]->setMask(mask);
   return true;
 }
 
@@ -119,13 +121,13 @@ bool KqueuePoll::remove(int fd) {
     return false;
   }
   struct kevent ke;
-  if (eventMap_[fd] & kRead) {
+  if (eventMap_[fd]->mask() & EventBase::kRead) {
     delRead(&ke, fd, fd_);
   }
-  if (eventMap_[fd] & kWrite) {
+  if (eventMap_[fd]->mask() & EventBase::kWrite) {
     delWrite(&ke, fd, fd_);
   }
-  eventMap_[fd] = kNone;
+  eventMap_[fd]->setMask(EventBase::kNone);
   return true;
 }
 
@@ -146,9 +148,9 @@ int KqueuePoll::wait(int timeout) {
       int mask = 0;
       struct kevent& ke = events_[i];
       if (ke.filter == EVFILT_READ)
-        mask |= kRead;
+        mask |= EventBase::kRead;
       if (ke.filter == EVFILT_WRITE)
-        mask |= kWrite;
+        mask |= EventBase::kWrite;
       fired_[i].fd = ke.ident;
       fired_[i].mask = mask;
     }

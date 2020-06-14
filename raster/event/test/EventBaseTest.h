@@ -14,27 +14,28 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-#include <accelerator/Waker.h>
-#include "raster/event/Poll.h"
-#include "raster/event/test/EventBaseTest.h"
+#pragma once
 
-using namespace raster;
+#include "raster/event/EventBase.h"
 
-TEST(Poll, all) {
-  std::unique_ptr<Poll> poll = Poll::create(64);
-  acc::Waker waker;
+namespace raster {
 
-  poll->event(waker.fd()) = new Event(waker.fd());
-  poll->add(waker.fd(), EventBase::kRead);
-  int n = 0;
+class Event : public EventBase {
+ public:
+  Event(int fd, const TimeoutOption& timeoutOpt = TimeoutOption())
+      : EventBase(timeoutOpt), fd_(fd) {
+  }
 
-  waker.wake();
-  n = poll->wait(1);
-  EXPECT_EQ(1, n);
-  EXPECT_EQ(waker.fd(), poll->firedFds()[0].fd);
+  int fd() const override {
+    return fd_;
+  }
 
-  waker.consume();
-  n = poll->wait(1);
-  EXPECT_EQ(0, n);
-}
+  std::string str() const override {
+    return acc::to<std::string>("Event(", fd_, ")");
+  }
+
+ private:
+  int fd_;
+};
+
+} // namespace raster

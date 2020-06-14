@@ -1,8 +1,10 @@
 # Copyright 2017-present Yeolar
 
 set(RASTER_EVENT_TEST_SRCS
+    EventBaseTest.cpp
     PollTest.cpp
     SelectPollTest.cpp
+    TimedHeapTest.cpp
 )
 
 foreach(test_src ${RASTER_EVENT_TEST_SRCS})

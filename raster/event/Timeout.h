@@ -44,9 +44,9 @@ inline bool operator<(const Timeout<T>& lhs, const Timeout<T>& rhs) {
 }
 
 struct TimeoutOption {
-  uint64_t ctimeout;    // connect timeout
-  uint64_t rtimeout;    // read timeout
-  uint64_t wtimeout;    // write timeout
+  uint64_t ctimeout{uint64_t(-1)};    // connect timeout
+  uint64_t rtimeout{uint64_t(-1)};    // read timeout
+  uint64_t wtimeout{uint64_t(-1)};    // write timeout
 };
 
 std::ostream& operator<<(std::ostream& os, const TimeoutOption& timeout);
