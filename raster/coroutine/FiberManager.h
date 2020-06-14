@@ -18,7 +18,7 @@
 
 #include "raster/coroutine/Fiber.h"
 
-namespace rdd {
+namespace raster {
 
 class FiberManager {
  public:
@@ -40,4 +40,4 @@ class FiberManager {
 
 Fiber::Task* getCurrentFiberTask();
 
-} // namespace rdd
+} // namespace raster

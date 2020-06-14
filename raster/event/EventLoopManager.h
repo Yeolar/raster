@@ -26,6 +26,8 @@ class EventLoopManager {
  public:
   static EventLoopManager* getInstance();
 
+  EventLoopManager() {}
+
   EventLoop* getEventLoop();
 
   void clearEventLoop();
@@ -34,8 +36,6 @@ class EventLoopManager {
   EventLoopManager& operator=(const EventLoopManager&) = delete;
 
  private:
-  EventLoopManager() = default;
-
   acc::ThreadLocal<EventLoop> localStore_;
 };
 

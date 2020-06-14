@@ -20,10 +20,10 @@
 
 #include "raster/raster-config.h"
 
-#if RDD_UNUSUAL_GFLAGS_NAMESPACE
-namespace RDD_GFLAGS_NAMESPACE { }
+#if RASTER_UNUSUAL_GFLAGS_NAMESPACE
+namespace RASTER_GFLAGS_NAMESPACE { }
 namespace gflags {
-  using namespace RDD_GFLAGS_NAMESPACE;
+  using namespace RASTER_GFLAGS_NAMESPACE;
 }  // namespace gflags
 #endif
 

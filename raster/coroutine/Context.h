@@ -16,15 +16,19 @@
 
 #pragma once
 
+#if __APPLE__
+#define _XOPEN_SOURCE
+#endif
+
 #include <ucontext.h>
 
-#include "accelerator/Function.h"
+#include "raster/event/Function.h"
 
-namespace rdd {
+namespace raster {
 
 class Context {
  public:
-  Context(acc::VoidFunc&& func,
+  Context(VoidFunc&& func,
           unsigned char* stackLimit,
           size_t stackSize)
     : func_(std::move(func)) {
@@ -48,9 +52,9 @@ class Context {
     ctx->func_();
   }
 
-  acc::VoidFunc func_;
+  VoidFunc func_;
   ucontext_t fiberContext_;
   ucontext_t mainContext_;
 };
 
-} // namespace rdd
+} // namespace raster

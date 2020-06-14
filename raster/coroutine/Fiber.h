@@ -21,19 +21,20 @@
 #include <list>
 #include <memory>
 
-#include "accelerator/Time.h"
+#include <accelerator/Time.h>
+
 #include "raster/coroutine/BoostContext.h"
 
-namespace rdd {
+namespace raster {
 
-#define RDD_FIBER_GEN(x) \
-    x(Init),             \
-    x(Runable),          \
-    x(Running),          \
-    x(Block),            \
+#define RASTER_FIBER_GEN(x) \
+    x(Init),                \
+    x(Runable),             \
+    x(Running),             \
+    x(Block),               \
     x(Exit)
 
-#define RDD_FIBER_ENUM(status) k##status
+#define RASTER_FIBER_ENUM(status) k##status
 
 class Fiber {
  public:
@@ -43,13 +44,13 @@ class Fiber {
     void run();
 
     Fiber* fiber;
-    std::list<acc::VoidFunc> blockCallbacks;
-    acc::VoidFunc scheduleCallback;
+    std::list<VoidFunc> blockCallbacks;
+    VoidFunc scheduleCallback;
   };
 
  public:
   enum Status {
-    RDD_FIBER_GEN(RDD_FIBER_ENUM)
+    RASTER_FIBER_GEN(RASTER_FIBER_ENUM)
   };
 
   static size_t count() { return count_; }
@@ -58,9 +59,9 @@ class Fiber {
 
   ~Fiber();
 
-  Task* task() const { return task_.get(); }
+  Task* task() const;
 
-  int status() const { return status_; }
+  int status() const;
   void setStatus(int status);
 
   const char* statusName() const;
@@ -68,7 +69,7 @@ class Fiber {
   void execute();
   void yield(int status);
 
-  uint64_t starttime() const;
+  uint64_t startTime() const;
   uint64_t cost() const;
 
   std::string timestampStr() const;
@@ -86,11 +87,29 @@ class Fiber {
   Context context_;
 
   int status_{kInit};
-  std::vector<acc::Timestamp> timestamps_;
+  std::vector<acc::StageTimestamp> timestamps_;
 };
 
 std::ostream& operator<<(std::ostream& os, const Fiber& fiber);
 
-#undef RDD_FIBER_ENUM
+#undef RASTER_FIBER_ENUM
 
-} // namespace rdd
+//////////////////////////////////////////////////////////////////////
+
+inline Fiber::Task* Fiber::task() const {
+  return task_.get();
+}
+
+inline int Fiber::status() const {
+  return status_;
+}
+
+inline uint64_t Fiber::startTime() const {
+  return timestamps_.front().stamp;
+}
+
+inline uint64_t Fiber::cost() const {
+  return acc::elapsed(startTime());
+}
+
+} // namespace raster

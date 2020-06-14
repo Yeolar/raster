@@ -16,18 +16,21 @@
 
 #include "raster/coroutine/Fiber.h"
 
-#include "accelerator/Logging.h"
+#include <accelerator/Logging.h>
+
 #include "raster/coroutine/FiberManager.h"
 
-#define RDD_FIBER_STR(status) #status
+#define RASTER_FIBER_STR(status) #status
 
 namespace {
-  static const char* statusStrings[] = {
-    RDD_FIBER_GEN(RDD_FIBER_STR)
-  };
+
+static const char* statusStrings[] = {
+  RASTER_FIBER_GEN(RASTER_FIBER_STR)
+};
+
 }
 
-namespace rdd {
+namespace raster {
 
 void Fiber::Task::run() {
   handle();
@@ -37,12 +40,12 @@ void Fiber::Task::run() {
 std::atomic<size_t> Fiber::count_(0);
 
 Fiber::Fiber(int stackSize, std::unique_ptr<Task> task)
-  : task_(std::move(task)),
-    stackLimit_(new unsigned char[stackSize]),
-    stackSize_(stackSize),
-    context_(std::bind(&Task::run, task_.get()), stackLimit_, stackSize_) {
+    : task_(std::move(task)),
+      stackLimit_(new unsigned char[stackSize]),
+      stackSize_(stackSize),
+      context_(std::bind(&Task::run, task_.get()), stackLimit_, stackSize_) {
   task_->fiber = this;
-  timestamps_.push_back(std::move(acc::Timestamp(status_)));
+  timestamps_.push_back(acc::StageTimestamp(status_));
   ++count_;
 }
 
@@ -53,7 +56,7 @@ Fiber::~Fiber() {
 
 void Fiber::setStatus(int status) {
   status_ = status;
-  timestamps_.push_back(std::move(acc::Timestamp(status, cost())));
+  timestamps_.push_back(acc::StageTimestamp(status, cost()));
 }
 
 const char* Fiber::statusName() const {
@@ -74,24 +77,20 @@ void Fiber::yield(int status) {
   context_.deactivate();
 }
 
-uint64_t Fiber::starttime() const {
-  return timestamps_.front().stamp;
-}
-
-uint64_t Fiber::cost() const {
-  return acc::timePassed(starttime());
-}
-
 std::string Fiber::timestampStr() const {
-  return acc::join("-", timestamps_);
+  std::vector<std::string> v;
+  for (auto& ts : timestamps_) {
+    v.push_back(ts.str());
+  }
+  return acc::join("-", v);
 }
 
 std::ostream& operator<<(std::ostream& os, const Fiber& fiber) {
   os << "fc("
-     << (void*)(&fiber) << ", "
-     << fiber.statusName() << ", "
+     << (void*)(&fiber) << ","
+     << fiber.statusName() << ","
      << fiber.timestampStr() << ")";
   return os;
 }
 
-} // namespace rdd
+} // namespace raster

@@ -23,7 +23,7 @@
 #include <boost/context/fcontext.hpp>
 #endif
 
-#include "accelerator/Function.h"
+#include "raster/event/Function.h"
 
 /**
  * Wrappers for different versions of boost::context library
@@ -38,7 +38,7 @@
  * https://github.com/boostorg/context/blob/boost-1.61.0/include/boost/context/detail/fcontext.hpp
  */
 
-namespace rdd {
+namespace raster {
 
 class Context {
 #if BOOST_VERSION >= 106100
@@ -62,7 +62,7 @@ class Context {
 #endif
 
  public:
-  Context(acc::VoidFunc&& func,
+  Context(VoidFunc&& func,
           unsigned char* stackLimit,
           size_t stackSize)
     : func_(std::move(func)) {
@@ -124,9 +124,9 @@ class Context {
   }
 #endif
 
-  acc::VoidFunc func_;
+  VoidFunc func_;
   FiberContext fiberContext_;
   MainContext mainContext_;
 };
 
-} // namespace rdd
+} // namespace raster

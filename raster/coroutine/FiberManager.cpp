@@ -18,7 +18,7 @@
 
 #include "accelerator/Logging.h"
 
-namespace rdd {
+namespace raster {
 
 __thread Fiber* FiberManager::fiber_ = nullptr;
 
@@ -77,4 +77,4 @@ Fiber::Task* getCurrentFiberTask() {
   return fiber ? fiber->task() : nullptr;
 }
 
-} // namespace rdd
+} // namespace raster
