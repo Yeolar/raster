@@ -1,12 +1,12 @@
 /*
- * Copyright 2017-present Facebook, Inc.
- * Copyright 2020 Yeolar
+ * Copyright 2017 Facebook, Inc.
+ * Copyright 2017 Yeolar
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,15 +25,15 @@
 #include <mutex>
 #include <thread>
 
-#include "raster/concurrency/Executor.h"
-#include "raster/concurrency/ThreadFactory.h"
+#include <accelerator/thread/Waiter.h>
+
+#include "raster/executors/Executor.h"
+#include "raster/executors/ThreadFactory.h"
 
 namespace raster {
 
-/***
- *  ThreadedExecutor
- *
- *  An executor for blocking tasks.
+/**
+ *  ThreadedExecutor - An executor for blocking tasks.
  *
  *  This executor runs each task in its own thread. It works well for tasks
  *  which mostly sleep, but works poorly for tasks which mostly compute.
@@ -57,12 +57,12 @@ class ThreadedExecutor : public virtual Executor {
  public:
   explicit ThreadedExecutor(
       std::shared_ptr<ThreadFactory> threadFactory = newDefaultThreadFactory());
-  ~ThreadedExecutor() override;
+  virtual ~ThreadedExecutor();
 
   ThreadedExecutor(ThreadedExecutor const&) = delete;
-  ThreadedExecutor(ThreadedExecutor&&) = delete;
-
   ThreadedExecutor& operator=(ThreadedExecutor const&) = delete;
+
+  ThreadedExecutor(ThreadedExecutor&&) = delete;
   ThreadedExecutor& operator=(ThreadedExecutor&&) = delete;
 
   void add(VoidFunc func) override;
@@ -70,9 +70,7 @@ class ThreadedExecutor : public virtual Executor {
  private:
   static std::shared_ptr<ThreadFactory> newDefaultThreadFactory();
 
-  void notify();
   void control();
-  void controlWait();
   bool controlPerformAll();
   void controlJoinFinishedThreads();
   void controlLaunchEnqueuedTasks();
@@ -83,9 +81,7 @@ class ThreadedExecutor : public virtual Executor {
 
   std::atomic<bool> stopping_{false};
 
-  std::mutex controlm_;
-  std::condition_variable controlc_;
-  bool controls_ = false;
+  acc::Waiter controlw_;
   std::thread controlt_;
 
   std::mutex enqueuedm_;
