@@ -17,15 +17,7 @@
 
 #pragma once
 
-#include <algorithm>
-#include <atomic>
 #include <cassert>
-#include <functional>
-#include <limits>
-#include <string>
-#include <vector>
-
-#include <accelerator/Macro.h>
 
 namespace raster {
 
@@ -43,11 +35,5 @@ struct CacheLocality {
       kFalseSharingRange == 128,
       "ACC_ALIGN_TO_AVOID_FALSE_SHARING should track kFalseSharingRange");
 };
-
-// TODO replace __attribute__ with alignas and 128 with kFalseSharingRange
-
-/// An attribute that will cause a variable or field to be aligned so that
-/// it doesn't have false sharing with anything at a smaller memory address.
-#define ACC_ALIGN_TO_AVOID_FALSE_SHARING __attribute__((__aligned__(128)))
 
 } // namespace raster

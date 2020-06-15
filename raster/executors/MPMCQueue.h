@@ -27,9 +27,9 @@
 #include <accelerator/Logging.h>
 #include <accelerator/Traits.h>
 
-#include "raster/executors/Asm.h"
-#include "raster/executors/CacheLocality.h"
-#include "raster/executors/Futex.h"
+#include "raster/executors/detail/Asm.h"
+#include "raster/executors/detail/CacheLocality.h"
+#include "raster/executors/detail/Futex.h"
 
 namespace raster {
 
@@ -389,7 +389,7 @@ class MPMCQueue {
   };
 
   /// The maximum number of items in the queue at once
-  size_t ACC_ALIGN_TO_AVOID_FALSE_SHARING capacity_;
+  alignas(CacheLocality::kFalseSharingRange) size_t capacity_;
 
   /// An array of capacity_ SingleElementQueue-s, each of which holds
   /// either 0 or 1 item.  We over-allocate by 2 * kSlotPadding and don't
@@ -402,18 +402,18 @@ class MPMCQueue {
   int stride_;
 
   /// Enqueuers get tickets from here
-  std::atomic<uint64_t> ACC_ALIGN_TO_AVOID_FALSE_SHARING pushTicket_;
+  alignas(CacheLocality::kFalseSharingRange) std::atomic<uint64_t> pushTicket_;
 
   /// Dequeuers get tickets from here
-  std::atomic<uint64_t> ACC_ALIGN_TO_AVOID_FALSE_SHARING popTicket_;
+  alignas(CacheLocality::kFalseSharingRange) std::atomic<uint64_t> popTicket_;
 
   /// This is how many times we will spin before using FUTEX_WAIT when
   /// the queue is full on enqueue, adaptively computed by occasionally
   /// spinning for longer and smoothing with an exponential moving average
-  std::atomic<uint32_t> ACC_ALIGN_TO_AVOID_FALSE_SHARING pushSpinCutoff_;
+  alignas(CacheLocality::kFalseSharingRange) std::atomic<uint32_t> pushSpinCutoff_;
 
   /// The adaptive spin cutoff when the queue is empty on dequeue
-  std::atomic<uint32_t> ACC_ALIGN_TO_AVOID_FALSE_SHARING popSpinCutoff_;
+  alignas(CacheLocality::kFalseSharingRange) std::atomic<uint32_t> popSpinCutoff_;
 
   /// Alignment doesn't prevent false sharing at the end of the struct,
   /// so fill out the last cache line

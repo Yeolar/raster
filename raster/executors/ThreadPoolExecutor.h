@@ -126,7 +126,7 @@ class ThreadPoolExecutor : public virtual Executor {
 
   struct TaskStatsCallbackRegistry;
 
-  struct ACC_ALIGN_TO_AVOID_FALSE_SHARING Thread : public ThreadHandle {
+  struct alignas(CacheLocality::kFalseSharingRange) Thread : public ThreadHandle {
     explicit Thread(ThreadPoolExecutor* pool)
         : id(nextId++),
           handle(),
