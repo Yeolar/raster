@@ -16,25 +16,26 @@
 
 #pragma once
 
-#include <stdexcept>
-#include <string.h>
+#include <cstring>
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 #include <arpa/inet.h>
 
-#include "accelerator/AnyPtr.h"
-#include "accelerator/event/EventBase.h"
-#include "accelerator/io/IOBuf.h"
+#include <accelerator/AnyPtr.h>
+#include <accelerator/io/IOBuf.h>
+
 #include "raster/coroutine/Fiber.h"
+#include "raster/event/EventBase.h"
 #include "raster/net/Socket.h"
 #include "raster/net/Transport.h"
 
-namespace rdd {
+namespace raster {
 
 class Channel;
 class Processor;
 
-class Event : public acc::EventBase {
+class Event : public EventBase {
  public:
   static Event* getCurrent();
 
@@ -105,7 +106,7 @@ class Event : public acc::EventBase {
   template <class T, class... Args>
   void setUserContext(Args&&... args) {
     userCtx_ = acc::UniqueAnyPtr(
-        acc::make_unique<T>(std::forward<Args>(args)...));
+        std::make_unique<T>(std::forward<Args>(args)...));
   }
 
   template <class T>
@@ -140,4 +141,4 @@ inline std::ostream& operator<<(std::ostream& os, const Event& event) {
   return os;
 }
 
-} // namespace rdd
+} // namespace raster

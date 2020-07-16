@@ -27,20 +27,20 @@
 DECLARE_uint64(net_conn_limit);
 DECLARE_uint64(net_conn_timeout);
 
-namespace rdd {
+namespace raster {
 
-#define RDD_SOCKET_GEN(x)  \
+#define RASTER_SOCKET_GEN(x)  \
     x(None),                      \
     x(Listener),                  \
     x(Server),                    \
     x(Client)
 
-#define RDD_SOCKET_ENUM(role) k##role
+#define RASTER_SOCKET_ENUM(role) k##role
 
 class Socket {
  public:
   enum Role {
-    RDD_SOCKET_GEN(RDD_SOCKET_ENUM)
+    RASTER_SOCKET_GEN(RASTER_SOCKET_ENUM)
   };
 
   static size_t count() { return count_; }
@@ -112,6 +112,6 @@ class Socket {
 
 std::ostream& operator<<(std::ostream& os, const Socket& socket);
 
-#undef RDD_SOCKET_ENUM
+#undef RASTER_SOCKET_ENUM
 
-} // namespace rdd
+} // namespace raster

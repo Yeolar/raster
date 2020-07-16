@@ -16,7 +16,7 @@
 
 #include "raster/net/Group.h"
 
-namespace rdd {
+namespace raster {
 
 using acc::SharedMutex;
 
@@ -63,4 +63,4 @@ void Group::increase(size_t bound) {
   groupCounts_.resize(capacity_ + 1, 0);
 }
 
-} // namespace rdd
+} // namespace raster

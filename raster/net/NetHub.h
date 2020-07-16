@@ -16,13 +16,13 @@
 
 #pragma once
 
-#include "accelerator/event/EventLoop.h"
+#include "raster/event/EventLoop.h"
 #include "raster/coroutine/FiberHub.h"
 #include "raster/net/Event.h"
 #include "raster/net/Group.h"
 #include "raster/net/NetUtil.h"
 
-namespace rdd {
+namespace raster {
 
 struct ForwardTarget {
   int port{0};
@@ -50,4 +50,4 @@ class NetHub : public FiberHub {
   std::vector<ForwardTarget> forwards_;
 };
 
-} // namespace rdd
+} // namespace raster

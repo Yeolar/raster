@@ -19,10 +19,10 @@
 #include <cinttypes>
 #include <net/if.h>
 
-#include "accelerator/Conv.h"
-#include "accelerator/Exception.h"
-#include "accelerator/Hash.h"
-#include "accelerator/Macro.h"
+#include <accelerator/Conv.h>
+#include <accelerator/Exception.h>
+#include <accelerator/Hash.h>
+#include <accelerator/Macro.h>
 
 namespace {
 
@@ -195,7 +195,7 @@ inline void fastIpv6AppendToString(const in6_addr& in6Addr, std::string& out) {
 
 }
 
-namespace rdd {
+namespace raster {
 
 std::string IPAddressV4::str() const {
   return fastIpv4ToString(addr_.inAddr_);
@@ -620,4 +620,4 @@ int Peer::toSockaddrStorage(sockaddr_storage* dest, uint16_t port) const {
   }
 }
 
-} // namespace rdd
+} // namespace raster

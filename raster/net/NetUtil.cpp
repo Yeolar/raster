@@ -20,9 +20,9 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#include "accelerator/Logging.h"
+#include <accelerator/Logging.h>
 
-namespace rdd {
+namespace raster {
 
 std::string getNodeName() {
   struct utsname buf;
@@ -53,4 +53,4 @@ std::string getNodeIp() {
   return ip.empty() ? "(unknown)" : ip;
 }
 
-} // namespace rdd
+} // namespace raster

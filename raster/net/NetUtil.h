@@ -21,7 +21,7 @@
 #include "accelerator/event/EventUtil.h"
 #include "raster/net/Peer.h"
 
-namespace rdd {
+namespace raster {
 
 typedef acc::TimeoutOption TimeoutOption;
 
@@ -34,4 +34,4 @@ std::string getNodeName();
 
 std::string getNodeIp();
 
-} // namespace rdd
+} // namespace raster

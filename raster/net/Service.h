@@ -19,7 +19,7 @@
 #include "raster/net/Channel.h"
 #include "raster/net/NetUtil.h"
 
-namespace rdd {
+namespace raster {
 
 class Service {
  public:
@@ -43,4 +43,4 @@ class Service {
   std::shared_ptr<Channel> channel_;
 };
 
-} // namespace rdd
+} // namespace raster

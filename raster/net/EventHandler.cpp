@@ -16,11 +16,12 @@
 
 #include "raster/net/EventHandler.h"
 
-#include "accelerator/Logging.h"
-#include "accelerator/stats/Monitor.h"
+#include <accelerator/Logging.h>
+#include <accelerator/Monitor.h>
+
 #include "raster/net/Event.h"
 
-namespace rdd {
+namespace raster {
 
 void EventHandler::onConnect(acc::EventBase* ev) {
   Event* event = reinterpret_cast<Event*>(ev);
@@ -234,4 +235,4 @@ void EventHandler::onError(acc::EventBase* ev) {
   close(event);
 }
 
-} // namespace rdd
+} // namespace raster

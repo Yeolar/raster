@@ -16,10 +16,11 @@
 
 #pragma once
 
-#include "accelerator/io/IOBufQueue.h"
+#include <accelerator/io/IOBufQueue.h>
+
 #include "raster/net/Socket.h"
 
-namespace rdd {
+namespace raster {
 
 class Transport {
  public:
@@ -67,4 +68,4 @@ class TransportFactory {
   virtual std::unique_ptr<Transport> create() = 0;
 };
 
-} // namespace rdd
+} // namespace raster

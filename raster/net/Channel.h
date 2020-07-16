@@ -19,7 +19,7 @@
 #include "raster/net/Processor.h"
 #include "raster/net/Transport.h"
 
-namespace rdd {
+namespace raster {
 
 class Channel {
  public:
@@ -61,4 +61,4 @@ inline std::ostream& operator<<(std::ostream& os, const Channel& channel) {
   return os;
 }
 
-} // namespace rdd
+} // namespace raster

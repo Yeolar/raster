@@ -26,7 +26,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-namespace rdd {
+namespace raster {
 
 typedef std::array<uint8_t, 4> ByteArray4;
 typedef std::array<uint8_t, 16> ByteArray16;
@@ -254,13 +254,13 @@ inline std::ostream& operator<<(std::ostream& os, const Peer& peer) {
   return os;
 }
 
-} // namespace rdd
+} // namespace raster
 
 namespace std {
 
 template <>
-struct hash<rdd::Peer> {
-  size_t operator()(const rdd::Peer& peer) const {
+struct hash<raster::Peer> {
+  size_t operator()(const raster::Peer& peer) const {
     return peer.hash();
   }
 };

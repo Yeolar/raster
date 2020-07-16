@@ -24,7 +24,7 @@
 #include "raster/net/Event.h"
 #include "raster/net/NetUtil.h"
 
-namespace rdd {
+namespace raster {
 
 class EventPool {
  public:
@@ -52,4 +52,4 @@ class EventPoolManager {
   mutable std::mutex lock_;
 };
 
-} // namespace rdd
+} // namespace raster

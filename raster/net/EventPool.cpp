@@ -16,7 +16,7 @@
 
 #include "raster/net/EventPool.h"
 
-namespace rdd {
+namespace raster {
 
 std::unique_ptr<Event> EventPool::get(const Peer& peer) {
   std::lock_guard<std::mutex> guard(lock_);
@@ -51,4 +51,4 @@ EventPool* EventPoolManager::getPool(int id) {
   return pool_[id].get();
 }
 
-} // namespace rdd
+} // namespace raster

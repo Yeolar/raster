@@ -36,7 +36,7 @@
 *.pb.h
 *.pb.cc
 
-/build/
-/deps/
+/_build/
+/_deps/
 /docs/_build/
 /raster/raster-config.h

@@ -20,7 +20,7 @@
 #include "raster/net/Event.h"
 #include "raster/net/Processor.h"
 
-namespace rdd {
+namespace raster {
 
 class EventTask : public Fiber::Task {
  public:
@@ -41,4 +41,4 @@ class EventTask : public Fiber::Task {
   Event* event_;
 };
 
-} // namespace rdd
+} // namespace raster

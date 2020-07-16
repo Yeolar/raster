@@ -16,11 +16,11 @@
 
 #pragma once
 
-#include "accelerator/event/EventLoop.h"
+#include "raster/event/EventLoop.h"
 #include "raster/net/NetHub.h"
 #include "raster/net/Service.h"
 
-namespace rdd {
+namespace raster {
 
 class Acceptor {
  public:
@@ -44,4 +44,4 @@ class Acceptor {
   std::map<std::string, std::unique_ptr<Service>> services_;
 };
 
-} // namespace rdd
+} // namespace raster

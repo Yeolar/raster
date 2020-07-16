@@ -16,15 +16,15 @@
 
 #include "raster/net/ErrorEnum.h"
 
-#define RDD_NET_ERROR_STR(error) #error
+#define RASTER_NET_ERROR_STR(error) #error
 
 namespace {
   static const char* netErrorStrings[] = {
-    RDD_NET_ERROR_GEN(RDD_NET_ERROR_STR)
+    RASTER_NET_ERROR_GEN(RASTER_NET_ERROR_STR)
   };
 }
 
-namespace rdd {
+namespace raster {
 
 const char* getNetErrorString(NetError error) {
   if (error < kErrorNone || error >= kErrorMax) {
@@ -38,4 +38,4 @@ const char* getNetErrorStringByIndex(int i) {
   return netErrorStrings[i];
 }
 
-} // namespace rdd
+} // namespace raster

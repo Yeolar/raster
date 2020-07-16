@@ -16,10 +16,10 @@
 
 #include "raster/net/Acceptor.h"
 
-namespace rdd {
+namespace raster {
 
 Acceptor::Acceptor(std::shared_ptr<NetHub> hub)
-  : hub_(hub), loop_(acc::make_unique<acc::EventLoop>()) {
+  : hub_(hub), loop_(std::make_unique<acc::EventLoop>()) {
 }
 
 void Acceptor::addService(std::unique_ptr<Service> service) {
@@ -63,4 +63,4 @@ void Acceptor::stop() {
   loop_->stop();
 }
 
-} // namespace rdd
+} // namespace raster

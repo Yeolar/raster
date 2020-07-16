@@ -19,7 +19,7 @@
 #include "raster/net/Channel.h"
 #include "raster/net/EventTask.h"
 
-namespace rdd {
+namespace raster {
 
 void NetHub::execute(Event* event) {
   if (event->task()) {
@@ -81,4 +81,4 @@ void NetHub::addForwardTarget(ForwardTarget&& t) {
   forwards_.push_back(std::move(t));
 }
 
-} // namespace rdd
+} // namespace raster

@@ -20,7 +20,7 @@
 
 #include "raster/net/Event.h"
 
-namespace rdd {
+namespace raster {
 
 class Event;
 
@@ -41,4 +41,4 @@ class ProcessorFactory {
   virtual std::unique_ptr<Processor> create(Event* event) = 0;
 };
 
-} // namespace rdd
+} // namespace raster

@@ -18,7 +18,7 @@
 
 #include "raster/net/EventPool.h"
 
-namespace rdd {
+namespace raster {
 
 AsyncClient::AsyncClient(std::shared_ptr<NetHub> hub,
                          const Peer& peer,
@@ -110,4 +110,4 @@ bool yieldMultiTask(std::initializer_list<AsyncClient*> clients) {
   return false;
 }
 
-} // namespace rdd
+} // namespace raster

@@ -16,7 +16,7 @@
 
 #include "raster/net/Transport.h"
 
-namespace rdd {
+namespace raster {
 
 void Transport::getReadBuffer(void** buf, size_t* bufSize) {
   std::pair<void*, uint32_t> readSpace =
@@ -70,4 +70,4 @@ void Transport::clone(Transport* other) {
   writeBuf_.append(other->writeBuf_.front()->clone());
 }
 
-} // namespace rdd
+} // namespace raster

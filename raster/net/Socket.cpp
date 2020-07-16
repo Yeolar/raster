@@ -22,31 +22,31 @@
 #include <netdb.h>
 #include <netinet/tcp.h>
 
-#include "accelerator/Conv.h"
-#include "accelerator/Logging.h"
-#include "accelerator/Memory.h"
-#include "accelerator/Time.h"
-#include "accelerator/io/FileUtil.h"
+#include <accelerator/Conv.h>
+#include <accelerator/FileUtil.h>
+#include <accelerator/Logging.h>
+#include <accelerator/Memory.h>
+#include <accelerator/Time.h>
 
 DEFINE_uint64(net_conn_limit, 100000,
               "Limit # of net connection.");
 DEFINE_uint64(net_conn_timeout, 600000000,
               "Long-polling timeout # of net connection.");
 
-#define RDD_SOCKET_STR(role) #role
+#define RASTER_SOCKET_STR(role) #role
 
 namespace {
   static const char* roleStrings[] = {
-    RDD_SOCKET_GEN(RDD_SOCKET_STR)
+    RASTER_SOCKET_GEN(RASTER_SOCKET_STR)
   };
 }
 
-namespace rdd {
+namespace raster {
 
 std::atomic<size_t> Socket::count_(0);
 
 std::unique_ptr<Socket> Socket::createSyncSocket() {
-  auto socket = acc::make_unique<Socket>();
+  auto socket = std::make_unique<Socket>();
   if (*socket) {
     socket->setReuseAddr();
     socket->setTCPNoDelay();
@@ -56,7 +56,7 @@ std::unique_ptr<Socket> Socket::createSyncSocket() {
 }
 
 std::unique_ptr<Socket> Socket::createAsyncSocket() {
-  auto socket = acc::make_unique<Socket>();
+  auto socket = std::make_unique<Socket>();
   if (*socket) {
     socket->setReuseAddr();
     //socket->setLinger(0);
@@ -115,7 +115,7 @@ std::unique_ptr<Socket> Socket::accept() {
   }
   Peer peer;
   peer.setFromSockaddr((struct sockaddr*)&sin);
-  return acc::make_unique<Socket>(fd, peer);
+  return std::make_unique<Socket>(fd, peer);
 }
 
 bool Socket::connect(const Peer& peer) {
@@ -294,4 +294,4 @@ std::ostream& operator<<(std::ostream& os, const Socket& socket) {
   return os;
 }
 
-} // namespace rdd
+} // namespace raster

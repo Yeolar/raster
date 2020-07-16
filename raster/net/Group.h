@@ -16,14 +16,13 @@
 
 #pragma once
 
+#include <cassert>
+#include <mutex>
 #include <stack>
 #include <stdexcept>
 #include <vector>
-#include <assert.h>
 
-#include "accelerator/thread/SharedMutex.h"
-
-namespace rdd {
+namespace raster {
 
 class Group {
  public:
@@ -45,7 +44,7 @@ class Group {
   size_t capacity_;
   std::vector<int> groupCounts_;
   std::stack<Key> groupKeys_; // available group ids
-  acc::SharedMutex lock_;
+  std::mutex lock_;
 };
 
-} // namespace rdd
+} // namespace raster

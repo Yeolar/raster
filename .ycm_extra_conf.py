@@ -71,7 +71,7 @@ flags = [
 '-isystem',
 '/usr/local/include',
 '-isystem',
-os.path.join(ROOT, 'deps/usr/local/include'),
+os.path.join(ROOT, '_deps/usr/local/include'),
 
 '-I', os.path.join(ROOT, ''),
 

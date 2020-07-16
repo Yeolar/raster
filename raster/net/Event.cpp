@@ -20,7 +20,7 @@
 #include "raster/net/Channel.h"
 #include "raster/net/EventTask.h"
 
-namespace rdd {
+namespace raster {
 
 Event* Event::getCurrent() {
   Fiber::Task* task = getCurrentFiberTask();
@@ -95,4 +95,4 @@ void Event::copyCallbacks(const Event& event) {
   closeCallback_ = event.closeCallback_;
 }
 
-} // namespace rdd
+} // namespace raster

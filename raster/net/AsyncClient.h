@@ -29,7 +29,7 @@
  *  1. single async client
  *  2. multiple async client
  */
-namespace rdd {
+namespace raster {
 
 class AsyncClient {
  public:
@@ -188,4 +188,4 @@ class MultiAsyncClient {
 // yield task for multiple clients with different types
 bool yieldMultiTask(std::initializer_list<AsyncClient*> clients);
 
-} // namespace rdd
+} // namespace raster

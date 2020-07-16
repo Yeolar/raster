@@ -16,10 +16,10 @@
 
 #pragma once
 
-namespace rdd {
+namespace raster {
 
 // Max must be the last one.
-#define RDD_NET_ERROR_GEN(x)                    \
+#define RASTER_NET_ERROR_GEN(x)                    \
     x(None),                                    \
     x(Message),                                 \
     x(Connect),                                 \
@@ -60,16 +60,16 @@ namespace rdd {
     x(ParseResponse),                           \
     x(Max)
 
-#define RDD_NET_ERROR_ENUM(error) kError##error
+#define RASTER_NET_ERROR_ENUM(error) kError##error
 
 enum NetError {
-  RDD_NET_ERROR_GEN(RDD_NET_ERROR_ENUM)
+  RASTER_NET_ERROR_GEN(RASTER_NET_ERROR_ENUM)
 };
 
-#undef RDD_NET_ERROR_ENUM
+#undef RASTER_NET_ERROR_ENUM
 
 extern const char* getNetErrorString(NetError error);
 
 extern const char* getNetErrorStringByIndex(int i);
 
-} // namespace rdd
+} // namespace raster

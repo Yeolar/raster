@@ -16,10 +16,10 @@
 
 #pragma once
 
-#include "accelerator/event/EventHandlerBase.h"
-#include "accelerator/event/EventLoop.h"
+#include "raster/event/EventHandlerBase.h"
+#include "raster/event/EventLoop.h"
 
-namespace rdd {
+namespace raster {
 
 class EventHandler : public acc::EventHandlerBase {
  public:
@@ -40,4 +40,4 @@ class EventHandler : public acc::EventHandlerBase {
   acc::EventLoop* loop_;
 };
 
-} // namespace rdd
+} // namespace raster

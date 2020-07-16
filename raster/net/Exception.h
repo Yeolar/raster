@@ -19,9 +19,9 @@
 #include <string>
 #include <utility>
 
-#include "accelerator/Conv.h"
+#include <accelerator/Conv.h>
 
-namespace rdd {
+namespace raster {
 
 class NetException : public std::exception {
  public:
@@ -53,4 +53,4 @@ class NetException : public std::exception {
   int code_;
 };
 
-} // namespace rdd
+} // namespace raster
