@@ -288,10 +288,9 @@ const char* Socket::roleName() const {
   return roleStrings[role_];
 }
 
-std::ostream& operator<<(std::ostream& os, const Socket& socket) {
-  os << socket.roleName()[0] << ":" << socket.fd()
-     << "[" << socket.peer() << "]";
-  return os;
+std::string Socket::str() const {
+  return acc::to<std::string>(
+      roleName()[0], ":", fd_, "[", peer_.describe(), "]");
 }
 
 } // namespace raster

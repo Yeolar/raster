@@ -30,9 +30,9 @@ DECLARE_uint64(net_conn_timeout);
 namespace raster {
 
 #define RASTER_SOCKET_GEN(x)  \
-    x(None),                      \
-    x(Listener),                  \
-    x(Server),                    \
+    x(None),                  \
+    x(Listener),              \
+    x(Server),                \
     x(Client)
 
 #define RASTER_SOCKET_ENUM(role) k##role
@@ -102,6 +102,8 @@ class Socket {
   bool isClient() const { return role_ == Role::kClient; }
   bool isServer() const { return role_ == Role::kServer; }
 
+  std::string str() const;
+
  private:
   static std::atomic<size_t> count_;
 
@@ -110,8 +112,11 @@ class Socket {
   Role role_{kNone};
 };
 
-std::ostream& operator<<(std::ostream& os, const Socket& socket);
-
 #undef RASTER_SOCKET_ENUM
+
+inline std::ostream& operator<<(std::ostream& os, const Socket& socket) {
+  os << socket.str();
+  return os;
+}
 
 } // namespace raster

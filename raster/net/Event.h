@@ -46,29 +46,24 @@ class Event : public EventBase {
 
   void reset();
 
-  uint64_t seqid() const { return seqid_; }
+  uint64_t seqid() const;
 
-  int group() const { return group_; }
-  void setGroup(int group) { group_ = group; }
+  int group() const;
+  void setGroup(int group);
 
-  bool isForward() const { return forward_; }
-  void setForward() { forward_ = true; }
+  bool isForward() const;
+  void setForward();
 
-  Fiber::Task* task() const { return task_; }
-  void setTask(Fiber::Task* task) { task_ = task; }
+  Fiber::Task* task() const;
+  void setTask(Fiber::Task* task);
 
   // socket
 
-  int fd() const override { return socket_->fd(); }
-  std::string str() const override {
-//  os << "ev(" << *event.socket()
-//     << ", " << event.stateName()
-//     << ", " << event.timestampStr() << ")";
-    return "";
-  }
+  int fd() const override;
+  std::string str() const override;
 
-  Socket* socket() const { return socket_.get(); }
-  Peer peer() const { return socket_->peer(); }
+  Socket* socket() const;
+  Peer peer() const;
 
   std::string label() const;
 
@@ -80,16 +75,10 @@ class Event : public EventBase {
   // transport
 
   template <class T = Transport>
-  T* transport() const {
-    return reinterpret_cast<T*>(transport_.get());
-  }
+  T* transport() const;
 
-  int readData() {
-    return transport_->readData(socket_.get());
-  }
-  int writeData() {
-    return transport_->writeData(socket_.get());
-  }
+  int readData();
+  int writeData();
 
   // callback
 
@@ -104,15 +93,12 @@ class Event : public EventBase {
   // user context
 
   template <class T, class... Args>
-  void setUserContext(Args&&... args) {
-    userCtx_ = acc::UniqueAnyPtr(
-        std::make_unique<T>(std::forward<Args>(args)...));
-  }
+  void setUserContext(Args&&... args);
 
   template <class T>
-  T& userContext() { return *userCtx_.get<T>(); }
+  T& userContext();
   template <class T>
-  const T& userContext() const { return *userCtx_.get<T>(); }
+  const T& userContext() const;
 
   Event(const Event&) = delete;
   Event& operator=(const Event&) = delete;
@@ -123,12 +109,11 @@ class Event : public EventBase {
   uint64_t seqid_;
   int group_;
   bool forward_;
+  Fiber::Task* task_;
 
   std::shared_ptr<Channel> channel_;
   std::unique_ptr<Socket> socket_;
   std::unique_ptr<Transport> transport_;
-
-  Fiber::Task* task_;
 
   std::function<void(Event*)> completeCallback_;
   std::function<void(Event*)> closeCallback_;
@@ -139,6 +124,84 @@ class Event : public EventBase {
 inline std::ostream& operator<<(std::ostream& os, const Event& event) {
   os << event.str();
   return os;
+}
+
+//////////////////////////////////////////////////////////////////////
+
+inline uint64_t Event::seqid() const {
+  return seqid_;
+}
+
+inline int Event::group() const {
+  return group_;
+}
+
+inline void Event::setGroup(int group) {
+  group_ = group;
+}
+
+inline bool Event::isForward() const {
+  return forward_;
+}
+
+inline void Event::setForward() {
+  forward_ = true;
+}
+
+inline Fiber::Task* Event::task() const {
+  return task_;
+}
+
+inline void Event::setTask(Fiber::Task* task) {
+  task_ = task;
+}
+
+inline int Event::fd() const {
+  return socket_->fd();
+}
+
+inline std::string Event::str() const {
+  return acc::to<std::string>("ev(", );
+//  os << "ev(" << *event.socket()
+//     << ", " << event.stateName()
+//     << ", " << event.timestampStr() << ")";
+  return "";
+}
+
+inline Socket* Event::socket() const {
+  return socket_.get();
+}
+
+inline Peer Event::peer() const {
+  return socket_->peer();
+}
+
+template <class T>
+inline T* Event::transport() const {
+  return reinterpret_cast<T*>(transport_.get());
+}
+
+inline int Event::readData() {
+  return transport_->readData(socket_.get());
+}
+inline int Event::writeData() {
+  return transport_->writeData(socket_.get());
+}
+
+template <class T, class... Args>
+inline void Event::setUserContext(Args&&... args) {
+  userCtx_ = acc::UniqueAnyPtr(
+      std::make_unique<T>(std::forward<Args>(args)...));
+}
+
+template <class T>
+inline T& Event::userContext() {
+  return *userCtx_.get<T>();
+}
+
+template <class T>
+inline const T& Event::userContext() const {
+  return *userCtx_.get<T>();
 }
 
 } // namespace raster

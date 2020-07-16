@@ -138,31 +138,10 @@ class Peer {
     }
   }
 
-  Peer(const Peer& peer) {
-    addr_ = peer.addr_;
-    family_ = peer.family_;
-    port_ = peer.port_;
-  }
-
-  Peer& operator=(const Peer& peer) {
-    addr_ = peer.addr_;
-    family_ = peer.family_;
-    port_ = peer.port_;
-    return *this;
-  }
-
-  Peer(Peer&& peer) noexcept {
-    addr_ = peer.addr_;
-    family_ = peer.family_;
-    port_ = peer.port_;
-  }
-
-  Peer& operator=(Peer&& peer) {
-    std::swap(addr_, peer.addr_);
-    std::swap(family_, peer.family_);
-    std::swap(port_, peer.port_);
-    return *this;
-  }
+  Peer(const Peer&) = default;
+  Peer& operator=(const Peer&) = default;
+  Peer(Peer&&) = default;
+  Peer& operator=(Peer&&) = default;
 
   void setFromHostPort(const char* host, uint16_t port);
   void setFromHostPort(const std::string& host, uint16_t port) {

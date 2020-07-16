@@ -18,7 +18,7 @@
 
 #include <string>
 
-#include "accelerator/event/EventUtil.h"
+#include "raster/event/Timeout.h"
 #include "raster/net/Peer.h"
 
 namespace raster {

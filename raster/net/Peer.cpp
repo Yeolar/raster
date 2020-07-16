@@ -27,8 +27,12 @@
 namespace {
 
 struct ScopedAddrInfo {
-  explicit ScopedAddrInfo(struct addrinfo* addrinfo) : info(addrinfo) {}
-  ~ScopedAddrInfo() { freeaddrinfo(info); }
+  explicit ScopedAddrInfo(struct addrinfo* addrinfo)
+      : info(addrinfo) {}
+
+  ~ScopedAddrInfo() {
+    freeaddrinfo(info);
+  }
 
   struct addrinfo* info;
 };
