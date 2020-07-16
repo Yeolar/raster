@@ -1,12 +1,12 @@
 /*
- * Copyright 2017-present Facebook, Inc.
- * Copyright 2020 Yeolar
+ * Copyright 2017 Facebook, Inc.
+ * Copyright 2017 Yeolar
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,19 +15,13 @@
  * limitations under the License.
  */
 
-#include "raster/concurrency/ThreadedExecutor.h"
+#include "raster/executors/ThreadedExecutor.h"
 
 #include <chrono>
 
 #include <accelerator/Logging.h>
 
 namespace raster {
-
-template <typename F>
-static auto with_unique_lock(std::mutex& m, F&& f) -> decltype(f()) {
-  std::unique_lock<std::mutex> lock(m);
-  return f();
-}
 
 ThreadedExecutor::ThreadedExecutor(std::shared_ptr<ThreadFactory> threadFactory)
     : threadFactory_(std::move(threadFactory)) {
@@ -36,7 +30,7 @@ ThreadedExecutor::ThreadedExecutor(std::shared_ptr<ThreadFactory> threadFactory)
 
 ThreadedExecutor::~ThreadedExecutor() {
   stopping_.store(true, std::memory_order_release);
-  notify();
+  controlw_.notifyOne();
   controlt_.join();
   ACCCHECK(running_.empty());
   ACCCHECK(finished_.empty());
@@ -44,45 +38,43 @@ ThreadedExecutor::~ThreadedExecutor() {
 
 void ThreadedExecutor::add(VoidFunc func) {
   ACCCHECK(!stopping_.load(std::memory_order_acquire));
-  with_unique_lock(enqueuedm_, [&] { enqueued_.push_back(std::move(func)); });
-  notify();
+  {
+    std::unique_lock<std::mutex> lock(enqueuedm_);
+    enqueued_.push_back(std::move(func));
+  }
+  controlw_.notifyOne();
 }
 
 std::shared_ptr<ThreadFactory> ThreadedExecutor::newDefaultThreadFactory() {
   return std::make_shared<ThreadFactory>("Threaded");
 }
 
-void ThreadedExecutor::notify() {
-  with_unique_lock(controlm_, [&] { controls_ = true; });
-  controlc_.notify_one();
-}
-
 void ThreadedExecutor::control() {
   acc::setThreadName("ThreadedCtrl");
+  constexpr auto kMaxWait = 10000000; // 10s
   auto looping = true;
   while (looping) {
-    controlWait();
+    controlw_.wait(kMaxWait);
     looping = controlPerformAll();
   }
-}
-
-void ThreadedExecutor::controlWait() {
-  constexpr auto kMaxWait = std::chrono::seconds(10);
-  std::unique_lock<std::mutex> lock(controlm_);
-  controlc_.wait_for(lock, kMaxWait, [&] { return controls_; });
-  controls_ = false;
 }
 
 void ThreadedExecutor::work(VoidFunc& func) {
   func();
   auto id = std::this_thread::get_id();
-  with_unique_lock(finishedm_, [&] { finished_.push_back(id); });
-  notify();
+  {
+    std::unique_lock<std::mutex> lock(finishedm_);
+    finished_.push_back(id);
+  }
+  controlw_.notifyOne();
 }
 
 void ThreadedExecutor::controlJoinFinishedThreads() {
   std::deque<std::thread::id> finishedt;
-  with_unique_lock(finishedm_, [&] { std::swap(finishedt, finished_); });
+  {
+    std::unique_lock<std::mutex> lock(finishedm_);
+    std::swap(finishedt, finished_);
+  }
   for (auto id : finishedt) {
     running_[id].join();
     running_.erase(id);
@@ -91,10 +83,12 @@ void ThreadedExecutor::controlJoinFinishedThreads() {
 
 void ThreadedExecutor::controlLaunchEnqueuedTasks() {
   std::deque<VoidFunc> enqueuedt;
-  with_unique_lock(enqueuedm_, [&] { std::swap(enqueuedt, enqueued_); });
+  {
+    std::unique_lock<std::mutex> lock(enqueuedm_);
+    std::swap(enqueuedt, enqueued_);
+  }
   for (auto& f : enqueuedt) {
-    auto th = threadFactory_->newThread(
-        [this, f = std::move(f)]() mutable { work(f); });
+    auto th = threadFactory_->newThread([&]() mutable { work(f); });
     auto id = th.get_id();
     running_[id] = std::move(th);
   }
