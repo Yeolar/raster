@@ -3,11 +3,9 @@
 /* meta */
 
 #define RASTER_PACKAGE "@PROJECT_NAME@"
-#define RASTER_VERSION "@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@"
+#define RASTER_VERSION "@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@"
 
 /* compile tests for keyword, lib, function, ... */
-
-#cmakedefine RASTER_HAVE_XSI_STRERROR_R 1
 
 /* gflags */
 

@@ -1,0 +1,24 @@
+#
+# CMake package configuration file for raster
+#
+# Defines the target "raster::raster"
+# Add this to your target_link_libraries() call to depend on raster.
+#
+# Also sets the variables RASTER_INCLUDE_DIR and RASTER_LIBRARY.
+# However, in most cases using the raster::raster target is sufficient,
+# and you won't need these variables.
+#
+
+@PACKAGE_INIT@
+
+set_and_check(RASTER_INCLUDE_DIR "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
+
+if(NOT TARGET raster::raster)
+  include(${CMAKE_CURRENT_LIST_DIR}/raster-targets.cmake)
+endif()
+
+set(RASTER_LIBRARY raster::raster)
+
+if(NOT raster_FIND_QUIETLY)
+  message(STATUS "Found raster: ${PACKAGE_PREFIX_DIR}")
+endif()
