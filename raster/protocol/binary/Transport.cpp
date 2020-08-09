@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,7 @@
 
 #include <arpa/inet.h>
 
-namespace rdd {
+namespace raster {
 
 void BinaryTransport::reset() {
   state_ = kInit;
@@ -78,6 +78,7 @@ size_t BinaryTransport::sendBody(std::unique_ptr<acc::IOBuf> body) {
   return n;
 }
 
+/*
 void ZlibTransport::reset() {
   compressor_.reset(new acc::ZlibStreamCompressor(acc::ZlibCompressionType::DEFLATE, 9));
   decompressor_.reset(new acc::ZlibStreamDecompressor(acc::ZlibCompressionType::DEFLATE));
@@ -121,5 +122,5 @@ size_t ZlibTransport::sendBody(std::unique_ptr<acc::IOBuf> body) {
   }
   return n;
 }
-
-} // namespace rdd
+*/
+} // namespace raster

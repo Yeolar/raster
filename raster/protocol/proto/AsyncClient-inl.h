@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,7 @@
 #include "raster/protocol/binary/Transport.h"
 #include "raster/protocol/proto/RpcController.h"
 
-namespace rdd {
+namespace raster {
 
 template <class C>
 PBAsyncClient<C>::PBAsyncClient(const ClientOption& option)
@@ -84,7 +84,7 @@ bool PBAsyncClient<C>::fetch(
 template <class C>
 std::shared_ptr<Channel> PBAsyncClient<C>::makeChannel() {
   return std::make_shared<Channel>(
-      peer_, timeout_, acc::make_unique<BinaryTransportFactory>());
+      peer_, timeout_, std::make_unique<BinaryTransportFactory>());
 }
 
 template <class C>
@@ -95,4 +95,4 @@ void PBAsyncClient<C>::init() {
   channel_ = makeChannel();
 }
 
-} // namespace rdd
+} // namespace raster

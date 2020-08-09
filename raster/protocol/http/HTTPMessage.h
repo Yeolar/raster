@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@
 #include "raster/protocol/http/HTTPMethod.h"
 #include "raster/protocol/http/ParseURL.h"
 
-namespace rdd {
+namespace raster {
 
 /**
  * An HTTP request or response minus the body.
@@ -397,4 +397,4 @@ std::string stripCntrlChars(const Str& str) {
   return res;
 }
 
-} // namespace rdd
+} // namespace raster

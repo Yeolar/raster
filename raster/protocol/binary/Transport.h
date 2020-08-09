@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,11 +17,11 @@
 #pragma once
 
 #include "accelerator/Memory.h"
-#include "accelerator/compression/ZlibStreamCompressor.h"
-#include "accelerator/compression/ZlibStreamDecompressor.h"
+//#include "accelerator/compression/ZlibStreamCompressor.h"
+//#include "accelerator/compression/ZlibStreamDecompressor.h"
 #include "raster/net/Transport.h"
 
-namespace rdd {
+namespace raster {
 
 class BinaryTransport : public Transport {
  public:
@@ -52,10 +52,11 @@ class BinaryTransportFactory : public TransportFactory {
   ~BinaryTransportFactory() override {}
 
   std::unique_ptr<Transport> create() override {
-    return acc::make_unique<BinaryTransport>();
+    return std::make_unique<BinaryTransport>();
   }
 };
 
+/*
 class ZlibTransport : public Transport {
  public:
   ZlibTransport() { reset(); }
@@ -82,8 +83,8 @@ class ZlibTransportFactory : public TransportFactory {
   ~ZlibTransportFactory() override {}
 
   std::unique_ptr<Transport> create() override {
-    return acc::make_unique<ZlibTransport>();
+    return std::make_unique<ZlibTransport>();
   }
 };
-
-} // namespace rdd
+*/
+} // namespace raster

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,9 +22,9 @@
 #include <mutex>
 
 #include "accelerator/Algorithm.h"
-#include "accelerator/thread/SpinLock.h"
+#include "raster/thread/SpinLock.h"
 
-namespace rdd {
+namespace raster {
 
 class Degrader {
  public:
@@ -89,8 +89,8 @@ void DegraderManager::setupDegrader(const std::string& name, Args&&... args) {
   reinterpret_cast<Deg*>(d)->setup(std::forward<Args>(args)...);
 }
 
-} // namespace rdd
+} // namespace raster
 
 #define RDDDEG_HIT(name) \
-  ::acc::Singleton< ::rdd::DegraderManager>::get()->hit(name)
+  ::acc::Singleton< ::raster::DegraderManager>::get()->hit(name)
 

@@ -18,7 +18,7 @@
 
 #include "raster/protocol/proto/IOBufInputStream.h"
 
-namespace rdd {
+namespace raster {
 namespace proto {
 
 char readChar(acc::io::Cursor& in) {
@@ -156,4 +156,4 @@ void serializeCancel(
 }
 
 } // namespace proto
-} // namespace rdd
+} // namespace raster

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,7 @@
 #include "raster/net/AsyncClient.h"
 #include "raster/protocol/proto/RpcChannel.h"
 
-namespace rdd {
+namespace raster {
 
 template <class C>
 class PBAsyncClient : public AsyncClient {
@@ -63,6 +63,6 @@ class PBAsyncClient : public AsyncClient {
   std::unique_ptr<C> service_;
 };
 
-} // namespace rdd
+} // namespace raster
 
 #include "raster/protocol/proto/AsyncClient-inl.h"

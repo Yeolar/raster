@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,7 @@
 
 #include "accelerator/Range.h"
 
-namespace rdd {
+namespace raster {
 
 // Ordered by frequency to minimize time spent in iteration
 #define HTTP_METHOD_GEN(x) \
@@ -50,4 +50,4 @@ const std::string& methodToString(HTTPMethod method);
 
 std::ostream& operator<<(std::ostream& os, HTTPMethod method);
 
-} // namespace rdd
+} // namespace raster

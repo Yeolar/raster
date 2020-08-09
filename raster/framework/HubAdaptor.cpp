@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,9 +16,9 @@
 
 #include "raster/framework/HubAdaptor.h"
 
-#include "accelerator/stats/Monitor.h"
+#include "accelerator/Monitor.h"
 
-namespace rdd {
+namespace raster {
 
 HubAdaptor::HubAdaptor()
   : acceptor_(std::shared_ptr<NetHub>(this)) {
@@ -32,7 +32,7 @@ void HubAdaptor::configThreads(const std::string& name, size_t threadCount) {
     auto factory = std::make_shared<acc::ThreadFactory>("CPUThreadPool" + name + "_");
     cpuPoolMap_.emplace(
         acc::to<int>(name),
-        acc::make_unique<acc::CPUThreadPoolExecutor>(threadCount, factory));
+        std::make_unique<acc::CPUThreadPoolExecutor>(threadCount, factory));
   }
 }
 
@@ -69,8 +69,8 @@ HubAdaptor::getSharedCPUThreadPoolExecutor(int poolId) {
   return nullptr;
 }
 
-acc::EventLoop* HubAdaptor::getEventLoop() {
+EventLoop* HubAdaptor::getEventLoop() {
   ioPool_->getEventLoop();
 }
 
-} // namespace rdd
+} // namespace raster

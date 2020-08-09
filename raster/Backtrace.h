@@ -16,33 +16,26 @@
 
 #pragma once
 
-#include "raster/protocol/http/Transport.h"
+#include <vector>
+#include <execinfo.h>
+#include <unistd.h>
+#include <string>
 
-namespace raster {
 
-class HTTPSyncTransport : public HTTPTransport {
- public:
-  HTTPSyncTransport(const Peer& peer, const TimeoutOption& timeout)
-    : HTTPTransport(TransportDirection::UPSTREAM),
-      peer_(peer),
-      timeout_(timeout) {}
+namespace acc {
 
-  ~HTTPSyncTransport() override {}
+inline std::vector<std::string> recordBacktrace() {
+  std::vector<std::string> out;
+  void* array[128];
+  int n = backtrace(array, 128);
+  char** lines = backtrace_symbols(array, n);
+  if (lines != nullptr && n > 0) {
+    for (int i = 1; i < n; i++) {
+      out.emplace_back(lines[i]);
+    }
+  }
+  free(lines);
+  return out;
+}
 
-  void open();
-
-  bool isOpen();
-
-  void close();
-
-  void send();
-
-  void recv();
-
- private:
-  Peer peer_;
-  TimeoutOption timeout_;
-  std::unique_ptr<Socket> socket_;
-};
-
-} // namespace raster
+} // namespace acc

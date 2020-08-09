@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,7 @@
 
 #include "accelerator/io/IOBuf.h"
 
-namespace rdd {
+namespace raster {
 
 void BinarySyncTransport::open() {
   socket_ = Socket::createSyncSocket();
@@ -47,4 +47,4 @@ void BinarySyncTransport::recv(acc::ByteRange& response) {
   response = body->coalesce();
 }
 
-} // namespace rdd
+} // namespace raster

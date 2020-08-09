@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 #include "raster/protocol/http/HTTPMessage.h"
 #include "raster/protocol/http/Transport.h"
 
-namespace rdd {
+namespace raster {
 
 /**
  * Helps you make responses and send them on demand.
@@ -72,7 +72,7 @@ class ResponseBuilder {
   }
 
   ResponseBuilder& status(uint16_t code, std::string message) {
-    headers_ = acc::make_unique<HTTPMessage>();
+    headers_ = std::make_unique<HTTPMessage>();
     headers_->setHTTPVersion(1, 1);
     headers_->setStatusCode(code);
     headers_->setStatusMessage(message);
@@ -160,7 +160,7 @@ class ResponseBuilder {
   }
 
   void rejectUpgradeRequest() {
-    headers_ = acc::make_unique<HTTPMessage>();
+    headers_ = std::make_unique<HTTPMessage>();
     headers_->constructDirectResponse({1, 1}, 400, "Bad Request");
     transport_->sendHeaders(*headers_, nullptr);
     transport_->sendEOM();
@@ -173,4 +173,4 @@ class ResponseBuilder {
   bool sendEOM_{false};
 };
 
-} // namespace rdd
+} // namespace raster

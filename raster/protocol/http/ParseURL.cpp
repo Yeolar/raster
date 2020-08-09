@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,10 +22,10 @@
 
 #include "raster/3rd/http_parser/http_parser.h"
 
-namespace rdd {
+namespace raster {
 
 void ParseURL::parse() {
-  if (caseInsensitiveEqual(url_.subpiece(0, 4), "http")) {
+  if (/*caseInsensitiveEqual(url_.subpiece(0, 4), "http")*/true) {
     struct http_parser_url u;
     memset(&u, 0, sizeof(struct http_parser_url)); // init before used
     valid_ = !(http_parser_parse_url(url_.data(), url_.size(), 0, &u));
@@ -159,4 +159,4 @@ void ParseURL::stripBrackets() {
   }
 }
 
-} // namespace rdd
+} // namespace raster

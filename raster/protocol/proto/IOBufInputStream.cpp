@@ -16,7 +16,7 @@
 
 #include "raster/protocol/proto/IOBufInputStream.h"
 
-namespace rdd {
+namespace raster {
 
 IOBufInputStream::IOBufInputStream(acc::io::Cursor* cursor)
   : cursor_(cursor),
@@ -51,4 +51,4 @@ google::protobuf::int64 IOBufInputStream::ByteCount() const {
   return position_;
 }
 
-} // namespace rdd
+} // namespace raster

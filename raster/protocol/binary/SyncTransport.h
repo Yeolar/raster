@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,7 @@
 #include "raster/net/Socket.h"
 #include "raster/protocol/binary/Transport.h"
 
-namespace rdd {
+namespace raster {
 
 class BinarySyncTransport : public BinaryTransport {
  public:
@@ -47,4 +47,4 @@ class BinarySyncTransport : public BinaryTransport {
   std::unique_ptr<Socket> socket_;
 };
 
-} // namespace rdd
+} // namespace raster

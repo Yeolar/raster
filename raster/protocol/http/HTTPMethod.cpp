@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "accelerator/Conv.h"
-#include "accelerator/thread/UnionBasedStatic.h"
+#include "raster/thread/UnionBasedStatic.h"
 #include "raster/protocol/http/HTTPException.h"
 
 #define HTTP_METHOD_STR(method) #method
@@ -41,14 +41,14 @@ void initMethodStrings() {
 
 }
 
-namespace rdd {
+namespace raster {
 
 HTTPMethod stringToMethod(acc::StringPiece method) {
   int index = 0;
   for (auto& cur : s_methodStrings.data) {
-    if (caseInsensitiveEqual(cur, method)) {
+    //if (caseInsensitiveEqual(cur, method)) {
       return HTTPMethod(index);
-    }
+    //}
     index++;
   }
   throw HTTPException(405, method);
@@ -63,4 +63,4 @@ std::ostream& operator <<(std::ostream& out, HTTPMethod method) {
   return out;
 }
 
-} // namespace rdd
+} // namespace raster

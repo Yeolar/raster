@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
   setupShutdownSignal(SIGINT);
   setupShutdownSignal(SIGTERM);
 
-  auto service = acc::make_unique<PBAsyncServer>("Proxy");
+  auto service = std::make_unique<PBAsyncServer>("Proxy");
   service->addService(std::make_shared<ProxyServiceImpl>());
   acc::Singleton<HubAdaptor>::get()->addService(std::move(service));
 

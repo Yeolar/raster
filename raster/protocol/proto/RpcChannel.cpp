@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,7 @@
 #include "raster/protocol/proto/Message.h"
 #include "raster/protocol/proto/RpcController.h"
 
-namespace rdd {
+namespace raster {
 
 using namespace std::placeholders;
 
@@ -32,7 +32,7 @@ void PBRpcChannel::CallMethod(
     const google::protobuf::Message* request,
     google::protobuf::Message* response,
     google::protobuf::Closure* done) {
-  std::string callId = acc::uuidGenerateTime();
+  std::string callId = "";//acc::uuidGenerateTime();
   if (controller) {
     PBRpcController* c = dynamic_cast<PBRpcController*>(controller);
     if (c) {
@@ -153,4 +153,4 @@ void PBAsyncRpcChannel::send(
   resultCb(true, "");
 }
 
-} // namespace rdd
+} // namespace raster

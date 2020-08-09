@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 #include "raster/net/Exception.h"
 #include "raster/protocol/http/HTTPMessage.h"
 
-namespace rdd {
+namespace raster {
 
 /**
  * This class encapsulates the various errors that can occur on an
@@ -68,7 +68,7 @@ class HTTPException : public NetException {
       currentIngressBuf_ = std::move(ex.currentIngressBuf_->clone());
     }
     if (ex.partialMsg_) {
-      partialMsg_ = acc::make_unique<HTTPMessage>(*ex.partialMsg_.get());
+      partialMsg_ = std::make_unique<HTTPMessage>(*ex.partialMsg_.get());
     }
   }
 
@@ -151,4 +151,4 @@ class HTTPException : public NetException {
 
 std::ostream& operator<<(std::ostream& os, const HTTPException& ex);
 
-} // namespace rdd
+} // namespace raster

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,7 @@
 #include "raster/net/Processor.h"
 #include "raster/protocol/proto/AsyncServer.h"
 
-namespace rdd {
+namespace raster {
 
 class PBProcessor : public Processor {
  public:
@@ -56,11 +56,11 @@ class PBProcessorFactory : public ProcessorFactory {
   ~PBProcessorFactory() override {}
 
   std::unique_ptr<Processor> create(Event* event) override {
-    return acc::make_unique<PBProcessor>(event, server_);
+    return std::make_unique<PBProcessor>(event, server_);
   }
 
  private:
   PBAsyncServer* server_;
 };
 
-} // namespace rdd
+} // namespace raster

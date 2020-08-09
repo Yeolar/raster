@@ -4,7 +4,7 @@
 
 #include <gflags/gflags.h>
 
-#include "accelerator/concurrency/CPUThreadPoolExecutor.h"
+#include "raster/concurrency/CPUThreadPoolExecutor.h"
 #include "raster/net/NetUtil.h"
 #include "raster/protocol/proto/SyncClient.h"
 #include "accelerator/Algorithm.h"

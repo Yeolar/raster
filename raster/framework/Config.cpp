@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,24 +22,24 @@
 #include <typeinfo>
 
 #include "accelerator/Logging.h"
-#include "accelerator/ProcessUtil.h"
-#include "accelerator/io/FileUtil.h"
-#include "accelerator/scheduler/ParallelScheduler.h"
-#include "accelerator/stats/Monitor.h"
-#include "accelerator/thread/ThreadUtil.h"
+#include "raster/ProcessUtil.h"
+#include "raster/json.h"
+#include "accelerator/FileUtil.h"
+#include "accelerator/Monitor.h"
+#include "raster/thread/ThreadUtil.h"
 #include "raster/framework/Degrader.h"
-#include "raster/framework/FalconSender.h"
+//#include "raster/framework/FalconSender.h"
 #include "raster/framework/HubAdaptor.h"
 #include "raster/framework/Sampler.h"
 
-namespace rdd {
+namespace raster {
 
 using acc::dynamic;
 
 static dynamic defaultLogging() {
   return dynamic::object
     ("logging", dynamic::object
-      ("logFile", "rdd.log")
+      ("logFile", "raster.log")
       ("level", 1)
       ("rotate", 0)
       ("splitSize", 0)
@@ -54,7 +54,7 @@ void configLogging(const dynamic& j, bool reload) {
   }
   ACCLOG(INFO) << "config logger";
   acc::logging::BaseLogger::Options opts;
-  opts.logFile   = acc::json::get(j, "logfile", "rdd.log");
+  opts.logFile   = acc::json::get(j, "logfile", "raster.log");
   opts.level     = acc::json::get(j, "level", 1);
   opts.rotate    = acc::json::get(j, "rotate", 0);
   opts.splitSize = acc::json::get(j, "splitsize", 0);
@@ -65,7 +65,7 @@ void configLogging(const dynamic& j, bool reload) {
 static dynamic defaultProcess() {
   return dynamic::object
     ("process", dynamic::object
-      ("pidfile", "/tmp/rdd.pid"));
+      ("pidfile", "/tmp/raster.pid"));
 }
 
 void configProcess(const dynamic& j, bool reload) {
@@ -75,7 +75,7 @@ void configProcess(const dynamic& j, bool reload) {
     return;
   }
   ACCLOG(INFO) << "config process";
-  auto pidfile = acc::json::get(j, "pidfile", "/tmp/rdd.pid");
+  auto pidfile = acc::json::get(j, "pidfile", "/tmp/raster.pid");
   acc::writePid(pidfile.c_str(), acc::osThreadId());
 }
 
@@ -163,19 +163,20 @@ static dynamic defaultMonitor() {
   return dynamic::object
     ("monitor", dynamic::object
       ("open", false)
-      ("prefix", "rdd")
+      ("prefix", "raster")
       ("sender", "falcon"));
 }
 
 void configMonitor(const dynamic& j, bool reload) {
   // reloadable
+  /*
   if (!j.isObject()) {
     ACCLOG(FATAL) << "config monitor error: " << j;
     return;
   }
   ACCLOG(INFO) << "config monitor";
   if (acc::json::get(j, "open", false)) {
-    acc::Singleton<acc::Monitor>::get()->setPrefix(acc::json::get(j, "prefix", "rdd"));
+    acc::Singleton<acc::Monitor>::get()->setPrefix(acc::json::get(j, "prefix", "raster"));
     if (acc::json::get(j, "sender", "falcon") == "falcon") {
       acc::Singleton<acc::Monitor>::get()->setSender(
           std::unique_ptr<acc::Monitor::Sender>(new FalconSender()));
@@ -184,6 +185,7 @@ void configMonitor(const dynamic& j, bool reload) {
   } else {
     acc::Singleton<acc::Monitor>::get()->stop();
   }
+  */
 }
 
 static dynamic defaultDegrader() {
@@ -235,7 +237,7 @@ void configDegrader(const dynamic& j, bool reload) {
 static dynamic defaultSampler() {
   return dynamic::object
     ("sampler", dynamic::object
-      ("rdd", dynamic::object
+      ("raster", dynamic::object
         ("open", false)
         ("type", "percent")
         ("percent", 0.0)));
@@ -271,6 +273,7 @@ static dynamic defaultJob() {
 }
 
 void configJobGraph(const dynamic& j, bool reload) {
+  /*
   // reloadable
   if (!j.isObject()) {
     ACCLOG(FATAL) << "config job.graph error: " << j;
@@ -288,6 +291,7 @@ void configJobGraph(const dynamic& j, bool reload) {
       g.set(name, next);
     }
   }
+  */
 }
 
 std::string generateDefault() {
@@ -305,7 +309,7 @@ std::string generateDefault() {
 }
 
 void ConfigManager::load() {
-  ACCLOG(INFO) << "config rdd by conf: " << conf_;
+  ACCLOG(INFO) << "config raster by conf: " << conf_;
 
   std::string s;
   if (!acc::readFile(conf_, s)) {
@@ -334,4 +338,4 @@ void config(const char* name, std::initializer_list<ConfigTask> confs) {
   cm->load();
 }
 
-} // namespace rdd
+} // namespace raster

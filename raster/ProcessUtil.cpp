@@ -14,35 +14,22 @@
  * limitations under the License.
  */
 
-#pragma once
+#include "raster/ProcessUtil.h"
 
-#include "raster/protocol/http/Transport.h"
+#include "accelerator/Logging.h"
+#include "accelerator/io/FileUtil.h"
 
-namespace raster {
+namespace acc {
 
-class HTTPSyncTransport : public HTTPTransport {
- public:
-  HTTPSyncTransport(const Peer& peer, const TimeoutOption& timeout)
-    : HTTPTransport(TransportDirection::UPSTREAM),
-      peer_(peer),
-      timeout_(timeout) {}
+pid_t readPid(const Path& file) {
+  std::string s;
+  readFile(file.c_str(), s);
+  return to<pid_t>(s);
+}
 
-  ~HTTPSyncTransport() override {}
+bool writePid(const Path& file, pid_t pid) {
+  ACCCHECK(!file.exists()) << file << " already exist";
+  return writeFile(to<std::string>(pid), file.c_str(), 0600);
+}
 
-  void open();
-
-  bool isOpen();
-
-  void close();
-
-  void send();
-
-  void recv();
-
- private:
-  Peer peer_;
-  TimeoutOption timeout_;
-  std::unique_ptr<Socket> socket_;
-};
-
-} // namespace raster
+} // namespace acc

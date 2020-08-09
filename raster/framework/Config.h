@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,10 +18,10 @@
 
 #include <vector>
 
-#include "accelerator/Function.h"
+#include "raster/event/Function.h"
 #include "accelerator/json.h"
 
-namespace rdd {
+namespace raster {
 
 typedef std::pair<void(*)(const acc::dynamic&, bool), std::string> ConfigTask;
 
@@ -59,4 +59,4 @@ class ConfigManager {
 
 void config(const char* name, std::initializer_list<ConfigTask> confs);
 
-} // namespace rdd
+} // namespace raster

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,15 +16,15 @@
 
 #include "raster/framework/Signal.h"
 
-#include "accelerator/Backtrace.h"
+#include "raster/Backtrace.h"
 #include "accelerator/Exception.h"
 #include "accelerator/Logging.h"
-#include "accelerator/MemoryProtect.h"
-#include "accelerator/ProcessUtil.h"
+#include "raster/MemoryProtect.h"
+#include "raster/ProcessUtil.h"
 #include "accelerator/Singleton.h"
 #include "raster/framework/Config.h"
 
-namespace rdd {
+namespace raster {
 
 static void ignoreSignalHandler(int signo) {
   ACCLOG(INFO) << "signal '" << strsignal(signo) << "' received, ignore it";
@@ -90,4 +90,4 @@ void sendSignal(int signo, const char* pidfile) {
   acc::checkUnixError(kill(acc::readPid(pidfile), signo));
 }
 
-} // namespace rdd
+} // namespace raster

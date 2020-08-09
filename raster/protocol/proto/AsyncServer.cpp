@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,7 @@
 #include "raster/protocol/binary/Transport.h"
 #include "raster/protocol/proto/Processor.h"
 
-namespace rdd {
+namespace raster {
 
 void PBAsyncServer::makeChannel(int port, const TimeoutOption& timeout) {
   Peer peer;
@@ -27,8 +27,8 @@ void PBAsyncServer::makeChannel(int port, const TimeoutOption& timeout) {
   channel_ = std::make_shared<Channel>(
       peer,
       timeout,
-      acc::make_unique<BinaryTransportFactory>(),
-      acc::make_unique<PBProcessorFactory>(this));
+      std::make_unique<BinaryTransportFactory>(),
+      std::make_unique<PBProcessorFactory>(this));
 }
 
 void PBAsyncServer::addService(
@@ -52,4 +52,4 @@ PBAsyncServer::removeHandle(const std::string& callId) {
   return handles_.erase_get(callId);
 }
 
-} // namespace rdd
+} // namespace raster

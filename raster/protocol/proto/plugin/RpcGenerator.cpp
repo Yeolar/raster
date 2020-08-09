@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -1085,8 +1085,8 @@ printer->Print(*vars,
                "}\n\n");
 
 printer->Print("void ProxyService::run(::google::protobuf::RpcController* controller,\n");
-printer->Print("                         const ::rdd::pbrpc::Query*,\n");
-printer->Print("                         ::rdd::pbrpc::Result*,\n");
+printer->Print("                         const ::raster::pbrpc::Query*,\n");
+printer->Print("                         ::raster::pbrpc::Result*,\n");
 printer->Print("                         ::google::protobuf::Closure* done) {\n");
 printer->Print("  controller->SetFailed(\"Method run() not implemented.\");\n");
 printer->Print("  done->Run();\n");
@@ -1101,8 +1101,8 @@ printer->Print("  GOOGLE_DCHECK_EQ(method->service(), protobuf_Proxy_2eproto::fi
 printer->Print("  switch(method->index()) {\n");
 printer->Print("    case 0:\n");
 printer->Print("      run(controller,\n");
-printer->Print("             ::google::protobuf::down_cast<const ::rdd::pbrpc::Query*>(request),\n");
-printer->Print("             ::google::protobuf::down_cast< ::rdd::pbrpc::Result*>(response),\n");
+printer->Print("             ::google::protobuf::down_cast<const ::raster::pbrpc::Query*>(request),\n");
+printer->Print("             ::google::protobuf::down_cast< ::raster::pbrpc::Result*>(response),\n");
 printer->Print("             done);\n");
 printer->Print("      break;\n");
 printer->Print("    default:\n");
@@ -1116,7 +1116,7 @@ printer->Print("    const ::google::protobuf::MethodDescriptor* method) const {\
 printer->Print("  GOOGLE_DCHECK_EQ(method->service(), descriptor());\n");
 printer->Print("  switch(method->index()) {\n");
 printer->Print("    case 0:\n");
-printer->Print("      return ::rdd::pbrpc::Query::default_instance();\n");
+printer->Print("      return ::raster::pbrpc::Query::default_instance();\n");
 printer->Print("    default:\n");
 printer->Print("      GOOGLE_LOG(FATAL) << \"Bad method index; this should never happen.\";\n");
 printer->Print("      return *::google::protobuf::MessageFactory::generated_factory()\n");
@@ -1129,7 +1129,7 @@ printer->Print("    const ::google::protobuf::MethodDescriptor* method) const {\
 printer->Print("  GOOGLE_DCHECK_EQ(method->service(), descriptor());\n");
 printer->Print("  switch(method->index()) {\n");
 printer->Print("    case 0:\n");
-printer->Print("      return ::rdd::pbrpc::Result::default_instance();\n");
+printer->Print("      return ::raster::pbrpc::Result::default_instance();\n");
 printer->Print("    default:\n");
 printer->Print("      GOOGLE_LOG(FATAL) << \"Bad method index; this should never happen.\";\n");
 printer->Print("      return *::google::protobuf::MessageFactory::generated_factory()\n");
@@ -1149,8 +1149,8 @@ printer->Print("  if (owns_channel_) delete channel_;\n");
 printer->Print("}\n");
 printer->Print("\n");
 printer->Print("void ProxyService_Stub::run(::google::protobuf::RpcController* controller,\n");
-printer->Print("                              const ::rdd::pbrpc::Query* request,\n");
-printer->Print("                              ::rdd::pbrpc::Result* response,\n");
+printer->Print("                              const ::raster::pbrpc::Query* request,\n");
+printer->Print("                              ::raster::pbrpc::Result* response,\n");
 printer->Print("                              ::google::protobuf::Closure* done) {\n");
 printer->Print("  channel_->CallMethod(descriptor()->method(0),\n");
 printer->Print("                       controller, request, response, done);\n");

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,12 +20,12 @@
 #include "accelerator/Logging.h"
 #include "accelerator/MapUtil.h"
 #include "accelerator/String.h"
-#include "accelerator/thread/ThreadUtil.h"
-#include "accelerator/thread/UnionBasedStatic.h"
+#include "raster/thread/ThreadUtil.h"
+#include "raster/thread/UnionBasedStatic.h"
 #include "raster/protocol/http/HTTPMessage.h"
 #include "raster/protocol/http/ParseURL.h"
 
-namespace rdd {
+namespace raster {
 
 namespace RFC2616 {
 
@@ -140,7 +140,7 @@ std::string urlJoin(const std::string& base, const std::string& url) {
     return url;
   if (!authority.empty())
     return HTTPMessage::createUrl(scheme, authority, path, query, fragment);
-  authority = b.authority();
+  //authority = b.authority();
   if (path.subpiece(0, 1) == "/")
     return HTTPMessage::createUrl(scheme, authority, path, query, fragment);
   if (path.empty()) {
@@ -335,4 +335,4 @@ void parseMultipartFormData(
 }
 */
 
-} // namespace rdd
+} // namespace raster

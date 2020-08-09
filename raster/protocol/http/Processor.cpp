@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,7 @@
 
 #include "raster/protocol/http/HTTPMethod.h"
 
-namespace rdd {
+namespace raster {
 
 void HTTPProcessor::run() {
   auto transport = event_->transport<HTTPTransport>();
@@ -70,7 +70,7 @@ void HTTPProcessor::run() {
 std::unique_ptr<Processor> HTTPProcessorFactory::create(Event* event) {
   auto transport = event->transport<HTTPTransport>();
   auto url = transport->headers->getURL();
-  return acc::make_unique<HTTPProcessor>(event, router_(url));
+  return std::make_unique<HTTPProcessor>(event, router_(url));
 }
 
-} // namespace rdd
+} // namespace raster

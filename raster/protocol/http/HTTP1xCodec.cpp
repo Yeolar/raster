@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -66,7 +66,7 @@ const std::pair<uint8_t, uint8_t> kHTTPVersion10(1, 0);
 
 } // anonymous namespace
 
-namespace rdd {
+namespace raster {
 
 const char* getTransportDirectionString(TransportDirection dir) {
   switch (dir) {
@@ -331,17 +331,17 @@ void HTTP1xCodec::generateHeader(acc::IOBufQueue& writeBuf,
       // TODO: add support for the case where "close" is part of
       // a comma-separated list of values
       static const std::string kClose = "close";
-      if (acc::caseInsensitiveEqual(value, kClose)) {
+      //if (acc::caseInsensitiveEqual(value, kClose)) {
         keepalive_ = false;
-      }
+      //}
       // We'll generate a new Connection header based on the keepalive_ state
       return;
     } else if (!hasTransferEncodingChunked &&
                code == HTTP_HEADER_TRANSFER_ENCODING) {
       static const std::string kChunked = "chunked";
-      if (!acc::caseInsensitiveEqual(value, kChunked)) {
+      //if (!acc::caseInsensitiveEqual(value, kChunked)) {
         return;
-      }
+      //}
       hasTransferEncodingChunked = true;
       if (!mayChunkEgress_) {
         return;
@@ -568,7 +568,7 @@ int HTTP1xCodec::onReason(const char* buf, size_t len) {
 }
 
 void HTTP1xCodec::pushHeaderNameAndValue(HTTPHeaders& hdrs) {
-  if (LIKELY(currentHeaderName_.empty())) {
+  if (ACC_LIKELY(currentHeaderName_.empty())) {
     hdrs.add(currentHeaderNameStringPiece_, std::move(currentHeaderValue_));
   } else {
     hdrs.add(currentHeaderName_, std::move(currentHeaderValue_));
@@ -865,4 +865,4 @@ void HTTP1xCodec::initParserSettings() {
   kParserSettings.on_message_complete = HTTP1xCodec::onMessageCompleteCB;
 }
 
-} // namespace rdd
+} // namespace raster

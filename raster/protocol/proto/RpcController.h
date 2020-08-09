@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,10 +21,10 @@
 #include <string>
 #include <google/protobuf/service.h>
 
-#include "accelerator/Function.h"
+#include "raster/concurrency/Executor.h"
 #include "accelerator/io/Cursor.h"
 
-namespace rdd {
+namespace raster {
 
 class PBRpcController : public google::protobuf::RpcController {
  public:
@@ -48,7 +48,7 @@ class PBRpcController : public google::protobuf::RpcController {
   void copyFrom(const PBRpcController& o);
 
   void setCanceled() { canceled_ = true; }
-  void setStartCancel(acc::VoidFunc&& cancelFunc);
+  void setStartCancel(VoidFunc&& cancelFunc);
 
   void complete();
 
@@ -58,7 +58,7 @@ class PBRpcController : public google::protobuf::RpcController {
   std::string failedReason_;
   std::set<google::protobuf::Closure*> closures_;
   std::mutex closuresLock_;
-  acc::VoidFunc cancelFunc_;
+  VoidFunc cancelFunc_;
 };
 
-} // namespace rdd
+} // namespace raster

@@ -16,7 +16,7 @@
 
 #include "raster/protocol/binary/Processor.h"
 
-namespace rdd {
+namespace raster {
 
 void BinaryProcessor::run() {
   auto transport = event_->transport<BinaryTransport>();
@@ -32,4 +32,4 @@ void BinaryProcessor::run() {
   }
 }
 
-} // namespace rdd
+} // namespace raster
