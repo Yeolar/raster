@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,11 +17,12 @@
 #pragma once
 
 #include <queue>
+#include <boost/thread/shared_mutex.hpp>
 
 #include <accelerator/thread/Semaphore.h>
 #include <accelerator/thread/Synchronized.h>
 
-#include "raster/executors/MPMCQueue.h"
+#include "raster/concurrency/MPMCQueue.h"
 
 namespace raster {
 
@@ -66,18 +67,19 @@ class GenericBlockingQueue : public BlockingQueue<T> {
 
  private:
   acc::Semaphore sem_;
-  acc::Synchronized<std::queue<T>> queue_;
+  acc::Synchronized<std::queue<T>, boost::shared_mutex> queue_;
 };
 
 template <class T>
 class MPMCBlockingQueue : public BlockingQueue<T> {
  public:
   // Note: The queue pre-allocates all memory for max_capacity
-  explicit MPMCBlockingQueue(size_t max_capacity) : queue_(max_capacity) {}
+  explicit MPMCBlockingQueue(size_t max_capacity)
+      : queue_(max_capacity) {}
 
   void add(T item) override {
     if (!queue_.write(std::move(item))) {
-      throw std::runtime_error("LifoSemMPMCQueue full, can't add item");
+      throw std::runtime_error("MPMCQueue full, can't add item");
     }
     sem_.post();
   }

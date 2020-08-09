@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,9 +27,7 @@
 #include <accelerator/Logging.h>
 #include <accelerator/Traits.h>
 
-#include "raster/executors/detail/Asm.h"
-#include "raster/executors/detail/CacheLocality.h"
-#include "raster/executors/detail/Futex.h"
+#include "raster/concurrency/Futex.h"
 
 namespace raster {
 
@@ -85,7 +83,7 @@ struct SingleElementQueue;
 /// use noexcept, you will have to wrap it in something that provides
 /// the guarantee.  We provide an alternate safe implementation for types
 /// that don't use noexcept but that are marked acc::IsRelocatable
-/// and std::is_nothrow_constructible, which is common for acc types.
+/// and std::is_nothrow_constructible, which is common for raster types.
 /// In particular, if you can declare ACC_ASSUME_FBVECTOR_COMPATIBLE
 /// then your type can be put in MPMCQueue.
 ///
@@ -122,11 +120,10 @@ class MPMCQueue {
     }
 
     // ideally this would be a static assert, but g++ doesn't allow it
-    assert(alignof(MPMCQueue<T>) >= CacheLocality::kFalseSharingRange);
+    assert(alignof(MPMCQueue<T>) >= 128);
     assert(
         static_cast<uint8_t*>(static_cast<void*>(&popTicket_)) -
-            static_cast<uint8_t*>(static_cast<void*>(&pushTicket_)) >=
-        CacheLocality::kFalseSharingRange);
+            static_cast<uint8_t*>(static_cast<void*>(&pushTicket_)) >= 128);
 
     stride_ = computeStride(queueCapacity);
     slots_ = new Slot[queueCapacity + 2 * kSlotPadding];
@@ -385,11 +382,11 @@ class MPMCQueue {
     /// To avoid false sharing in slots_ with neighboring memory
     /// allocations, we pad it with this many SingleElementQueue-s at
     /// each end
-    kSlotPadding = (CacheLocality::kFalseSharingRange - 1) / sizeof(Slot) + 1
+    kSlotPadding = (128 - 1) / sizeof(Slot) + 1
   };
 
   /// The maximum number of items in the queue at once
-  alignas(CacheLocality::kFalseSharingRange) size_t capacity_;
+  alignas(128) size_t capacity_;
 
   /// An array of capacity_ SingleElementQueue-s, each of which holds
   /// either 0 or 1 item.  We over-allocate by 2 * kSlotPadding and don't
@@ -402,23 +399,22 @@ class MPMCQueue {
   int stride_;
 
   /// Enqueuers get tickets from here
-  alignas(CacheLocality::kFalseSharingRange) std::atomic<uint64_t> pushTicket_;
+  alignas(128) std::atomic<uint64_t> pushTicket_;
 
   /// Dequeuers get tickets from here
-  alignas(CacheLocality::kFalseSharingRange) std::atomic<uint64_t> popTicket_;
+  alignas(128) std::atomic<uint64_t> popTicket_;
 
   /// This is how many times we will spin before using FUTEX_WAIT when
   /// the queue is full on enqueue, adaptively computed by occasionally
   /// spinning for longer and smoothing with an exponential moving average
-  alignas(CacheLocality::kFalseSharingRange) std::atomic<uint32_t> pushSpinCutoff_;
+  alignas(128) std::atomic<uint32_t> pushSpinCutoff_;
 
   /// The adaptive spin cutoff when the queue is empty on dequeue
-  alignas(CacheLocality::kFalseSharingRange) std::atomic<uint32_t> popSpinCutoff_;
+  alignas(128) std::atomic<uint32_t> popSpinCutoff_;
 
   /// Alignment doesn't prevent false sharing at the end of the struct,
   /// so fill out the last cache line
-  char padding_[CacheLocality::kFalseSharingRange
-                - sizeof(std::atomic<uint32_t>)];
+  char padding_[128 - sizeof(std::atomic<uint32_t>)];
 
   /// We assign tickets in increasing order, but we don't want to
   /// access neighboring elements of slots_ because that will lead to
@@ -694,7 +690,7 @@ struct TurnSequencer {
       // the first effectSpinCutoff tries are spins, after that we will
       // record ourself as a waiter and block with futexWait
       if (tries < effectiveSpinCutoff) {
-        asm_volatile_pause();
+        asm volatile("pause");
         continue;
       }
 

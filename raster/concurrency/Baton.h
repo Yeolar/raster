@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,13 +17,12 @@
 
 #pragma once
 
+#include <stdint.h>
 #include <atomic>
-#include <cassert>
-#include <cerrno>
-#include <cstdint>
+#include <errno.h>
+#include <assert.h>
 
-#include "raster/executors/Asm.h"
-#include "raster/executors/Futex.h"
+#include "raster/concurrency/Futex.h"
 
 namespace raster {
 
@@ -277,7 +276,7 @@ struct Baton {
       // actually affect correctness to omit it if we don't have it.
       // Pausing donates the full capabilities of the current core to
       // its other hyperthreads for a dozen cycles or so
-      asm_volatile_pause();
+      asm volatile("pause");
     }
 
     return false;

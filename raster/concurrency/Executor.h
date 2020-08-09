@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,10 +16,19 @@
 
 #pragma once
 
+#include <functional>
+
 namespace raster {
 
-inline void asm_volatile_pause() {
-  asm volatile("pause");
-}
+typedef std::function<void(void)> VoidFunc;
+
+/**
+ * An Executor accepts units of work with add(), which should be threadsafe.
+ */
+class Executor {
+ public:
+  virtual ~Executor() {}
+  virtual void add(VoidFunc) = 0;
+};
 
 } // namespace raster

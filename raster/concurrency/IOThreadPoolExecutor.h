@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,8 +19,8 @@
 
 #include <atomic>
 
+#include "raster/concurrency/ThreadPoolExecutor.h"
 #include "raster/event/EventLoopManager.h"
-#include "raster/executors/ThreadPoolExecutor.h"
 
 namespace raster {
 
@@ -55,7 +55,7 @@ class IOThreadPoolExecutor : public ThreadPoolExecutor {
   EventLoopManager* getEventLoopManager();
 
  private:
-  struct ACC_ALIGN_TO_AVOID_FALSE_SHARING IOThread : public Thread {
+  struct alignas(128) IOThread : public Thread {
     IOThread(IOThreadPoolExecutor* pool)
         : Thread(pool), shouldRun(true), pendingTasks(0) {}
     std::atomic<bool> shouldRun;

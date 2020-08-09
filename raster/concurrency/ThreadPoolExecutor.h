@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,10 +22,10 @@
 #include <accelerator/thread/Synchronized.h>
 #include <accelerator/thread/ThreadLocal.h>
 
-#include "raster/executors/Baton.h"
-#include "raster/executors/BlockingQueue.h"
-#include "raster/executors/Executor.h"
-#include "raster/executors/ThreadFactory.h"
+#include "raster/concurrency/Baton.h"
+#include "raster/concurrency/BlockingQueue.h"
+#include "raster/concurrency/Executor.h"
+#include "raster/concurrency/ThreadFactory.h"
 
 namespace raster {
 
@@ -126,7 +126,7 @@ class ThreadPoolExecutor : public virtual Executor {
 
   struct TaskStatsCallbackRegistry;
 
-  struct alignas(CacheLocality::kFalseSharingRange) Thread : public ThreadHandle {
+  struct alignas(128) Thread : public ThreadHandle {
     explicit Thread(ThreadPoolExecutor* pool)
         : id(nextId++),
           handle(),
@@ -238,7 +238,8 @@ class ThreadPoolExecutor : public virtual Executor {
 
   struct TaskStatsCallbackRegistry {
     acc::ThreadLocal<bool> inCallback;
-    acc::Synchronized<std::vector<TaskStatsCallback>> callbackList;
+    acc::Synchronized<std::vector<TaskStatsCallback>, boost::shared_mutex>
+      callbackList;
   };
   std::shared_ptr<TaskStatsCallbackRegistry> taskStatsCallbacks_;
   std::vector<std::shared_ptr<Observer>> observers_;

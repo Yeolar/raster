@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 #include <boost/context/fcontext.hpp>
 #endif
 
-#include "raster/event/Function.h"
+#include "raster/concurrency/Executor.h"
 
 /**
  * Wrappers for different versions of boost::context library

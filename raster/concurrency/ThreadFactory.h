@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 #include <accelerator/Conv.h>
 #include <accelerator/thread/ThreadName.h>
 
-#include "raster/event/Function.h"
+#include "raster/concurrency/Executor.h"
 
 namespace raster {
 
@@ -36,10 +36,14 @@ class ThreadFactory {
   std::thread newThread(VoidFunc&& func) {
     auto name = acc::to<std::string>(prefix_, suffix_++);
     return std::thread(
-        [name, func] () {
+        [&] () {
           acc::setThreadName(name);
           func();
         });
+  }
+
+  void setNamePrefix(acc::StringPiece prefix) {
+    prefix_ = prefix.str();
   }
 
   std::string namePrefix() const {
