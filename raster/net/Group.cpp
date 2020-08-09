@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,14 +18,12 @@
 
 namespace raster {
 
-using acc::SharedMutex;
-
 Group::Group(size_t capacity) : capacity_(capacity) {
   increase(1);
 }
 
 Group::Key Group::create(size_t groupSize) {
-  SharedMutex::WriteHolder guard(lock_);
+  std::lock_guard<std::mutex> guard(lock_);
   if (groupKeys_.empty()) {
     capacity_ *= 2;
     increase(groupCounts_.size());
@@ -41,7 +39,7 @@ bool Group::finish(Group::Key group) {
   if (group == 0) {
     return true;
   }
-  SharedMutex::WriteHolder guard(lock_);
+  std::lock_guard<std::mutex> guard(lock_);
   assert(groupCounts_[group] > 0);
   groupCounts_[group]--;
   if (groupCounts_[group] <= 0) {
@@ -52,7 +50,7 @@ bool Group::finish(Group::Key group) {
 }
 
 size_t Group::count() const {
-  SharedMutex::ReadHolder guard(lock_);
+  std::lock_guard<std::mutex> guard(lock_);
   return capacity_ - groupKeys_.size();
 }
 

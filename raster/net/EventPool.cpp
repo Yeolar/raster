@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,7 @@ size_t EventPool::count() const {
 EventPool* EventPoolManager::getPool(int id) {
   std::lock_guard<std::mutex> guard(lock_);
   if (pool_.find(id) == pool_.end()) {
-    pool_.emplace(id, acc::make_unique<EventPool>());
+    pool_.emplace(id, std::make_unique<EventPool>());
   }
   return pool_[id].get();
 }

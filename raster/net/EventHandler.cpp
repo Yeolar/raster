@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,13 +23,13 @@
 
 namespace raster {
 
-void EventHandler::onConnect(acc::EventBase* ev) {
+void EventHandler::onConnect(EventBase* ev) {
   Event* event = reinterpret_cast<Event*>(ev);
 
-  assert(event->state() == acc::EventBase::kConnect);
+  assert(event->state() == EventBase::kConnect);
 
   if (event->isConnectTimeout()) {
-    event->setState(acc::EventBase::kTimeout);
+    event->setState(EventBase::kTimeout);
     ACCLOG(WARN) << *event << " remove connect timeout request: >"
       << event->timeoutOption().ctimeout;
     onTimeout(event);
@@ -40,18 +40,18 @@ void EventHandler::onConnect(acc::EventBase* ev) {
   if (err != 0) {
     ACCLOG(ERROR) << *event << " connect: close for error: "
       << strerror(errno);
-    event->setState(acc::EventBase::kError);
+    event->setState(EventBase::kError);
     onError(event);
     return;
   }
   ACCLOG(V1) << *event << " connect: complete";
-  event->setState(acc::EventBase::kToWrite);
+  event->setState(EventBase::kToWrite);
 }
 
-void EventHandler::onListen(acc::EventBase* ev) {
+void EventHandler::onListen(EventBase* ev) {
   Event* event = reinterpret_cast<Event*>(ev);
 
-  assert(event->state() == acc::EventBase::kListen);
+  assert(event->state() == EventBase::kListen);
 
   auto socket = event->socket()->accept();
   if (!(*socket) ||
@@ -69,35 +69,35 @@ void EventHandler::onListen(acc::EventBase* ev) {
   auto evnew = new Event(event->channel(), std::move(socket));
   evnew->copyCallbacks(*event);
   ACCLOG(V1) << *evnew << " accepted";
-  evnew->setState(acc::EventBase::kNext);
+  evnew->setState(EventBase::kNext);
   ACCLOG(V2) << *evnew << " add event";
   loop_->pushEvent(evnew);
   loop_->dispatchEvent(evnew);
 }
 
-void EventHandler::onRead(acc::EventBase* ev) {
+void EventHandler::onRead(EventBase* ev) {
   Event* event = reinterpret_cast<Event*>(ev);
 
-  event->setState(acc::EventBase::kReading);
+  event->setState(EventBase::kReading);
 
   int r = event->readData();
   switch (r) {
     case 1: {
       ACCLOG(V1) << *event << " read: complete";
-      event->setState(acc::EventBase::kReaded);
+      event->setState(EventBase::kReaded);
       onComplete(event);
       break;
     }
     case -1: {
       ACCLOG(ERROR) << *event << " read: close for error: "
         << strerror(errno);
-      event->setState(acc::EventBase::kError);
+      event->setState(EventBase::kError);
       onError(event);
       break;
     }
     case -2: {
       if (event->isReadTimeout()) {
-        event->setState(acc::EventBase::kTimeout);
+        event->setState(EventBase::kTimeout);
         ACCLOG(WARN) << *event << " remove read timeout request: >"
           << event->timeoutOption().rtimeout;
         onTimeout(event);
@@ -116,29 +116,29 @@ void EventHandler::onRead(acc::EventBase* ev) {
   }
 }
 
-void EventHandler::onWrite(acc::EventBase* ev) {
+void EventHandler::onWrite(EventBase* ev) {
   Event* event = reinterpret_cast<Event*>(ev);
 
-  event->setState(acc::EventBase::kWriting);
+  event->setState(EventBase::kWriting);
 
   int r = event->writeData();
   switch (r) {
     case 1: {
       ACCLOG(V1) << *event << " write: complete";
-      event->setState(acc::EventBase::kWrited);
+      event->setState(EventBase::kWrited);
       onComplete(event);
       break;
     }
     case -1: {
       ACCLOG(ERROR) << *event << " write: close for error: "
         << strerror(errno);
-      event->setState(acc::EventBase::kError);
+      event->setState(EventBase::kError);
       onError(event);
       break;
     }
     case -2: {
       if (event->isWriteTimeout()) {
-        event->setState(acc::EventBase::kTimeout);
+        event->setState(EventBase::kTimeout);
         ACCLOG(WARN) << *event << " remove write timeout request: >"
           << event->timeoutOption().wtimeout;
         onTimeout(event);
@@ -151,37 +151,37 @@ void EventHandler::onWrite(acc::EventBase* ev) {
   }
 }
 
-void EventHandler::onTimeout(acc::EventBase *ev) {
+void EventHandler::onTimeout(EventBase *ev) {
   Event* event = reinterpret_cast<Event*>(ev);
 
-  assert(event->state() == acc::EventBase::kTimeout);
+  assert(event->state() == EventBase::kTimeout);
 
-  ACCMON_CNT("conn.timeout-" + event->label());
+  //ACCMON_CNT("conn.timeout-" + event->label());
   close(event);
 }
 
-void EventHandler::close(acc::EventBase* ev) {
+void EventHandler::close(EventBase* ev) {
   Event* event = reinterpret_cast<Event*>(ev);
 
   loop_->popEvent(event);
 
   if (event->socket()->isClient()) {
-    event->setState(acc::EventBase::kFail);
+    event->setState(EventBase::kFail);
     event->callbackOnClose();  // execute
   } else {
     delete event;
   }
 }
 
-void EventHandler::onComplete(acc::EventBase* ev) {
+void EventHandler::onComplete(EventBase* ev) {
   Event* event = reinterpret_cast<Event*>(ev);
 
   // for server: kReaded -> kWrited
   // for client: kWrited -> kReaded
 
-  if (event->state() == acc::EventBase::kReaded) {
+  if (event->state() == EventBase::kReaded) {
     if (event->isReadTimeout()) {
-      event->setState(acc::EventBase::kTimeout);
+      event->setState(EventBase::kTimeout);
       ACCLOG(WARN) << *event << " remove read timeout request: >"
         << event->timeoutOption().rtimeout;
       onTimeout(event);
@@ -192,8 +192,8 @@ void EventHandler::onComplete(acc::EventBase* ev) {
 
     // on result
     if (event->socket()->isClient()) {
-      ACCMON_CNT("conn.success-" + event->label());
-      ACCMON_AVG("conn.cost-" + event->label(), event->cost() / 1000);
+      //ACCMON_CNT("conn.success-" + event->label());
+      //ACCMON_AVG("conn.cost-" + event->label(), event->cost() / 1000);
     }
     if (!event->isForward()) {
       event->callbackOnComplete();  // execute
@@ -201,37 +201,37 @@ void EventHandler::onComplete(acc::EventBase* ev) {
     return;
   }
 
-  if (event->state() == acc::EventBase::kWrited) {
+  if (event->state() == EventBase::kWrited) {
     if (event->isWriteTimeout()) {
-      event->setState(acc::EventBase::kTimeout);
+      event->setState(EventBase::kTimeout);
       ACCLOG(WARN) << *event << " remove write timeout request: >"
         << event->timeoutOption().wtimeout;
       onTimeout(event);
       return;
     }
 
-    loop_->updateEvent(event, acc::EPoll::kRead);
+    loop_->updateEvent(event, EventBase::kRead);
 
     // server: wait next; client: wait response
     if (event->socket()->isServer()) {
-      ACCMON_CNT("conn.success-" + event->label());
-      ACCMON_AVG("conn.cost-" + event->label(), event->cost() / 1000);
+      //ACCMON_CNT("conn.success-" + event->label());
+      //ACCMON_AVG("conn.cost-" + event->label(), event->cost() / 1000);
       event->reset();
-      event->setState(acc::EventBase::kNext);
+      event->setState(EventBase::kNext);
     } else {
-      event->setState(acc::EventBase::kToRead);
+      event->setState(EventBase::kToRead);
     }
     loop_->dispatchEvent(event);
     return;
   }
 }
 
-void EventHandler::onError(acc::EventBase* ev) {
+void EventHandler::onError(EventBase* ev) {
   Event* event = reinterpret_cast<Event*>(ev);
 
-  assert(event->state() == acc::EventBase::kError);
+  assert(event->state() == EventBase::kError);
 
-  ACCMON_CNT("conn.error-" + event->label());
+  //ACCMON_CNT("conn.error-" + event->label());
   close(event);
 }
 

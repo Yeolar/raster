@@ -51,9 +51,7 @@ class EventLoop {
   void addEvent(EventBase* event);
   void addCallback(VoidFunc&& callback);
 
- private:
-  friend class EventHandlerBase;
-
+ public:
   void pushEvent(EventBase* event);
   void popEvent(EventBase* event);
   void updateEvent(EventBase* event, int mask);

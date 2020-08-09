@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ AsyncClient::AsyncClient(std::shared_ptr<NetHub> hub,
                          uint64_t ctimeout,
                          uint64_t rtimeout,
                          uint64_t wtimeout)
-  : AsyncClient(hub, peer, {ctimeout, rtimeout, wtimeout}) {}
+  : AsyncClient(hub, peer, TimeoutOption(ctimeout, rtimeout, wtimeout)) {}
 
 AsyncClient::AsyncClient(std::shared_ptr<NetHub> hub,
                          const ClientOption& option)
@@ -70,7 +70,7 @@ bool AsyncClient::initConnection() {
   if (socket &&
       (!keepalive_ || socket->setKeepAlive()) &&
       socket->connect(peer_)) {
-    auto event = acc::make_unique<Event>(channel_, std::move(socket));
+    auto event = std::make_unique<Event>(channel_, std::move(socket));
     event->setState(Event::kConnect);
     event_ = std::move(event);
     ACCLOG(DEBUG) << "peer[" << peer_ << "] connect";

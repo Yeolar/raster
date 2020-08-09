@@ -32,7 +32,7 @@ struct ForwardTarget {
 
 class NetHub : public FiberHub {
  public:
-  virtual acc::EventLoop* getEventLoop() = 0;
+  virtual EventLoop* getEventLoop() = 0;
 
   void execute(Event* event);
 

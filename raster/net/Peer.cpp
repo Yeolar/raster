@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -409,7 +409,7 @@ socklen_t Peer::getAddress(sockaddr_storage* addr) const {
 }
 
 std::string Peer::getAddressStr() const {
-  if (UNLIKELY(!isFamilyInet())) {
+  if (ACC_UNLIKELY(!isFamilyInet())) {
     throw std::invalid_argument("Can't get address str for non-ip address");
   }
   return isV4() ? addr_.ipV4Addr.str() : addr_.ipV6Addr.str();
@@ -427,14 +427,14 @@ std::string Peer::getHostStr() const {
 }
 
 uint16_t Peer::port() const {
-  if (UNLIKELY(!isFamilyInet())) {
+  if (ACC_UNLIKELY(!isFamilyInet())) {
     throw std::invalid_argument("Peer::port() called on non-ip address");
   }
   return port_;
 }
 
 void Peer::setPort(uint16_t port) {
-  if (UNLIKELY(!isFamilyInet())) {
+  if (ACC_UNLIKELY(!isFamilyInet())) {
     throw std::invalid_argument("Peer::setPort() called on non-ip address");
   }
   port_ = port;
@@ -471,7 +471,7 @@ bool Peer::operator==(const Peer& other) const {
   if (family_ != other.family_) {
     return false;
   }
-  if (UNLIKELY(!isFamilyInet())) {
+  if (ACC_UNLIKELY(!isFamilyInet())) {
     throw std::invalid_argument(
         "Peer: unsupported address family for comparison");
   }
@@ -486,7 +486,7 @@ bool Peer::operator<(const Peer& other) const {
   if (family_ != other.family_) {
     return family_ < other.family_;
   }
-  if (UNLIKELY(!isFamilyInet())) {
+  if (ACC_UNLIKELY(!isFamilyInet())) {
     throw std::invalid_argument(
         "Peer: unsupported address family for comparing");
   }
@@ -502,7 +502,7 @@ bool Peer::operator<(const Peer& other) const {
 
 size_t Peer::hash() const {
   size_t seed = acc::hash::twang_mix64(family_);
-  if (UNLIKELY(!isFamilyInet())) {
+  if (ACC_UNLIKELY(!isFamilyInet())) {
     throw std::invalid_argument(
         "Peer: unsupported address family for hashing");
   }
@@ -575,7 +575,7 @@ std::string Peer::getIpString(int flags) const {
 }
 
 void Peer::getIpString(char* buf, size_t buflen, int flags) const {
-  if (UNLIKELY(!isFamilyInet())) {
+  if (ACC_UNLIKELY(!isFamilyInet())) {
     throw std::invalid_argument(
         "Peer: attempting to get IP address for a non-ip address");
   }

@@ -30,7 +30,7 @@ struct Timeout : private boost::totally_ordered<Timeout<T>> {
 
   Timeout() {}
   Timeout(T* data_, uint64_t deadline_, bool repeat_ = false)
-    : data(data_), deadline(deadline_), repeat(repeat_) {}
+      : data(data_), deadline(deadline_), repeat(repeat_) {}
 };
 
 template <class T>
@@ -47,6 +47,10 @@ struct TimeoutOption {
   uint64_t ctimeout{uint64_t(-1)};    // connect timeout
   uint64_t rtimeout{uint64_t(-1)};    // read timeout
   uint64_t wtimeout{uint64_t(-1)};    // write timeout
+
+  TimeoutOption() {}
+  TimeoutOption(uint64_t cto, uint64_t rto, uint64_t wto)
+      : ctimeout(cto), rtimeout(rto), wtimeout(wto) {}
 };
 
 std::ostream& operator<<(std::ostream& os, const TimeoutOption& timeout);

@@ -30,7 +30,7 @@ void NetHub::execute(Event* event) {
     }
   }
   int poolId = event->channel()->id();
-  auto task = acc::make_unique<EventTask>(event);
+  auto task = std::make_unique<EventTask>(event);
   task->scheduleCallback = [&]() { addEvent(event); };
   FiberHub::execute(std::move(task), poolId);
 }

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,23 +21,23 @@
 
 namespace raster {
 
-class EventHandler : public acc::EventHandlerBase {
+class EventHandler : public EventHandlerBase {
  public:
-  EventHandler(acc::EventLoop* loop) : loop_(loop) {}
+  EventHandler(EventLoop* loop) : loop_(loop) {}
   virtual ~EventHandler() {}
 
-  void onConnect(acc::EventBase* event) override;
-  void onListen(acc::EventBase* event) override;
-  void onRead(acc::EventBase* event) override;
-  void onWrite(acc::EventBase* event) override;
-  void onTimeout(acc::EventBase* event) override;
-  void close(acc::EventBase* event) override;
+  void onConnect(EventBase* event) override;
+  void onListen(EventBase* event) override;
+  void onRead(EventBase* event) override;
+  void onWrite(EventBase* event) override;
+  void onTimeout(EventBase* event) override;
+  void close(EventBase* event) override;
 
  private:
-  void onComplete(acc::EventBase* event);
-  void onError(acc::EventBase* event);
+  void onComplete(EventBase* event);
+  void onError(EventBase* event);
 
-  acc::EventLoop* loop_;
+  EventLoop* loop_;
 };
 
 } // namespace raster
