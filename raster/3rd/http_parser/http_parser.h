@@ -42,7 +42,7 @@ typedef int ssize_t;
 #endif
 
 #if __cplusplus
-namespace rdd {
+namespace raster {
 #endif /* __cplusplus */
 
 /* Compile with -DHTTP_PARSER_STRICT=1 to parse URLs and hostnames

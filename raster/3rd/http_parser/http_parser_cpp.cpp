@@ -31,7 +31,7 @@
 #if __cplusplus
 #include <limits>
 
-namespace rdd {
+namespace raster {
 
 #ifndef INT64_MAX
 # define INT64_MAX std::numeric_limits<int64_t>::max()
