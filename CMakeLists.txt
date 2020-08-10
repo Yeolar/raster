@@ -83,7 +83,7 @@ add_subdirectory(raster)
 add_subdirectory(raster/concurrency)
 add_subdirectory(raster/coroutine)
 add_subdirectory(raster/event)
-#add_subdirectory(raster/framework)
+add_subdirectory(raster/framework)
 add_subdirectory(raster/net)
 add_subdirectory(raster/protocol/binary)
 add_subdirectory(raster/protocol/http)
@@ -94,7 +94,7 @@ add_library(raster
   $<TARGET_OBJECTS:raster_concurrency>
   $<TARGET_OBJECTS:raster_coroutine>
   $<TARGET_OBJECTS:raster_event>
-  #$<TARGET_OBJECTS:raster_framework>
+  $<TARGET_OBJECTS:raster_framework>
   $<TARGET_OBJECTS:raster_net>
   $<TARGET_OBJECTS:raster_protocol_binary>
   $<TARGET_OBJECTS:raster_protocol_http>

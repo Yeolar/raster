@@ -51,7 +51,7 @@ void PBRpcChannel::messageSent(
     const std::string& reason,
     std::string callId) {
   if (!success) {
-    std::shared_ptr<Handle> handle = handles_.erase_get(callId);
+    std::shared_ptr<Handle> handle = handles_.eraseGet(callId);
     if (handle) {
       PBRpcController* c = dynamic_cast<PBRpcController*>(handle->controller);
       if (c) {
@@ -86,7 +86,7 @@ void PBRpcChannel::process(const std::unique_ptr<acc::IOBuf>& buf) {
         PBRpcController controller;
         std::shared_ptr<google::protobuf::Message> response;
         proto::parseResponseFrom(in, callId, controller, response);
-        std::shared_ptr<Handle> handle = handles_.erase_get(callId);
+        std::shared_ptr<Handle> handle = handles_.eraseGet(callId);
         if (handle) {
           PBRpcController* c =
             dynamic_cast<PBRpcController*>(handle->controller);

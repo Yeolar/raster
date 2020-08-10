@@ -49,7 +49,7 @@ void PBAsyncServer::addHandle(std::shared_ptr<Handle>& handle) {
 
 std::shared_ptr<PBAsyncServer::Handle>
 PBAsyncServer::removeHandle(const std::string& callId) {
-  return handles_.erase_get(callId);
+  return handles_.eraseGet(callId);
 }
 
 } // namespace raster

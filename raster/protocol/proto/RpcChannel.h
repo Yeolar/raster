@@ -20,7 +20,7 @@
 #include <string>
 #include <google/protobuf/service.h>
 
-#include "raster/thread/LockedMap.h"
+#include "accelerator/thread/LockedMap.h"
 #include "raster/net/Event.h"
 #include "raster/net/NetUtil.h"
 #include "raster/net/Socket.h"
