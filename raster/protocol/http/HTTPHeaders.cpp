@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#define RDD_HTTPHEADERS_IMPL
+#define RASTER_HTTPHEADERS_IMPL
 #include "raster/protocol/http/HTTPHeaders.h"
 
 #include <vector>

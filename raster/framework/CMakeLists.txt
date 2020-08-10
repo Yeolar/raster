@@ -11,4 +11,4 @@ add_executable(configutil
     ConfigUtil.cpp
 )
 target_link_libraries(configutil
-    raster_static)
+    raster)

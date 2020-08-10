@@ -20,8 +20,8 @@
 #include "accelerator/Logging.h"
 #include "accelerator/MapUtil.h"
 #include "accelerator/String.h"
-#include "raster/thread/ThreadUtil.h"
-#include "raster/thread/UnionBasedStatic.h"
+#include "accelerator/thread/ThreadLocal.h"
+#include "accelerator/thread/UnionBasedStatic.h"
 #include "raster/protocol/http/HTTPMessage.h"
 #include "raster/protocol/http/ParseURL.h"
 

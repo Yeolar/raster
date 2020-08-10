@@ -22,7 +22,7 @@
 #include <mutex>
 
 #include "accelerator/Algorithm.h"
-#include "raster/thread/SpinLock.h"
+#include "accelerator/thread/SpinLock.h"
 
 namespace raster {
 
@@ -91,6 +91,6 @@ void DegraderManager::setupDegrader(const std::string& name, Args&&... args) {
 
 } // namespace raster
 
-#define RDDDEG_HIT(name) \
+#define RASTERDEG_HIT(name) \
   ::acc::Singleton< ::raster::DegraderManager>::get()->hit(name)
 

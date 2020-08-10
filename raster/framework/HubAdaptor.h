@@ -41,16 +41,16 @@ class HubAdaptor : public NetHub {
   void startService();
 
   // FiberHub
-  acc::CPUThreadPoolExecutor* getCPUThreadPoolExecutor(int poolId) override;
+  CPUThreadPoolExecutor* getCPUThreadPoolExecutor(int poolId) override;
   // NetHub
   EventLoop* getEventLoop() override;
 
-  std::shared_ptr<acc::CPUThreadPoolExecutor>
+  std::shared_ptr<CPUThreadPoolExecutor>
     getSharedCPUThreadPoolExecutor(int poolId);
 
  private:
-  std::unique_ptr<acc::IOThreadPoolExecutor> ioPool_;
-  std::map<int, std::shared_ptr<acc::CPUThreadPoolExecutor>> cpuPoolMap_;
+  std::unique_ptr<IOThreadPoolExecutor> ioPool_;
+  std::map<int, std::shared_ptr<CPUThreadPoolExecutor>> cpuPoolMap_;
 
   Acceptor acceptor_;
 };

@@ -362,9 +362,9 @@ std::string HTTPHeaders::getSingle(const T& nameOrCode,
   return res ? *res : dflt;
 }
 
-#ifndef RDD_HTTPHEADERS_IMPL
+#ifndef RASTER_HTTPHEADERS_IMPL
 #undef ITERATE_OVER_CODES
 #undef ITERATE_OVER_STRINGS
-#endif // RDD_HTTPHEADERS_IMPL
+#endif // RASTER_HTTPHEADERS_IMPL
 
 } // namespace raster

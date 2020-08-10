@@ -26,7 +26,7 @@
 #include "raster/json.h"
 #include "accelerator/FileUtil.h"
 #include "accelerator/Monitor.h"
-#include "raster/thread/ThreadUtil.h"
+#include "accelerator/thread/ThreadId.h"
 #include "raster/framework/Degrader.h"
 //#include "raster/framework/FalconSender.h"
 #include "raster/framework/HubAdaptor.h"
@@ -76,7 +76,7 @@ void configProcess(const dynamic& j, bool reload) {
   }
   ACCLOG(INFO) << "config process";
   auto pidfile = acc::json::get(j, "pidfile", "/tmp/raster.pid");
-  acc::writePid(pidfile.c_str(), acc::osThreadId());
+  acc::writePid(pidfile.c_str(), acc::getOSThreadID());
 }
 
 static dynamic defaultService() {

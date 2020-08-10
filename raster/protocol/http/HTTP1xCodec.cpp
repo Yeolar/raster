@@ -390,7 +390,7 @@ void HTTP1xCodec::generateHeader(acc::IOBufQueue& writeBuf,
   }
   if (downstream && !hasServerHeader) {
     appendLiteral(writeBuf, len, "Server: Raster/");
-    appendLiteral(writeBuf, len, RDD_VERSION);
+    appendLiteral(writeBuf, len, RASTER_VERSION);
     appendLiteral(writeBuf, len, CRLF);
   }
   if (downstream && !hasDateHeader) {
