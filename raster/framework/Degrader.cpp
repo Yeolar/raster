@@ -62,7 +62,7 @@ bool RateDegrader::needDemote() {
     uint64_t ts = acc::timestampNow();
     SpinLockGuard guard(lock_);
     if (ts_ != 0) {
-      uint32_t incr = std::max(ts - ts_, 0ul) * rate_;
+      uint32_t incr = std::max(ts - ts_, uint64_t(0)) * rate_;
       ticket_ = std::min(ticket_ + incr, limit_);
     }
     ts_ = ts;

@@ -134,6 +134,7 @@ bool Socket::connect(const Peer& peer) {
 }
 
 bool Socket::isConnected() {
+#if __linux__
   struct tcp_info info;
   socklen_t len = sizeof(info);
   int r = getsockopt(fd_, IPPROTO_TCP, TCP_INFO, &info, &len);
@@ -142,6 +143,16 @@ bool Socket::isConnected() {
     return false;
   }
   return info.tcpi_state == TCP_ESTABLISHED;
+#else
+  int val;
+  socklen_t len = sizeof(val);
+  int r = getsockopt(fd_, SOL_SOCKET, SO_ERROR, &val, &len);
+  if (r == -1) {
+    ACCPLOG(ERROR) << "fd(" << fd_ << "): get SO_ERROR failed";
+    return false;
+  }
+  return val == 0;
+#endif
 }
 
 void Socket::close() {
@@ -176,10 +187,14 @@ ssize_t Socket::recv(void* buf, size_t n) {
 }
 
 ssize_t Socket::send(const void* buf, size_t n) {
+  int flags = 0;
+#ifdef MSG_NOSIGNAL
   // Note the use of MSG_NOSIGNAL to suppress SIGPIPE errors, instead we
   // check for the EPIPE return condition and close the socket in that case
+  flags |= MSG_NOSIGNAL;
+#endif
   while (true) {
-    ssize_t r = ::send(fd_, buf, n, MSG_NOSIGNAL);
+    ssize_t r = ::send(fd_, buf, n, flags);
     if (r == -1) {
       if (errno == EINTR) {
         continue;
@@ -222,18 +237,20 @@ bool Socket::setCloseExec() {
 
 bool Socket::setKeepAlive() {
   int keepalive = 1;
-  int keepidle = 600;
-  int keepinterval = 5;
-  int keepcount = 2;
   socklen_t len = sizeof(int);
   int r = setsockopt(fd_, SOL_SOCKET, SO_KEEPALIVE, &keepalive, len);
   if (r == -1) {
     ACCPLOG(ERROR) << "fd(" << fd_ << "): set SO_KEEPALIVE failed";
     return false;
   }
+#if __linux__
+  int keepidle = 600;
+  int keepinterval = 5;
+  int keepcount = 2;
   setsockopt(fd_, SOL_TCP, TCP_KEEPIDLE, &keepidle, len);
   setsockopt(fd_, SOL_TCP, TCP_KEEPINTVL, &keepinterval, len);
   setsockopt(fd_, SOL_TCP, TCP_KEEPCNT, &keepcount, len);
+#endif
   return r != -1;
 }
 
