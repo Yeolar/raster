@@ -24,8 +24,6 @@
 
 namespace raster {
 
-using namespace std::placeholders;
-
 void PBRpcChannel::CallMethod(
     const google::protobuf::MethodDescriptor* method,
     google::protobuf::RpcController* controller,
@@ -43,7 +41,11 @@ void PBRpcChannel::CallMethod(
   handles_.update(std::make_pair(callId, handle));
   acc::IOBufQueue out(acc::IOBufQueue::cacheChainLength());
   proto::serializeRequest(callId, *method, *request, out);
-  send(out.move(), std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
+  send(out.move(), std::bind(&PBRpcChannel::messageSent,
+                             this,
+                             std::placeholders::_1,
+                             std::placeholders::_2,
+                             callId));
 }
 
 void PBRpcChannel::messageSent(
@@ -73,7 +75,11 @@ void PBRpcChannel::startCancel(std::string callId) {
   }
   acc::IOBufQueue out(acc::IOBufQueue::cacheChainLength());
   proto::serializeCancel(callId, out);
-  send(out.move(), std::bind(&PBRpcChannel::messageSent, this, _1, _2, callId));
+  send(out.move(), std::bind(&PBRpcChannel::messageSent,
+                             this,
+                             std::placeholders::_1,
+                             std::placeholders::_2,
+                             callId));
 }
 
 void PBRpcChannel::process(const std::unique_ptr<acc::IOBuf>& buf) {

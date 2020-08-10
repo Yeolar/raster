@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#pragma one
+#pragma once
 
 #include <atomic>
 #include <map>
@@ -27,6 +27,8 @@ namespace raster {
 
 class Sampler {
  public:
+  virtual ~Sampler() {}
+
   virtual bool hit() = 0;
 };
 

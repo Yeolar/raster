@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#pragma one
+#pragma once
 
 #include <atomic>
 #include <map>
@@ -28,6 +28,8 @@ namespace raster {
 
 class Degrader {
  public:
+  virtual ~Degrader() {}
+
   virtual bool needDemote() = 0;
 };
 
