@@ -20,12 +20,12 @@ DEFINE_int32(threads, 8, "concurrent threads");
 DEFINE_int32(count, 100, "request count");
 
 using namespace acc;
-using namespace rdd;
-using namespace rdd::pbrpc;
+using namespace raster;
+using namespace raster::pbrpc;
 
 bool request(const ClientOption& opt) {
   Query req;
-  req.set_traceid("rddt");
+  req.set_traceid("rastert");
   req.set_query("query");
   req.set_forward(FLAGS_forward);
   Result res;

@@ -18,7 +18,7 @@ static const char* VERSION = "1.1.0";
 
 DEFINE_string(conf, "server.json", "Server config file");
 
-using namespace rdd;
+using namespace raster;
 
 class BaseHandler : public RequestHandler {
  public:
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
          {configJobGraph, "job.graph"}
          });
 
-  ACCLOG(INFO) << "rdd start ... ^_^";
+  ACCLOG(INFO) << "raster start ... ^_^";
   acc::Singleton<HubAdaptor>::get()->startService();
 
   gflags::ShutDownCommandLineFlags();

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#include "raster/ProcessUtil.h"
+#include "raster/framework/ProcessUtil.h"
 
+#include "accelerator/FileUtil.h"
 #include "accelerator/Logging.h"
-#include "accelerator/io/FileUtil.h"
 
 namespace acc {
 

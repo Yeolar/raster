@@ -22,7 +22,6 @@
 #include <typeinfo>
 
 #include "accelerator/Logging.h"
-#include "raster/ProcessUtil.h"
 #include "raster/json.h"
 #include "accelerator/FileUtil.h"
 #include "accelerator/Monitor.h"
@@ -30,6 +29,7 @@
 #include "raster/framework/Degrader.h"
 //#include "raster/framework/FalconSender.h"
 #include "raster/framework/HubAdaptor.h"
+#include "raster/framework/ProcessUtil.h"
 #include "raster/framework/Sampler.h"
 
 namespace raster {

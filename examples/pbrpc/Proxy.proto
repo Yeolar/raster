@@ -3,7 +3,7 @@
 syntax = "proto2";
 option cc_generic_services = true;
 
-package rdd.pbrpc;
+package raster.pbrpc;
 
 message Query {
   optional string traceid = 1;

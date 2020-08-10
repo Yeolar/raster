@@ -19,7 +19,7 @@ DEFINE_int32(threads, 8, "concurrent threads");
 DEFINE_int32(count, 100, "request count");
 
 using namespace acc;
-using namespace rdd;
+using namespace raster;
 
 bool request(const ClientOption& opt) {
 

@@ -20,9 +20,9 @@
 #include "accelerator/Exception.h"
 #include "accelerator/Logging.h"
 #include "raster/MemoryProtect.h"
-#include "raster/ProcessUtil.h"
 #include "accelerator/Singleton.h"
 #include "raster/framework/Config.h"
+#include "raster/framework/ProcessUtil.h"
 
 namespace raster {
 

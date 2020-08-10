@@ -107,8 +107,8 @@ install(TARGETS raster
 )
 
 # Binary
-#add_subdirectory(examples/http)
-#add_subdirectory(examples/pbrpc)
+add_subdirectory(examples/http)
+add_subdirectory(examples/pbrpc)
 
 # Test
 if(GTEST_FOUND)

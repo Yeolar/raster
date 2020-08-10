@@ -19,8 +19,8 @@ static const char* VERSION = "1.1.0";
 
 DEFINE_string(conf, "server.json", "Server config file");
 
-using namespace rdd;
-using namespace rdd::pbrpc;
+using namespace raster;
+using namespace raster::pbrpc;
 
 class ProxyServiceImpl : public ProxyService {
  public:
@@ -41,13 +41,13 @@ class ProxyServiceImpl : public ProxyService {
       return;
     }
 
-    if (!acc::StringPiece(request->traceid()).startsWith("rdd")) {
+    if (!acc::StringPiece(request->traceid()).startsWith("raster")) {
       response->set_code(ResultCode::E_SOURCE__UNTRUSTED);
       ACCLOG(INFO) << "untrusted request: [" << request->traceid() << "]";
     }
     if (!checkOK(response)) return;
 
-    response->set_traceid(acc::generateUuid(request->traceid(), "rdde"));
+    response->set_traceid(acc::generateUuid(request->traceid(), "rastere"));
     response->set_code(ResultCode::OK);
 
     if (!request->forward().empty()) {
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
          {configJobGraph, "job.graph"}
          });
 
-  ACCLOG(INFO) << "rdd start ... ^_^";
+  ACCLOG(INFO) << "raster start ... ^_^";
   acc::Singleton<HubAdaptor>::get()->startService();
 
   gflags::ShutDownCommandLineFlags();

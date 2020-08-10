@@ -69,6 +69,6 @@ void SamplerManager::setupSampler(const std::string& name, Args&&... args) {
 
 } // namespace raster
 
-#define RDDSAM_HIT(name) \
+#define RASTERSAM_HIT(name) \
   ::acc::Singleton< ::raster::SamplerManager>::get()->hit(name)
 

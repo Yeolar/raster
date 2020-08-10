@@ -102,8 +102,8 @@ std::string GetHeaderPrologue(rpc_generator::File* file,
       printer->Print(vars, "// Original file comments:\n");
       printer->PrintRaw(leading_comments.c_str());
     }
-    printer->Print(vars, "#ifndef RDD_PBRPC_$filename_identifier$__INCLUDED\n");
-    printer->Print(vars, "#define RDD_PBRPC_$filename_identifier$__INCLUDED\n");
+    printer->Print(vars, "#ifndef RASTER_PBRPC_$filename_identifier$__INCLUDED\n");
+    printer->Print(vars, "#define RASTER_PBRPC_$filename_identifier$__INCLUDED\n");
     printer->Print(vars, "\n");
     printer->Print(vars, "#include \"$filename_base$$message_header_ext$\"\n");
     printer->Print(vars, file->additional_headers().c_str());
