@@ -25,7 +25,7 @@
 namespace raster {
 
 void ParseURL::parse() {
-  if (/*caseInsensitiveEqual(url_.subpiece(0, 4), "http")*/true) {
+  if (url_.subpiece(0, 4).equals("http", acc::AsciiCaseInsensitive())) {
     struct http_parser_url u;
     memset(&u, 0, sizeof(struct http_parser_url)); // init before used
     valid_ = !(http_parser_parse_url(url_.data(), url_.size(), 0, &u));

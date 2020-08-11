@@ -46,9 +46,9 @@ namespace raster {
 HTTPMethod stringToMethod(acc::StringPiece method) {
   int index = 0;
   for (auto& cur : s_methodStrings.data) {
-    //if (caseInsensitiveEqual(cur, method)) {
+    if (method.equals(cur, acc::AsciiCaseInsensitive())) {
       return HTTPMethod(index);
-    //}
+    }
     index++;
   }
   throw HTTPException(405, method);

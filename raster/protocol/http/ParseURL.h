@@ -46,7 +46,7 @@ class ParseURL {
 
   acc::StringPiece url() const { return url_; }
   acc::StringPiece scheme() const { return scheme_; }
-  std::string authority() const { return authority_; }
+  acc::StringPiece authority() const { return authority_; }
   acc::StringPiece host() const { return host_; }
   uint16_t port() const { return port_; }
   acc::StringPiece path() const { return path_; }

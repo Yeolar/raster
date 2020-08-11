@@ -245,7 +245,7 @@ void HTTPHeaders::add(HTTPHeaderCode code, T&& value) {
 // iterate over the positions of all headers with given name
 #define ITERATE_OVER_STRINGS(String, Block) \
     ITERATE_OVER_CODES(HTTP_HEADER_OTHER, { \
-  if (/*acc::caseInsensitiveEqual((String), *headerNames_[pos])*/true) { \
+  if ((String).equals(*headerNames_[pos], acc::AsciiCaseInsensitive())) { \
     {Block} \
   } \
 })

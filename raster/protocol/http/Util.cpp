@@ -140,7 +140,7 @@ std::string urlJoin(const std::string& base, const std::string& url) {
     return url;
   if (!authority.empty())
     return HTTPMessage::createUrl(scheme, authority, path, query, fragment);
-  //authority = b.authority();
+  authority = b.authority();
   if (path.subpiece(0, 1) == "/")
     return HTTPMessage::createUrl(scheme, authority, path, query, fragment);
   if (path.empty()) {

@@ -323,6 +323,7 @@ void HTTP1xCodec::generateHeader(acc::IOBufQueue& writeBuf,
   msg.getHeaders().forEachWithCode([&] (HTTPHeaderCode code,
                                         const std::string& header,
                                         const std::string& value) {
+    acc::AsciiCaseInsensitive caseInsensitive;
     if (code == HTTP_HEADER_CONTENT_LENGTH) {
       // Write the Content-Length last (t1071703)
       deferredContentLength = &value;
@@ -331,17 +332,17 @@ void HTTP1xCodec::generateHeader(acc::IOBufQueue& writeBuf,
       // TODO: add support for the case where "close" is part of
       // a comma-separated list of values
       static const std::string kClose = "close";
-      //if (acc::caseInsensitiveEqual(value, kClose)) {
+      if (acc::StringPiece(value).equals(kClose, caseInsensitive)) {
         keepalive_ = false;
-      //}
+      }
       // We'll generate a new Connection header based on the keepalive_ state
       return;
     } else if (!hasTransferEncodingChunked &&
                code == HTTP_HEADER_TRANSFER_ENCODING) {
       static const std::string kChunked = "chunked";
-      //if (!acc::caseInsensitiveEqual(value, kChunked)) {
+      if (!acc::StringPiece(value).equals(kChunked, caseInsensitive)) {
         return;
-      //}
+      }
       hasTransferEncodingChunked = true;
       if (!mayChunkEgress_) {
         return;

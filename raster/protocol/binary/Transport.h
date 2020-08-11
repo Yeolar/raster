@@ -17,8 +17,7 @@
 #pragma once
 
 #include "accelerator/Memory.h"
-//#include "accelerator/compression/ZlibStreamCompressor.h"
-//#include "accelerator/compression/ZlibStreamDecompressor.h"
+#include "accelerator/compression/Compression.h"
 #include "raster/net/Transport.h"
 
 namespace raster {
@@ -56,7 +55,6 @@ class BinaryTransportFactory : public TransportFactory {
   }
 };
 
-/*
 class ZlibTransport : public Transport {
  public:
   ZlibTransport() { reset(); }
@@ -73,8 +71,7 @@ class ZlibTransport : public Transport {
   std::unique_ptr<acc::IOBuf> body;
 
  private:
-  std::unique_ptr<acc::ZlibStreamCompressor> compressor_;
-  std::unique_ptr<acc::ZlibStreamDecompressor> decompressor_;
+  std::unique_ptr<acc::io::StreamCodec> codec_;
 };
 
 class ZlibTransportFactory : public TransportFactory {
@@ -86,5 +83,5 @@ class ZlibTransportFactory : public TransportFactory {
     return std::make_unique<ZlibTransport>();
   }
 };
-*/
+
 } // namespace raster

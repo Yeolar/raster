@@ -78,10 +78,8 @@ size_t BinaryTransport::sendBody(std::unique_ptr<acc::IOBuf> body) {
   return n;
 }
 
-/*
 void ZlibTransport::reset() {
-  compressor_.reset(new acc::ZlibStreamCompressor(acc::ZlibCompressionType::DEFLATE, 9));
-  decompressor_.reset(new acc::ZlibStreamDecompressor(acc::ZlibCompressionType::DEFLATE));
+  codec_ = acc::io::getStreamCodec(acc::io::CodecType::ZLIB);
   body->clear();
 }
 
@@ -97,30 +95,39 @@ void ZlibTransport::processReadData() {
 }
 
 size_t ZlibTransport::onIngress(const acc::IOBuf& buf) {
-  auto decompressed = decompressor_->decompress(&buf);
-  if (decompressed->length() > 0) {
-    if (body) {
-      body->appendChain(std::move(decompressed));
-    } else {
-      body = std::move(decompressed);
+  size_t n = 0;
+  try {
+    auto decompressed = codec_->uncompress(&buf);
+    n = decompressed->length();
+    if (n > 0) {
+      if (body) {
+        body->appendChain(std::move(decompressed));
+      } else {
+        body = std::move(decompressed);
+      }
     }
+  } catch (std::exception& e) {
+    state_ = kError;
   }
+  /*
   if (decompressor_->finished()) {
     state_ = kFinish;
   } else if (decompressor_->hasError()) {
     state_ = kError;
   }
-  return decompressed->length();
+  */
+  return n;
 }
 
 size_t ZlibTransport::sendBody(std::unique_ptr<acc::IOBuf> body) {
   size_t n = body->computeChainDataLength();
-  auto compressed = compressor_->compress(body.get(), false);
-  writeBuf_.append(std::move(compressed));
-  if (decompressor_->hasError()) {
+  try {
+    auto compressed = codec_->compress(body.get());
+    writeBuf_.append(std::move(compressed));
+  } catch (std::exception& e) {
     state_ = kError;
   }
   return n;
 }
-*/
+
 } // namespace raster

@@ -33,8 +33,8 @@ class BinaryAsyncServer : public Service {
     channel_ = std::make_shared<Channel>(
         peer,
         timeout,
-        acc::make_unique<BinaryTransportFactory>(),
-        acc::make_unique<BinaryProcessorFactory<P>>());
+        std::make_unique<BinaryTransportFactory>(),
+        std::make_unique<BinaryProcessorFactory<P>>());
   }
 };
 

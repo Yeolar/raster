@@ -30,7 +30,7 @@ void PBRpcChannel::CallMethod(
     const google::protobuf::Message* request,
     google::protobuf::Message* response,
     google::protobuf::Closure* done) {
-  std::string callId = "";//acc::uuidGenerateTime();
+  std::string callId = acc::generateUuid("", "raster");
   if (controller) {
     PBRpcController* c = dynamic_cast<PBRpcController*>(controller);
     if (c) {

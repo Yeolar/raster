@@ -161,11 +161,10 @@ inline int Event::fd() const {
 }
 
 inline std::string Event::str() const {
-  return acc::to<std::string>("ev(", "");
-//  os << "ev(" << *event.socket()
-//     << ", " << event.stateName()
-//     << ", " << event.timestampStr() << ")";
-  return "";
+  return acc::to<std::string>(
+      "ev(", socket_->str(),
+      ", ", stateName(),
+      ", ", timestampStr(), ")");
 }
 
 inline Socket* Event::socket() const {

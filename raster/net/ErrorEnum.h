@@ -19,7 +19,7 @@
 namespace raster {
 
 // Max must be the last one.
-#define RASTER_NET_ERROR_GEN(x)                    \
+#define RASTER_NET_ERROR_GEN(x)                 \
     x(None),                                    \
     x(Message),                                 \
     x(Connect),                                 \
