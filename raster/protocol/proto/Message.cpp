@@ -84,7 +84,7 @@ void writeMessage(
     const google::protobuf::Message& msg,
     acc::IOBufQueue& out) {
   writeString(msg.GetDescriptor()->full_name(), out);
-  size_t n = msg.ByteSize();
+  size_t n = msg.ByteSizeLong();
   out.preallocate(n, n);
   msg.SerializeToArray(out.writableTail(), n);
   out.postallocate(n);

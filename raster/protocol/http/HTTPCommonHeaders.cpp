@@ -156,7 +156,7 @@ HTTPCommonHeadersInternal::hash (register const char *str, register unsigned int
       114, 114, 114, 114, 114, 114, 114, 114, 114, 114,
       114, 114, 114, 114, 114, 114
     };
-  register int hval = len;
+  int hval = len;
 
   switch (hval)
     {
@@ -308,12 +308,12 @@ HTTPCommonHeadersInternal::in_word_set (register const char *str, register unsig
 {
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
     {
-      register int key = hash (str, len);
+      int key = hash (str, len);
 
       if (key <= MAX_HASH_VALUE && key >= 0)
         if (len == lengthtable[key])
           {
-            register const char *s = wordlist[key].name;
+            const char *s = wordlist[key].name;
 
             if ((((unsigned char)*str ^ (unsigned char)*s) & ~32) == 0 && !gperf_case_memcmp (str, s, len))
               return &wordlist[key];

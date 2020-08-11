@@ -69,7 +69,7 @@ HubAdaptor::getSharedCPUThreadPoolExecutor(int poolId) {
 }
 
 EventLoop* HubAdaptor::getEventLoop() {
-  ioPool_->getEventLoop();
+  return ioPool_->getEventLoop();
 }
 
 } // namespace raster

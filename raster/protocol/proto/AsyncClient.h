@@ -53,7 +53,7 @@ class PBAsyncClient : public AsyncClient {
              const Req& request);
 
  protected:
-  virtual std::shared_ptr<Channel> makeChannel();
+  std::shared_ptr<Channel> makeChannel() override;
 
  private:
   void init();
