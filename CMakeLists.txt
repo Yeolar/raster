@@ -16,7 +16,6 @@ find_package(Threads REQUIRED)
 find_package(Boost REQUIRED COMPONENTS context random regex thread)
 find_package(DoubleConversion REQUIRED)
 find_package(GFlags REQUIRED)
-find_package(OpenSSL REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Accelerator REQUIRED)
@@ -40,7 +39,6 @@ link_libraries(
   ${Boost_LIBRARIES}
   ${DOUBLE_CONVERSION_LIBRARY}
   ${GFLAGS_LIBRARIES}
-  ${OPENSSL_LIBRARIES}
   ${PROTOBUF_LIBRARIES}
   ${ZLIB_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}
@@ -112,9 +110,9 @@ add_subdirectory(examples/pbrpc)
 
 # Test
 if(GTEST_FOUND)
-    enable_testing()
-#    add_subdirectory(raster/framework/test)
-#    add_subdirectory(raster/protocol/http/test)
+  enable_testing()
+#  add_subdirectory(raster/framework/test)
+#  add_subdirectory(raster/protocol/http/test)
 endif()
 
 # CmakeConfig
