@@ -198,9 +198,8 @@ FutexResult emulatedFutexWaitImpl(
     std::unique_lock<std::mutex> nodeLock(node.mutex_);
     while (!node.signaled_ && status != std::cv_status::timeout) {
       if (timeout != nullptr) {
-        system_clock::time_point absTime;
-        absTime += (seconds(timeout->tv_sec) +
-                                         nanoseconds(timeout->tv_nsec));
+        auto d = (seconds(timeout->tv_sec) + nanoseconds(timeout->tv_nsec));
+        system_clock::time_point absTime(duration_cast<system_clock::duration>(d));
         status = node.cond_.wait_until(nodeLock, absTime);
       } else {
         node.cond_.wait(nodeLock);
