@@ -99,7 +99,7 @@ static unsigned char gperf_downcase[256] =
 #ifndef GPERF_CASE_MEMCMP
 #define GPERF_CASE_MEMCMP 1
 static int
-gperf_case_memcmp (register const char *s1, register const char *s2, register unsigned int n)
+gperf_case_memcmp (const char *s1, const char *s2, unsigned int n)
 {
   for (; n > 0;)
     {
@@ -125,7 +125,7 @@ public:
 };
 
 inline unsigned int
-HTTPCommonHeadersInternal::hash (register const char *str, register unsigned int len)
+HTTPCommonHeadersInternal::hash (const char *str, unsigned int len)
 {
   static const unsigned char asso_values[] =
     {
@@ -304,7 +304,7 @@ static const struct HTTPCommonHeaderName wordlist[] =
   };
 
 const struct HTTPCommonHeaderName *
-HTTPCommonHeadersInternal::in_word_set (register const char *str, register unsigned int len)
+HTTPCommonHeadersInternal::in_word_set (const char *str, unsigned int len)
 {
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
     {
