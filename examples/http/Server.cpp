@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
   setupShutdownSignal(SIGINT);
   setupShutdownSignal(SIGTERM);
 
-  auto httpserver = std::make_unique<HTTPAsyncServer>("HTTP");
+  auto httpserver = std::make_unique<HTTPAsyncServer>("Http");
   httpserver->addHandler<BaseHandler>("/");
 
   acc::Singleton<HubAdaptor>::get()->addService(std::move(httpserver));
