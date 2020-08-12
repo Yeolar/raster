@@ -22,7 +22,7 @@
 #include <typeinfo>
 
 #include "accelerator/Logging.h"
-#include "raster/json.h"
+#include "raster/framework/json.h"
 #include "accelerator/FileUtil.h"
 #include "accelerator/Monitor.h"
 #include "accelerator/thread/ThreadId.h"

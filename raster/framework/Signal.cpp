@@ -16,10 +16,10 @@
 
 #include "raster/framework/Signal.h"
 
-#include "raster/Backtrace.h"
+#include "raster/framework/Backtrace.h"
 #include "accelerator/Exception.h"
 #include "accelerator/Logging.h"
-#include "raster/MemoryProtect.h"
+#include "raster/framework/MemoryProtect.h"
 #include "accelerator/Singleton.h"
 #include "raster/framework/Config.h"
 #include "raster/framework/ProcessUtil.h"
