@@ -16,11 +16,11 @@
 
 #include "raster/framework/Signal.h"
 
+#include <accelerator/Exception.h>
+#include <accelerator/Logging.h>
+#include <accelerator/Singleton.h>
+
 #include "raster/framework/Backtrace.h"
-#include "accelerator/Exception.h"
-#include "accelerator/Logging.h"
-#include "raster/framework/MemoryProtect.h"
-#include "accelerator/Singleton.h"
 #include "raster/framework/Config.h"
 #include "raster/framework/ProcessUtil.h"
 
@@ -38,17 +38,6 @@ static void reloadSignalHandler(int signo) {
 static void shutdownSignalHandler(int signo) {
   ACCLOG(INFO) << "signal '" << strsignal(signo) << "' received, exit...";
   acc::Singleton<Shutdown>::get()->run();
-}
-
-static void memoryProtectSignalHandler(int signo, siginfo_t* info, void*) {
-  std::array<char, 128> buffer;
-  int n = snprintf(buffer.data(), buffer.size(),
-                   "Segmentation fault (sig=%d), fault address: %p.\n",
-                   signo, info->si_addr);
-  n = ::write(STDERR_FILENO, buffer.data(), n);
-  acc::recordBacktrace();
-  n = ::write(STDERR_FILENO, "\n", 1);
-  acc::MemoryProtect(info->si_addr).unprotect();
 }
 
 void setupSignal(int signo, void (*handler)(int)) {
@@ -80,10 +69,6 @@ void setupReloadSignal(int signo) {
 
 void setupShutdownSignal(int signo) {
   setupSignal(signo, shutdownSignalHandler);
-}
-
-void setupMemoryProtectSignal() {
-  setupSignal(SIGSEGV, memoryProtectSignalHandler);
 }
 
 void sendSignal(int signo, const char* pidfile) {

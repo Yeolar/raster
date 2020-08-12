@@ -20,7 +20,7 @@
 
 #include <vector>
 
-#include "accelerator/Logging.h"
+#include <accelerator/Logging.h>
 
 namespace raster {
 

@@ -19,9 +19,9 @@
 
 #include <string>
 
-#include "accelerator/Conv.h"
-#include "accelerator/Logging.h"
-#include "accelerator/Range.h"
+#include <accelerator/Conv.h>
+#include <accelerator/Logging.h>
+#include <accelerator/Range.h>
 
 namespace raster {
 

@@ -17,9 +17,9 @@
 
 #pragma once
 
-#include "accelerator/Memory.h"
-#include "accelerator/ScopeGuard.h"
-#include "accelerator/io/IOBuf.h"
+#include <accelerator/ScopeGuard.h>
+#include <accelerator/io/IOBuf.h>
+
 #include "raster/protocol/http/HTTPMessage.h"
 #include "raster/protocol/http/Transport.h"
 

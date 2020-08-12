@@ -18,8 +18,8 @@
 
 #include <memory>
 
-#include "accelerator/Memory.h"
-#include "accelerator/io/IOBuf.h"
+#include <accelerator/io/IOBuf.h>
+
 #include "raster/net/ErrorEnum.h"
 #include "raster/net/Exception.h"
 #include "raster/protocol/http/HTTPMessage.h"

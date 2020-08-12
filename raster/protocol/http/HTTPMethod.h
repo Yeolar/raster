@@ -18,7 +18,7 @@
 
 #include <string>
 
-#include "accelerator/Range.h"
+#include <accelerator/Range.h>
 
 namespace raster {
 

@@ -16,8 +16,8 @@
 
 #include "raster/framework/ProcessUtil.h"
 
-#include "accelerator/FileUtil.h"
-#include "accelerator/Logging.h"
+#include <accelerator/FileUtil.h>
+#include <accelerator/Logging.h>
 
 namespace acc {
 

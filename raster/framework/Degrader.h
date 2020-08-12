@@ -21,8 +21,8 @@
 #include <memory>
 #include <mutex>
 
-#include "accelerator/Algorithm.h"
-#include "accelerator/thread/SpinLock.h"
+#include <accelerator/Algorithm.h>
+#include <accelerator/thread/SpinLock.h>
 
 namespace raster {
 

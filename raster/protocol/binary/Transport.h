@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "accelerator/Memory.h"
-#include "accelerator/compression/Compression.h"
+#include <accelerator/compression/Compression.h>
+
 #include "raster/net/Transport.h"
 
 namespace raster {

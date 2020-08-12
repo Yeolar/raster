@@ -16,7 +16,7 @@
 
 #include "raster/protocol/binary/SyncClient.h"
 
-#include "accelerator/Logging.h"
+#include <accelerator/Logging.h>
 
 namespace raster {
 

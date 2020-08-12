@@ -18,7 +18,7 @@
 
 #include <google/protobuf/io/zero_copy_stream.h>
 
-#include "accelerator/io/Cursor.h"
+#include <accelerator/io/Cursor.h>
 
 namespace raster {
 

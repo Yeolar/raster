@@ -18,8 +18,9 @@
 
 #include <vector>
 
+#include <accelerator/json.h>
+
 #include "raster/concurrency/Executor.h"
-#include "accelerator/json.h"
 
 namespace raster {
 

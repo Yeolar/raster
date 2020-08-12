@@ -17,7 +17,7 @@
 
 #include "raster/concurrency/ThreadPoolExecutor.h"
 
-#include "accelerator/ScopeGuard.h"
+#include <accelerator/ScopeGuard.h>
 
 namespace raster {
 

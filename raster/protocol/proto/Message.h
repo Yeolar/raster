@@ -20,7 +20,8 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/service.h>
 
-#include "accelerator/io/Cursor.h"
+#include <accelerator/io/Cursor.h>
+
 #include "raster/protocol/proto/RpcController.h"
 
 namespace raster {

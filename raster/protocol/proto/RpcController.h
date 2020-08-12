@@ -21,8 +21,9 @@
 #include <string>
 #include <google/protobuf/service.h>
 
+#include <accelerator/io/Cursor.h>
+
 #include "raster/concurrency/Executor.h"
-#include "accelerator/io/Cursor.h"
 
 namespace raster {
 

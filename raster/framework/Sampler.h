@@ -21,7 +21,7 @@
 #include <memory>
 #include <mutex>
 
-#include "accelerator/Algorithm.h"
+#include <accelerator/Algorithm.h>
 
 namespace raster {
 

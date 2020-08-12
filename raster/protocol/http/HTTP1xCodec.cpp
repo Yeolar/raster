@@ -17,7 +17,8 @@
 
 #include "raster/protocol/http/HTTP1xCodec.h"
 
-#include "accelerator/io/Cursor.h"
+#include <accelerator/io/Cursor.h>
+
 #include "raster/raster-config.h"
 #include "raster/protocol/http/Util.h"
 

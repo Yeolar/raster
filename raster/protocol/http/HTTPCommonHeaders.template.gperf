@@ -18,8 +18,9 @@
 
 #include <cstring>
 
+#include <accelerator/Logging.h>
+
 #include "raster/protocol/http/HTTPCommonHeaders.h"
-#include "accelerator/Logging.h"
 
 namespace raster {
 

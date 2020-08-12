@@ -44,8 +44,8 @@
 #include <iosfwd>
 #include <string>
 
-#include "accelerator/dynamic.h"
-#include "accelerator/Range.h"
+#include <accelerator/dynamic.h>
+#include <accelerator/Range.h>
 
 namespace acc {
 namespace json {

@@ -16,9 +16,9 @@
 
 #include "raster/framework/Degrader.h"
 
-#include "accelerator/Logging.h"
-#include "accelerator/MapUtil.h"
-#include "accelerator/Time.h"
+#include <accelerator/Logging.h>
+#include <accelerator/MapUtil.h>
+#include <accelerator/Time.h>
 
 namespace raster {
 

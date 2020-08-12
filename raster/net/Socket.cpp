@@ -25,7 +25,6 @@
 #include <accelerator/Conv.h>
 #include <accelerator/FileUtil.h>
 #include <accelerator/Logging.h>
-#include <accelerator/Memory.h>
 #include <accelerator/Time.h>
 
 DEFINE_uint64(net_conn_limit, 100000,

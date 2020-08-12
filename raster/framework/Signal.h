@@ -29,7 +29,6 @@ void setupSignal(int signo, void (*handler)(int, siginfo_t*, void*));
 void setupIgnoreSignal(int signo);
 void setupReloadSignal(int signo);
 void setupShutdownSignal(int signo);
-void setupMemoryProtectSignal();
 
 void sendSignal(int signo, const char* pidfile);
 
