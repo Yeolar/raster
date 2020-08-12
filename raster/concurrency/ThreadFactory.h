@@ -36,9 +36,9 @@ class ThreadFactory {
   std::thread newThread(VoidFunc&& func) {
     auto name = acc::to<std::string>(prefix_, suffix_++);
     return std::thread(
-        [&] () {
+        [name, fn = std::move(func)] () {
           acc::setThreadName(name);
-          func();
+          fn();
         });
   }
 
