@@ -190,19 +190,27 @@ void EventLoop::dispatchEvent(EventBase* event) {
       poll_->add(event->fd(), EventBase::kRead);
       break;
     }
-    case EventBase::kNext:
-    case EventBase::kToRead: {
-      ACCLOG(V2) << *event << " add e/rdeadline";
-      deadlineHeap_.push(event->state() == EventBase::kNext ?
-                         event->edeadline() : event->rdeadline());
+    case EventBase::kNext: {
+      ACCLOG(V2) << *event << " add edeadline";
+      deadlineHeap_.push(event->edeadline());
       // already update epoll
       break;
     }
-    case EventBase::kConnect:
+    case EventBase::kToRead: {
+      ACCLOG(V2) << *event << " add rdeadline";
+      deadlineHeap_.push(event->rdeadline());
+      // already update epoll
+      break;
+    }
+    case EventBase::kConnect: {
+      ACCLOG(V2) << *event << " add cdeadline";
+      deadlineHeap_.push(event->cdeadline());
+      poll_->add(event->fd(), EventBase::kWrite);
+      break;
+    }
     case EventBase::kToWrite: {
-      ACCLOG(V2) << *event << " add c/wdeadline";
-      deadlineHeap_.push(event->state() == EventBase::kConnect ?
-                         event->cdeadline() : event->wdeadline());
+      ACCLOG(V2) << *event << " add wdeadline";
+      deadlineHeap_.push(event->wdeadline());
       poll_->add(event->fd(), EventBase::kWrite);
       break;
     }

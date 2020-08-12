@@ -16,10 +16,13 @@
 
 #include "raster/net/Acceptor.h"
 
+#include "raster/net/EventHandler.h"
+
 namespace raster {
 
 Acceptor::Acceptor(std::shared_ptr<NetHub> hub)
   : hub_(hub), loop_(std::make_unique<EventLoop>()) {
+  loop_->registerHandler(std::make_unique<EventHandler>(loop_.get()));
 }
 
 void Acceptor::addService(std::unique_ptr<Service> service) {
