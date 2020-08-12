@@ -20,8 +20,6 @@
 
 #include <accelerator/json.h>
 
-#include "raster/concurrency/Executor.h"
-
 namespace raster {
 
 typedef std::pair<void(*)(const acc::dynamic&, bool), std::string> ConfigTask;
