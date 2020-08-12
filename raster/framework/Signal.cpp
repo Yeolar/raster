@@ -20,7 +20,6 @@
 #include <accelerator/Logging.h>
 #include <accelerator/Singleton.h>
 
-#include "raster/framework/Backtrace.h"
 #include "raster/framework/Config.h"
 #include "raster/framework/ProcessUtil.h"
 

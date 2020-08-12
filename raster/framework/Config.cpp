@@ -267,34 +267,6 @@ void configSampler(const dynamic& j, bool reload) {
   }
 }
 
-static dynamic defaultJob() {
-  return dynamic::object
-    ("job", dynamic::object
-      ("graph", dynamic::object()));
-}
-
-void configJobGraph(const dynamic& j, bool reload) {
-  /*
-  // reloadable
-  if (!j.isObject()) {
-    ACCLOG(FATAL) << "config job.graph error: " << j;
-    return;
-  }
-  ACCLOG(INFO) << "config job.graph";
-  for (auto& kv : j.items()) {
-    const dynamic& k = kv.first;
-    const dynamic& v = kv.second;
-    ACCLOG(INFO) << "config job.graph." << k;
-    acc::Graph& g = acc::Singleton<acc::GraphManager>::get()->graph(k.asString());
-    for (auto& i : v) {
-      auto name = acc::json::get(i, "name", "");
-      auto next = acc::json::getArray<std::string>(i, "next");
-      g.set(name, next);
-    }
-  }
-  */
-}
-
 std::string generateDefault() {
   dynamic d = dynamic::object;
   d.update(defaultLogging());
@@ -305,7 +277,6 @@ std::string generateDefault() {
   d.update(defaultMonitor());
   d.update(defaultDegrader());
   d.update(defaultSampler());
-  d.update(defaultJob());
   return toPrettyJson(d);
 }
 

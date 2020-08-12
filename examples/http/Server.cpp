@@ -56,7 +56,6 @@ int main(int argc, char* argv[]) {
          {configThreadPool, "thread"},
          {configNet, "net"},
          {configMonitor, "monitor"},
-         {configJobGraph, "job.graph"}
          });
 
   ACCLOG(INFO) << "raster start ... ^_^";

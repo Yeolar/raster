@@ -36,7 +36,6 @@ void configNet(const acc::dynamic& j, bool reload);
 void configMonitor(const acc::dynamic& j, bool reload);
 void configDegrader(const acc::dynamic& j, bool reload);
 void configSampler(const acc::dynamic& j, bool reload);
-void configJobGraph(const acc::dynamic& j, bool reload);
 
 class ConfigManager {
  public:
