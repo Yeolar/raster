@@ -30,7 +30,6 @@
 #include "raster/framework/HubAdaptor.h"
 #include "raster/framework/ProcessUtil.h"
 #include "raster/framework/Sampler.h"
-#include "raster/framework/json.h"
 //#include "raster/framework/FalconSender.h"
 
 namespace raster {
@@ -55,11 +54,11 @@ void configLogging(const dynamic& j, bool reload) {
   }
   ACCLOG(INFO) << "config logger";
   acc::logging::BaseLogger::Options opts;
-  opts.logFile   = acc::json::get(j, "logfile", "raster.log");
-  opts.level     = acc::json::get(j, "level", 1);
-  opts.rotate    = acc::json::get(j, "rotate", 0);
-  opts.splitSize = acc::json::get(j, "splitsize", 0);
-  opts.async     = acc::json::get(j, "async", true);
+  opts.logFile   = j.getDefault("logfile", "raster.log").asString();
+  opts.level     = j.getDefault("level", 1).asInt();
+  opts.rotate    = j.getDefault("rotate", 0).asInt();
+  opts.splitSize = j.getDefault("splitsize", 0).asInt();
+  opts.async     = j.getDefault("async", true).asBool();
   acc::Singleton<acc::logging::ACCLogger>::get()->setOptions(opts);
 }
 
@@ -76,7 +75,7 @@ void configProcess(const dynamic& j, bool reload) {
     return;
   }
   ACCLOG(INFO) << "config process";
-  auto pidfile = acc::json::get(j, "pidfile", "/tmp/raster.pid");
+  auto pidfile = j.getDefault("pidfile", "/tmp/raster.pid").asString();
   acc::writePid(pidfile.c_str(), acc::getOSThreadID());
 }
 
@@ -100,12 +99,12 @@ void configService(const dynamic& j, bool reload) {
     const dynamic& k = kv.first;
     const dynamic& v = kv.second;
     ACCLOG(INFO) << "config service." << k;
-    auto service = acc::json::get(v, "service", "");
+    auto service = v.getDefault("service", "").asString();
     int port = k.asInt();
     TimeoutOption timeoutOpt;
-    timeoutOpt.ctimeout = acc::json::get(v, "conn_timeout", 100000);
-    timeoutOpt.rtimeout = acc::json::get(v, "recv_timeout", 300000);
-    timeoutOpt.wtimeout = acc::json::get(v, "send_timeout", 1000000);
+    timeoutOpt.ctimeout = v.getDefault("conn_timeout", 100000).asInt();
+    timeoutOpt.rtimeout = v.getDefault("recv_timeout", 300000).asInt();
+    timeoutOpt.wtimeout = v.getDefault("send_timeout", 1000000).asInt();;
     acc::Singleton<HubAdaptor>::get()->configService(service, port, timeoutOpt);
   }
 }
@@ -130,7 +129,7 @@ void configThreadPool(const dynamic& j, bool reload) {
     const dynamic& v = kv.second;
     ACCLOG(INFO) << "config thread." << k;
     auto name = k.asString();
-    int threadCount = acc::json::get(v, "thread_count", 4);
+    int threadCount = v.getDefault("thread_count", 4).asInt();
     acc::Singleton<HubAdaptor>::get()->configThreads(name, threadCount);
   }
 }
@@ -149,13 +148,14 @@ void configNet(const dynamic& j, bool reload) {
     return;
   }
   ACCLOG(INFO) << "config net";
-  auto forwarding = acc::json::get(j, "forwarding", false);
+  auto forwarding = j.getDefault("forwarding", false).asBool();
   acc::Singleton<HubAdaptor>::get()->setForwarding(forwarding);
   for (auto& i : j.getDefault("copy", dynamic::array)) {
     ForwardTarget t;
-    t.port  = acc::json::get(i, "port", 0);
-    t.fpeer = Peer(acc::json::get(i, "fhost", ""), acc::json::get(i, "fport", 0));
-    t.flow  = acc::json::get(i, "flow", 100);
+    t.port  = i.getDefault("port", 0).asInt();
+    t.fpeer = Peer(i.getDefault("fhost", "").asString(),
+                   i.getDefault("fport", 0).asInt());
+    t.flow  = i.getDefault("flow", 100).asInt();
     acc::Singleton<HubAdaptor>::get()->addForwardTarget(std::move(t));
   }
 }
@@ -216,17 +216,17 @@ void configDegrader(const dynamic& j, bool reload) {
     const dynamic& v = kv.second;
     ACCLOG(INFO) << "config degrader." << k;
     for (auto& i : v) {
-      if (acc::json::get(i, "type", "") == "count") {
-        auto open = acc::json::get(i, "open", false);
-        auto limit = acc::json::get(i, "limit", 0);
-        auto gap = acc::json::get(i, "gap", 0);
+      if (i.getDefault("type", "") == "count") {
+        auto open = i.getDefault("open", false).asBool();
+        auto limit = i.getDefault("limit", 0).asInt();
+        auto gap = i.getDefault("gap", 0).asInt();
         acc::Singleton<DegraderManager>::get()->setupDegrader<CountDegrader>(
             k.asString(), open, limit, gap);
       }
-      if (acc::json::get(i, "type", "") == "rate") {
-        auto open = acc::json::get(i, "open", false);
-        auto limit = acc::json::get(i, "limit", 0);
-        auto rate = acc::json::get(i, "rate", 0.0);
+      if (i.getDefault("type", "") == "rate") {
+        auto open = i.getDefault("open", false).asBool();
+        auto limit = i.getDefault("limit", 0).asInt();
+        auto rate = i.getDefault("rate", 0.0).asDouble();
         acc::Singleton<DegraderManager>::get()->setupDegrader<RateDegrader>(
             k.asString(), open, limit, rate);
       }
@@ -256,9 +256,9 @@ void configSampler(const dynamic& j, bool reload) {
     const dynamic& v = kv.second;
     ACCLOG(INFO) << "config sampler." << k;
     for (auto& i : v) {
-      if (acc::json::get(i, "type", "") == "percent") {
-        auto open = acc::json::get(i, "open", false);
-        auto percent = acc::json::get(i, "percent", 0.0);
+      if (i.getDefault("type", "") == "percent") {
+        auto open = i.getDefault("open", false).asBool();
+        auto percent = i.getDefault("percent", 0.0).asDouble();
         acc::Singleton<SamplerManager>::get()->setupSampler<PercentSampler>(
             k.asString(), open, percent);
       }
@@ -296,7 +296,13 @@ void ConfigManager::load() {
   ACCLOG(DEBUG) << j;
 
   for (auto& task : tasks_) {
-    task.first(acc::json::resolve(j, task.second), inited_);
+    std::vector<acc::StringPiece> keys;
+    split('.', task.second, keys);
+    dynamic o = j;
+    for (auto& k : keys) {
+      o = dynamic(o.at(k));
+    }
+    task.first(o, inited_);
   }
   inited_ = true;
 }
